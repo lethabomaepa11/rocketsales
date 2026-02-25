@@ -9,6 +9,7 @@ import {
 } from "@ant-design/icons";
 import type { MenuProps } from "antd";
 import { Breadcrumb, Image, Layout, Menu, theme } from "antd";
+import SidebarMenu from "@/components/dashboards/sidebars/SidebarMenu";
 
 const { Header, Content, Footer, Sider } = Layout;
 
@@ -64,18 +65,17 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
           src="/images/logo.png"
           alt="Logo"
           width="100%"
-          style={{ marginTop: "-40px" }}
+          style={{ marginBlock: "10px" }}
           preview={false}
         />
-        <Menu
-          theme="light"
-          defaultSelectedKeys={["1"]}
-          mode="inline"
-          items={items}
-        />
+        <SidebarMenu collapsed={collapsed} />
       </Sider>
       <Layout>
-        <Header />
+        <Header
+          style={{
+            backgroundColor: colorBgContainer,
+          }}
+        />
         <Content>{children}</Content>
       </Layout>
     </Layout>
