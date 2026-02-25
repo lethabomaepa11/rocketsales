@@ -1,64 +1,80 @@
 "use client";
+
 import React, { useState } from "react";
 import {
-  DesktopOutlined,
-  FileOutlined,
-  PieChartOutlined,
-  TeamOutlined,
-  UserOutlined,
-} from "@ant-design/icons";
-import type { MenuProps } from "antd";
-import { Breadcrumb, Image, Layout, Menu, theme } from "antd";
+  Image,
+  Layout,
+  theme,
+  Breadcrumb,
+  Dropdown,
+  Avatar,
+  Space,
+} from "antd";
+import { useRouter, usePathname } from "next/navigation";
 import SidebarMenu from "@/components/dashboards/sidebars/SidebarMenu";
+import { useAuthState, useAuthActions } from "@/providers/authProvider";
+import {
+  UserOutlined,
+  LogoutOutlined,
+  SettingOutlined,
+} from "@ant-design/icons";
+import { withAuth } from "@/hoc/withAuth";
 
-const { Header, Content, Footer, Sider } = Layout;
+const { Header, Content, Sider } = Layout;
 
-type MenuItem = Required<MenuProps>["items"][number];
-
-function getItem(
-  label: React.ReactNode,
-  key: React.Key,
-  icon?: React.ReactNode,
-  children?: MenuItem[],
-): MenuItem {
-  return {
-    key,
-    icon,
-    children,
-    label,
-  } as MenuItem;
-}
-
-const items: MenuItem[] = [
-  getItem("Option 1", "1", <PieChartOutlined />),
-  getItem("Option 2", "2", <DesktopOutlined />),
-  getItem("User", "sub1", <UserOutlined />, [
-    getItem("Tom", "3"),
-    getItem("Bill", "4"),
-    getItem("Alex", "5"),
-  ]),
-  getItem("Team", "sub2", <TeamOutlined />, [
-    getItem("Team 1", "6"),
-    getItem("Team 2", "8"),
-  ]),
-  getItem("Files", "9", <FileOutlined />),
-];
-
-const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
+const DashboardLayoutContent = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => {
   const [collapsed, setCollapsed] = useState(false);
-  const {
-    token: { colorBgContainer, borderRadiusLG },
-  } = theme.useToken();
+  const router = useRouter();
+  const pathname = usePathname();
+  const { token } = theme.useToken();
+  const { user } = useAuthState();
+  const { logout } = useAuthActions();
+
+  const handleMenuClick = (key: string) => {
+    router.push(key);
+  };
+
+  const handleLogout = () => {
+    logout();
+    router.push("/login");
+  };
+
+  const getBreadcrumbItems = () => {
+    const pathParts = pathname.split("/").filter(Boolean);
+    return pathParts.map((part, index) => ({
+      key: "/" + pathParts.slice(0, index + 1).join("/"),
+      title: part.charAt(0).toUpperCase() + part.slice(1).replace(/-/g, " "),
+    }));
+  };
+
+  const userMenuItems = [
+    { key: "profile", icon: <UserOutlined />, label: "Profile" },
+    { key: "settings", icon: <SettingOutlined />, label: "Settings" },
+    { type: "divider" as const },
+    {
+      key: "logout",
+      icon: <LogoutOutlined />,
+      label: "Logout",
+      danger: true,
+      onClick: handleLogout,
+    },
+  ];
+
+  if (!user) {
+    return null;
+  }
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
       <Sider
         collapsible
         collapsed={collapsed}
-        onCollapse={(value) => setCollapsed(value)}
-        style={{
-          backgroundColor: colorBgContainer,
-        }}
+        onCollapse={setCollapsed}
+        style={{ backgroundColor: token.colorBgContainer }}
       >
         <div className="demo-logo-vertical" />
         <Image
@@ -68,18 +84,49 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
           style={{ marginBlock: "10px" }}
           preview={false}
         />
-        <SidebarMenu collapsed={collapsed} />
+        <SidebarMenu
+          collapsed={collapsed}
+          selectedKeys={[pathname]}
+          onMenuClick={handleMenuClick}
+        />
       </Sider>
       <Layout>
         <Header
           style={{
-            backgroundColor: colorBgContainer,
+            backgroundColor: token.colorBgContainer,
+            padding: "0 24px",
+            display: "flex",
+            justifyContent: "flex-end",
+            alignItems: "center",
           }}
-        />
-        <Content>{children}</Content>
+        >
+          <Breadcrumb
+            items={getBreadcrumbItems()}
+            style={{ flex: 1, lineHeight: "64px" }}
+          />
+          <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
+            <Space style={{ cursor: "pointer" }}>
+              <Avatar icon={<UserOutlined />} src={user.firstName?.charAt(0)} />
+              <span>
+                {user.firstName} {user.lastName}
+              </span>
+            </Space>
+          </Dropdown>
+        </Header>
+        <Content
+          style={{
+            padding: "24px",
+            minHeight: 280,
+            background: token.colorBgContainer,
+          }}
+        >
+          {children}
+        </Content>
       </Layout>
     </Layout>
   );
 };
+
+const DashboardLayout = withAuth(DashboardLayoutContent);
 
 export default DashboardLayout;

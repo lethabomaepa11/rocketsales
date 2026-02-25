@@ -4,6 +4,14 @@ import { AntdRegistry } from "@ant-design/nextjs-registry";
 import { App, ConfigProvider } from "antd";
 import theme from "../utils/themeConfig";
 import { AuthProvider } from "@/providers/authProvider";
+import { ClientProvider } from "@/providers/clientProvider";
+import { ContactProvider } from "@/providers/contactProvider";
+import { OpportunityProvider } from "@/providers/opportunityProvider";
+import { PricingRequestProvider } from "@/providers/pricingRequestProvider";
+import { ProposalProvider } from "@/providers/proposalProvider";
+import { ContractProvider } from "@/providers/contractProvider";
+import { ActivityProvider } from "@/providers/activityProvider";
+import { DashboardProvider } from "@/providers/dashboardProvider";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -34,7 +42,23 @@ export default function RootLayout({
         <App>
           <ConfigProvider theme={theme}>
             <AntdRegistry>
-              <AuthProvider>{children}</AuthProvider>
+              <AuthProvider>
+                <ClientProvider>
+                  <ContactProvider>
+                    <OpportunityProvider>
+                      <PricingRequestProvider>
+                        <ProposalProvider>
+                          <ContractProvider>
+                            <ActivityProvider>
+                              <DashboardProvider>{children}</DashboardProvider>
+                            </ActivityProvider>
+                          </ContractProvider>
+                        </ProposalProvider>
+                      </PricingRequestProvider>
+                    </OpportunityProvider>
+                  </ContactProvider>
+                </ClientProvider>
+              </AuthProvider>
             </AntdRegistry>
           </ConfigProvider>
         </App>
