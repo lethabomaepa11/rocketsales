@@ -1,6 +1,6 @@
 "use client";
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import { useContext, useReducer } from "react";
+
+import { useContext, useReducer, useEffect } from "react";
 import {
   loginUserError,
   loginUserPending,
@@ -8,6 +8,7 @@ import {
   registerUserError,
   registerUserPending,
   registerUserSuccess,
+  logoutUser,
 } from "./actions";
 import {
   AuthActionContext,
@@ -17,57 +18,77 @@ import {
 } from "./context";
 import { AuthReducer } from "./reducer";
 import { App } from "antd";
-import { getAxiosInstance } from "@/utils/axiosInstance";
+import { getAxiosInstance, removeAuthToken } from "@/utils/axiosInstance";
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [state, dispatch] = useReducer(AuthReducer, INITIAL_STATE);
   const instance = getAxiosInstance();
   const { notification } = App.useApp();
 
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const token = localStorage.getItem("token");
+      const userStr = localStorage.getItem("user");
+      if (token && userStr) {
+        try {
+          const userData = JSON.parse(userStr);
+          dispatch(loginUserSuccess({ ...userData }));
+        } catch {
+          removeAuthToken();
+        }
+      }
+    }
+  }, []);
+
   const registerUser = async (user: IUser) => {
     dispatch(registerUserPending());
-    await instance
-      .post("/auth/register", user)
-      .then(() => {
-        dispatch(registerUserSuccess(user));
-        notification.success({
-          title: "Successfully signed up",
-        });
-      })
-      .catch((error) => {
-        notification.error({
-          title: "Failed to signup",
-          description: error,
-        });
-
-        dispatch(registerUserError());
-        notification.success({
-          title: "Successfully signed up",
-        });
+    try {
+      await instance.post("/auth/register", user);
+      dispatch(registerUserSuccess(user));
+      notification.success({
+        message: "Successfully signed up! Please login.",
       });
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: string } };
+      notification.error({
+        message: "Failed to signup",
+        description: err.response?.data || "An error occurred",
+      });
+      dispatch(registerUserError());
+    }
   };
 
   const loginUser = async (user: IUser) => {
     dispatch(loginUserPending());
-    await instance
-      .post("/auth/login", user)
-      .then((response) => {
-        const { data } = response;
-        dispatch(loginUserSuccess(data));
-        localStorage.setItem("token", data.token || "");
-        notification.success({
-          title: "Successfully logged in",
-        });
-      })
-      .catch((error) => {
-        console.error(error);
-        dispatch(loginUserError());
+    try {
+      const response = await instance.post("/auth/login", user);
+      const { data } = response;
+
+      localStorage.setItem("token", data.token || "");
+      localStorage.setItem("user", JSON.stringify(data));
+
+      dispatch(loginUserSuccess(data));
+      notification.success({ message: "Successfully logged in!" });
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: string } };
+      notification.error({
+        message: "Login failed",
+        description: err.response?.data || "Invalid credentials",
       });
+      dispatch(loginUserError());
+    }
+  };
+
+  const logout = () => {
+    removeAuthToken();
+    localStorage.removeItem("user");
+    dispatch(logoutUser());
+    notification.success({ message: "Logged out successfully" });
   };
 
   return (
     <AuthStateContext.Provider value={state}>
-      <AuthActionContext.Provider value={{ registerUser, loginUser }}>
+      <AuthActionContext.Provider value={{ registerUser, loginUser, logout }}>
         {children}
       </AuthActionContext.Provider>
     </AuthStateContext.Provider>

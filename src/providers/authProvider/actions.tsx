@@ -10,9 +10,9 @@ export enum AuthActionEnums {
   loginUserPending = "LOGIN_USER_PENDING",
   loginUserSuccess = "LOGIN_USER_SUCCESS",
   loginUserError = "LOGIN_USER_ERROR",
+  //logout user
+  logoutUser = "LOGOUT_USER",
 }
-
-//actions
 
 //register user
 export const registerUserPending = createAction<IAuthStateContext>(
@@ -49,5 +49,16 @@ export const loginUserSuccess = createAction<IAuthStateContext, IUser>(
     isError: false,
     isSuccess: true,
     user,
+  }),
+);
+
+//logout user
+export const logoutUser = createAction<IAuthStateContext>(
+  AuthActionEnums.logoutUser,
+  () => ({
+    isPending: false,
+    isError: false,
+    isSuccess: false,
+    user: undefined,
   }),
 );
