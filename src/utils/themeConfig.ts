@@ -5,6 +5,7 @@ const theme: ThemeConfig = {
   token: {
     fontSize: 16,
     colorPrimary: '#DF6D27',
+    borderRadius: 15,
   },
 };
 
