@@ -6,7 +6,7 @@ const theme: ThemeConfig = {
     fontSize: 16,
     colorPrimary: '#DF6D27',
     borderRadius: 15,
-  },
+  }
 };
 
 export default theme;

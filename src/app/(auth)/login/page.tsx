@@ -1,10 +1,12 @@
 "use client";
-import React from "react";
+
+import React, { useEffect } from "react";
 import type { FormProps } from "antd";
 import { Button, Checkbox, Form, Input } from "antd";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useStyles } from "../style/authStyles";
-import { useAuthActions } from "@/providers/authProvider";
+import { useAuthActions, useAuthState } from "@/providers/authProvider";
 import { IUser } from "@/providers/authProvider/context";
 
 type FieldType = {
@@ -16,10 +18,18 @@ type FieldType = {
 const LoginPage = () => {
   const { styles } = useStyles();
   const { loginUser } = useAuthActions();
+  const { isSuccess } = useAuthState();
+  const router = useRouter();
 
   const onFinish: FormProps<FieldType>["onFinish"] = (values) => {
-    console.log("Success:", values);
-    loginUser(values as IUser);
+    const user: IUser = {
+      userId: "",
+      firstName: "",
+      lastName: "",
+      email: values.email || "",
+      password: values.password,
+    };
+    loginUser(user);
   };
 
   const onFinishFailed: FormProps<FieldType>["onFinishFailed"] = (
@@ -27,6 +37,12 @@ const LoginPage = () => {
   ) => {
     console.log("Failed:", errorInfo);
   };
+
+  useEffect(() => {
+    if (isSuccess) {
+      router.push("/dashboard");
+    }
+  }, [isSuccess, router]);
 
   return (
     <Form

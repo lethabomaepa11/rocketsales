@@ -7,9 +7,9 @@ export interface IUser {
   firstName: string;
   lastName: string;
   email: string;
-  token?: string; //will be returned on successful login or registration
-  password?: string; //will be used for registration and login, but should not be stored in context after successful authentication
-  roles?: string[]; //will be returned on successful login or registration, used for role-based access control
+  token?: string;
+  password?: string;
+  roles?: string[];
 }
 
 export interface IAuthStateContext {
@@ -22,13 +22,16 @@ export interface IAuthStateContext {
 export interface IAuthActionContext {
   registerUser: (user: IUser) => void;
   loginUser: (user: IUser) => void;
+  logout: () => void;
 }
+
 export const INITIAL_STATE: IAuthStateContext = {
   isPending: false,
   isSuccess: false,
   isError: false,
 };
 
-//create context
 export const AuthStateContext = createContext<IAuthStateContext>(INITIAL_STATE);
-export const AuthActionContext = createContext<IAuthActionContext>(undefined);
+export const AuthActionContext = createContext<IAuthActionContext>(
+  undefined as unknown as IAuthActionContext,
+);
