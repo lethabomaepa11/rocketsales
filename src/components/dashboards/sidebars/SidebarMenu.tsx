@@ -48,6 +48,12 @@ const SidebarMenu: React.FC<SidebarMenuProps> = ({
     },
 
     {
+      key: "/contacts",
+      icon: <UserOutlined />,
+      label: "Contacts",
+    },
+
+    {
       key: "/opportunities",
       icon: <AimOutlined />,
       label: "Opportunities",
