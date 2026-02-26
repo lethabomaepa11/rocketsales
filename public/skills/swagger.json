@@ -7420,7 +7420,7 @@
       "UpdateStageDto": {
         "type": "object",
         "properties": {
-          "newStage": {
+          "stage": {
             "$ref": "#/components/schemas/OpportunityStage"
           },
           "notes": {

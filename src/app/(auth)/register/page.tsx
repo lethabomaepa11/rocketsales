@@ -1,13 +1,12 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import type { FormProps } from "antd";
-import { Button, Flex, Form, Input } from "antd";
+import { Button, Flex, Form, Input, Tabs, Select } from "antd";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useStyles } from "../style/authStyles";
 import { useAuthActions, useAuthState } from "@/providers/authProvider";
-import { IUser } from "@/providers/authProvider/context";
 
 type FieldType = {
   firstName?: string;
@@ -16,23 +15,54 @@ type FieldType = {
   phoneNumber?: string;
   password?: string;
   confirmPassword?: string;
+  tenantName?: string;
+  tenantId?: string;
+  role?: string;
 };
+
+type ScenarioType = "new-org" | "join-org" | "default";
+
+const ROLE_OPTIONS = [
+  { label: "Sales Representative", value: "SalesRep" },
+  { label: "Sales Manager", value: "SalesManager" },
+  {
+    label: "Business Development Manager",
+    value: "BusinessDevelopmentManager",
+  },
+];
 
 const RegisterPage = () => {
   const { styles } = useStyles();
   const { registerUser } = useAuthActions();
   const { isSuccess } = useAuthState();
   const router = useRouter();
+  const [scenario, setScenario] = useState<ScenarioType>("default");
+  const [form] = Form.useForm<FieldType>();
 
   const onFinish: FormProps<FieldType>["onFinish"] = (values) => {
-    const user: IUser = {
-      userId: "",
+    // Build payload based on selected scenario
+    const payload: Record<string, string | undefined> = {
       firstName: values.firstName || "",
       lastName: values.lastName || "",
       email: values.email || "",
       password: values.password,
+      phoneNumber: values.phoneNumber,
     };
-    registerUser(user);
+
+    // Scenario A: Create new organisation
+    if (scenario === "new-org" && values.tenantName) {
+      payload.tenantName = values.tenantName;
+    }
+    // Scenario B: Join existing organisation
+    else if (scenario === "join-org" && values.tenantId) {
+      payload.tenantId = values.tenantId;
+      if (values.role) {
+        payload.role = values.role;
+      }
+    }
+    // Scenario C: Use default shared tenant (no additional fields needed)
+
+    registerUser(payload);
   };
 
   const onFinishFailed: FormProps<FieldType>["onFinishFailed"] = (
@@ -54,6 +84,7 @@ const RegisterPage = () => {
       onFinish={onFinish}
       onFinishFailed={onFinishFailed}
       autoComplete="off"
+      form={form}
     >
       <h1>Join RocketSales</h1>
       <p>
@@ -62,6 +93,75 @@ const RegisterPage = () => {
           Login
         </Link>
       </p>
+
+      {/* Organisation Setup Options */}
+      <Form.Item label="Organisation Setup">
+        <Tabs
+          activeKey={scenario}
+          onChange={(key) => {
+            setScenario(key as ScenarioType);
+            form.resetFields(["tenantName", "tenantId", "role"]);
+          }}
+          items={[
+            {
+              key: "new-org",
+              label: "Create New Organisation",
+              children: (
+                <Form.Item<FieldType>
+                  label="Organisation Name"
+                  name="tenantName"
+                  rules={[
+                    {
+                      required: scenario === "new-org",
+                      message: "Please input your organisation name!",
+                    },
+                  ]}
+                >
+                  <Input placeholder="e.g., Acme Corp" />
+                </Form.Item>
+              ),
+            },
+            {
+              key: "join-org",
+              label: "Join Existing Organisation",
+              children: (
+                <>
+                  <Form.Item<FieldType>
+                    label="Organisation ID"
+                    name="tenantId"
+                    rules={[
+                      {
+                        required: scenario === "join-org",
+                        message: "Please input the organisation ID!",
+                      },
+                    ]}
+                  >
+                    <Input placeholder="Paste the tenant ID from your admin" />
+                  </Form.Item>
+                  <Form.Item<FieldType> label="Role (optional)" name="role">
+                    <Select
+                      placeholder="Select your role"
+                      options={ROLE_OPTIONS}
+                      allowClear
+                    />
+                  </Form.Item>
+                </>
+              ),
+            },
+            {
+              key: "default",
+              label: "Use Default Workspace",
+              children: (
+                <p style={{ color: "#666", fontSize: "12px" }}>
+                  You will be added to the shared demo workspace.
+                </p>
+              ),
+            },
+          ]}
+        />
+      </Form.Item>
+
+      {/* Common User Fields */}
       <Flex>
         <Form.Item<FieldType>
           label="First Name"

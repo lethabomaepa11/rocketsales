@@ -7,7 +7,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useStyles } from "../style/authStyles";
 import { useAuthActions, useAuthState } from "@/providers/authProvider";
-import { IUser } from "@/providers/authProvider/context";
 
 type FieldType = {
   email?: string;
@@ -22,14 +21,11 @@ const LoginPage = () => {
   const router = useRouter();
 
   const onFinish: FormProps<FieldType>["onFinish"] = (values) => {
-    const user: IUser = {
-      userId: "",
-      firstName: "",
-      lastName: "",
+    // only send credentials required by API
+    loginUser({
       email: values.email || "",
       password: values.password,
-    };
-    loginUser(user);
+    });
   };
 
   const onFinishFailed: FormProps<FieldType>["onFinishFailed"] = (

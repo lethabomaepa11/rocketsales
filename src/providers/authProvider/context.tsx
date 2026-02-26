@@ -10,6 +10,8 @@ export interface IUser {
   token?: string;
   password?: string;
   roles?: string[];
+  tenantId?: string;
+  expiresAt?: string;
 }
 
 export interface IAuthStateContext {
@@ -20,9 +22,25 @@ export interface IAuthStateContext {
   user?: IUser;
 }
 
+export interface IRegisterPayload {
+  email?: string;
+  password?: string;
+  firstName?: string;
+  lastName?: string;
+  phoneNumber?: string;
+  role?: string;
+  tenantName?: string;
+  tenantId?: string;
+}
+
+export interface ILoginPayload {
+  email?: string;
+  password?: string;
+}
+
 export interface IAuthActionContext {
-  registerUser: (user: IUser) => void;
-  loginUser: (user: IUser) => void;
+  registerUser: (user: IRegisterPayload) => void;
+  loginUser: (credentials: ILoginPayload) => void;
   logout: () => void;
 }
 

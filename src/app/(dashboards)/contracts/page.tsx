@@ -29,6 +29,7 @@ import {
   useContractState,
   useContractActions,
 } from "@/providers/contractProvider";
+import { useAuthState } from "@/providers/authProvider";
 import { useClientState, useClientActions } from "@/providers/clientProvider";
 import {
   useOpportunityState,
@@ -79,6 +80,7 @@ const ContractsPage = () => {
   );
   const [activeTab, setActiveTab] = useState("all");
   const [form] = Form.useForm();
+  const { user } = useAuthState();
 
   useEffect(() => {
     fetchContracts();
@@ -120,15 +122,30 @@ const ContractsPage = () => {
   const handleModalOk = async () => {
     try {
       const values = await form.validateFields();
-      const data = {
-        ...values,
-        startDate: values.startDate?.toISOString(),
-        endDate: values.endDate?.toISOString(),
+
+      const payload = {
+        clientId: values.clientId,
+        opportunityId: values.opportunityId ?? null,
+        proposalId: values.proposalId ?? null,
+        title: values.title ?? null,
+        contractValue: Number(values.contractValue ?? 0),
+        currency: values.currency ?? null,
+        startDate: values.startDate
+          ? values.startDate.toISOString()
+          : new Date().toISOString(),
+        endDate: values.endDate
+          ? values.endDate.toISOString()
+          : new Date().toISOString(),
+        renewalNoticePeriod: Number(values.renewalNoticePeriod ?? 0),
+        autoRenew: Boolean(values.autoRenew ?? false),
+        terms: values.terms ?? null,
+        ownerId: user?.userId ?? "",
       };
+
       if (editingContract) {
-        await updateContract(editingContract.id, data as UpdateContractDto);
+        await updateContract(editingContract.id, payload as UpdateContractDto);
       } else {
-        await createContract(data as CreateContractDto);
+        await createContract(payload as CreateContractDto);
       }
       setIsModalVisible(false);
       fetchContracts();

@@ -20,6 +20,7 @@ import {
   DeleteOutlined,
   SearchOutlined,
   EyeOutlined,
+  UserOutlined,
 } from "@ant-design/icons";
 import { useClientState, useClientActions } from "@/providers/clientProvider";
 import {
@@ -27,12 +28,14 @@ import {
   ClientType,
   CreateClientDto,
 } from "@/providers/clientProvider/types";
+import { useRouter } from "next/navigation";
 
 const { Title } = Typography;
 const { Option } = Select;
 
 const ClientsPage = () => {
   const { clients, isPending, pagination } = useClientState();
+  const router = useRouter();
   const {
     fetchClients,
     createClient,
@@ -71,6 +74,11 @@ const ClientsPage = () => {
     setViewingClient(client);
     await fetchClientStats(client.id);
     setIsViewModalVisible(true);
+  };
+
+  const handleViewContacts = (clientId: string) => {
+    // Navigate to contacts page with the client pre-selected
+    router.push(`/contacts?clientId=${clientId}`);
   };
 
   const handleDeleteClient = async (id: string) => {
@@ -158,6 +166,13 @@ const ClientsPage = () => {
       key: "actions",
       render: (_: unknown, record: ClientDto) => (
         <Space>
+          <Button
+            type="link"
+            icon={<UserOutlined />}
+            onClick={() => handleViewContacts(record.id)}
+          >
+            View Contacts
+          </Button>
           <Button
             type="link"
             icon={<EyeOutlined />}

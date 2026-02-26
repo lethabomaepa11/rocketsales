@@ -49,7 +49,7 @@ export interface UpdateOpportunityDto {
 }
 
 export interface UpdateStageDto {
-  newStage: OpportunityStage;
+  stage: OpportunityStage;
   notes: string | null;
   lossReason: string | null;
 }

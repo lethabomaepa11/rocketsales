@@ -1,27 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  Table,
-  Button,
-  Space,
-  Tag,
-  Card,
-  Modal,
-  Form,
-  Input,
-  Select,
-  Typography,
-  Popconfirm,
-  Switch,
-} from "antd";
-import {
-  PlusOutlined,
-  EditOutlined,
-  DeleteOutlined,
-  StarOutlined,
-  StarFilled,
-} from "@ant-design/icons";
+import { Card, Form } from "antd";
 import {
   useContactState,
   useContactActions,
@@ -32,10 +12,9 @@ import {
   CreateContactDto,
   UpdateContactDto,
 } from "@/providers/contactProvider/types";
-
-const { Title } = Typography;
-const { Option } = Select;
-
+import ClientListView from "@/components/dashboards/contacts/ClientListView";
+import ContactListView from "@/components/dashboards/contacts/ContactListView";
+import ContactForm from "@/components/dashboards/contacts/ContactForm";
 const ContactsPage = () => {
   const { contacts, isPending, pagination } = useContactState();
   const {
@@ -49,30 +28,58 @@ const ContactsPage = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingContact, setEditingContact] = useState<ContactDto | null>(null);
   const [selectedClientId, setSelectedClientId] = useState<string>("");
+  const [viewingContacts, setViewingContacts] = useState(false);
+  const [selectedClientName, setSelectedClientName] = useState<string>("");
   const [form] = Form.useForm();
 
   useEffect(() => {
     fetchContacts();
   }, []);
+
+  // Handle URL parameter for client selection
   useEffect(() => {
-    if (selectedClientId) fetchContacts({ clientId: selectedClientId });
+    const urlParams = new URLSearchParams(window.location.search);
+    const clientId = urlParams.get("clientId");
+    if (clientId) {
+      setSelectedClientId(clientId);
+      setViewingContacts(true);
+      fetchContacts({ clientId });
+    }
+  }, []);
+
+  useEffect(() => {
+    if (selectedClientId) {
+      fetchContacts({ clientId: selectedClientId });
+    }
   }, [selectedClientId]);
+
+  useEffect(() => {
+    if (selectedClientId) {
+      const client = clients.find((c) => c.id === selectedClientId);
+      if (client) {
+        setSelectedClientName(client.name || "");
+      }
+    }
+  }, [selectedClientId, clients]);
 
   const handleAddContact = () => {
     setEditingContact(null);
-    form.resetFields();
+    // Pre-select the current client if viewing contacts
+    if (selectedClientId) {
+      form.setFieldsValue({ clientId: selectedClientId });
+    } else {
+      form.setFieldsValue({ clientId: "" });
+    }
     setIsModalVisible(true);
   };
-
   const handleEditContact = (contact: ContactDto) => {
     setEditingContact(contact);
-    form.setFieldsValue(contact);
     setIsModalVisible(true);
   };
 
   const handleDeleteContact = async (id: string) => {
     await deleteContact(id);
-    fetchContacts();
+    fetchContacts({ clientId: selectedClientId });
   };
 
   const handleSetPrimary = async (id: string, clientId: string) => {
@@ -80,204 +87,62 @@ const ContactsPage = () => {
     fetchContacts({ clientId });
   };
 
-  const handleModalOk = async () => {
+  const handleModalOk = async (values: CreateContactDto | UpdateContactDto) => {
     try {
-      const values = await form.validateFields();
       if (editingContact) {
         await updateContact(editingContact.id, values as UpdateContactDto);
       } else {
         await createContact(values as CreateContactDto);
       }
       setIsModalVisible(false);
-      form.resetFields();
       fetchContacts({ clientId: selectedClientId });
     } catch (error) {
       console.error("Validation failed:", error);
     }
   };
 
-  const columns = [
-    {
-      title: "Name",
-      key: "fullName",
-      render: (_: unknown, record: ContactDto) =>
-        record.fullName || `${record.firstName} ${record.lastName}`,
-    },
-    {
-      title: "Email",
-      dataIndex: "email",
-      key: "email",
-      render: (text: string) => text || "N/A",
-    },
-    {
-      title: "Phone",
-      dataIndex: "phoneNumber",
-      key: "phoneNumber",
-      render: (text: string) => text || "N/A",
-    },
-    {
-      title: "Position",
-      dataIndex: "position",
-      key: "position",
-      render: (text: string) => text || "N/A",
-    },
-    { title: "Client", dataIndex: "clientName", key: "clientName" },
-    {
-      title: "Primary",
-      dataIndex: "isPrimaryContact",
-      key: "isPrimaryContact",
-      render: (isPrimary: boolean, record: ContactDto) =>
-        isPrimary ? (
-          <Tag color="gold">
-            <StarFilled /> Primary
-          </Tag>
-        ) : (
-          <Button
-            type="link"
-            icon={<StarOutlined />}
-            onClick={() => handleSetPrimary(record.id, record.clientId)}
-          >
-            Set
-          </Button>
-        ),
-    },
-    {
-      title: "Status",
-      dataIndex: "isActive",
-      key: "isActive",
-      render: (isActive: boolean) => (
-        <Tag color={isActive ? "green" : "red"}>
-          {isActive ? "Active" : "Inactive"}
-        </Tag>
-      ),
-    },
-    {
-      title: "Actions",
-      key: "actions",
-      render: (_: unknown, record: ContactDto) => (
-        <Space>
-          <Button
-            type="link"
-            icon={<EditOutlined />}
-            onClick={() => handleEditContact(record)}
-          />
-          <Popconfirm
-            title="Delete this contact?"
-            onConfirm={() => handleDeleteContact(record.id)}
-            okText="Yes"
-            cancelText="No"
-          >
-            <Button type="link" danger icon={<DeleteOutlined />} />
-          </Popconfirm>
-        </Space>
-      ),
-    },
-  ];
+  const handleClientSelect = (clientId: string) => {
+    setSelectedClientId(clientId);
+    setViewingContacts(true);
+    fetchContacts({ clientId });
+    // Pre-select the client in the form when switching views
+    form.setFieldsValue({ clientId });
+  };
+
+  const handleBackToClients = () => {
+    window.history.back();
+  };
+
+  const handlePageChange = (page: number, pageSize: number) => {
+    fetchContacts({
+      pageNumber: page,
+      pageSize,
+      clientId: selectedClientId,
+    });
+  };
 
   return (
     <div style={{ padding: "24px" }}>
       <Card>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            marginBottom: 16,
-          }}
-        >
-          <Title level={3}>Contacts</Title>
-          <Space>
-            <Select
-              placeholder="Filter by Client"
-              style={{ width: 200 }}
-              allowClear
-              onChange={setSelectedClientId}
-            >
-              {clients.map((c) => (
-                <Option key={c.id} value={c.id}>
-                  {c.name}
-                </Option>
-              ))}
-            </Select>
-            <Button
-              type="primary"
-              icon={<PlusOutlined />}
-              onClick={handleAddContact}
-            >
-              Add Contact
-            </Button>
-          </Space>
-        </div>
-        <Table
-          columns={columns}
-          dataSource={contacts}
-          loading={isPending}
-          rowKey="id"
-          pagination={{
-            current: pagination.pageNumber,
-            pageSize: pagination.pageSize,
-            total: pagination.totalCount,
-            onChange: (page, pageSize) =>
-              fetchContacts({
-                pageNumber: page,
-                pageSize,
-                clientId: selectedClientId,
-              }),
-          }}
+        <ContactListView
+          contacts={contacts}
+          isPending={isPending}
+          selectedClientName={selectedClientName}
+          onBackToClients={handleBackToClients}
+          onAddContact={handleAddContact}
+          onEditContact={handleEditContact}
+          onDeleteContact={handleDeleteContact}
+          onSetPrimary={handleSetPrimary}
+          pagination={pagination}
+          onPageChange={handlePageChange}
         />
-        <Modal
-          title={editingContact ? "Edit Contact" : "Add Contact"}
-          open={isModalVisible}
-          onOk={handleModalOk}
+        <ContactForm
+          visible={isModalVisible}
+          editingContact={editingContact}
+          clients={clients}
           onCancel={() => setIsModalVisible(false)}
-          width={500}
-        >
-          <Form form={form} layout="vertical">
-            <Form.Item
-              name="clientId"
-              label="Client"
-              rules={[{ required: true }]}
-            >
-              <Select>
-                <Option value="">Select Client</Option>
-                {clients.map((c) => (
-                  <Option key={c.id} value={c.id}>
-                    {c.name}
-                  </Option>
-                ))}
-              </Select>
-            </Form.Item>
-            <Form.Item
-              name="firstName"
-              label="First Name"
-              rules={[{ required: true }]}
-            >
-              <Input />
-            </Form.Item>
-            <Form.Item
-              name="lastName"
-              label="Last Name"
-              rules={[{ required: true }]}
-            >
-              <Input />
-            </Form.Item>
-            <Form.Item name="email" label="Email">
-              <Input type="email" />
-            </Form.Item>
-            <Form.Item name="phoneNumber" label="Phone">
-              <Input />
-            </Form.Item>
-            <Form.Item name="position" label="Position">
-              <Input />
-            </Form.Item>
-            <Form.Item
-              name="isPrimaryContact"
-              label="Primary Contact"
-              valuePropName="checked"
-            >
-              <Switch />
-            </Form.Item>
-          </Form>
-        </Modal>
+          onOk={handleModalOk}
+        />
       </Card>
     </div>
   );
