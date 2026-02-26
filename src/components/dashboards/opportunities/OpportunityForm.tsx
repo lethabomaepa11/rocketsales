@@ -131,8 +131,7 @@ const OpportunityForm: React.FC<OpportunityFormProps> = ({
             allowClear
             showSearch
             filterOption={(input, option) =>
-              (option?.children as string)
-                ?.toString()
+              String(option?.children ?? "")
                 .toLowerCase()
                 .includes(input.toLowerCase())
             }

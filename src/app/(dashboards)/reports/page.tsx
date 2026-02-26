@@ -83,7 +83,7 @@ const ReportsPage = () => {
           <Card>
             <Statistic
               title="Total Revenue"
-              value={overview?.totalRevenue || 0}
+              value={overview?.revenue?.thisYear || 0}
               prefix={<DollarOutlined />}
               valueStyle={{ color: "#3f8600" }}
             />
@@ -92,8 +92,9 @@ const ReportsPage = () => {
         <Col span={6}>
           <Card>
             <Statistic
-              title="Total Clients"
-              value={overview?.totalClients || 0}
+              title="Win Rate"
+              value={overview?.opportunities?.winRate || 0}
+              suffix="%"
               prefix={<TeamOutlined />}
             />
           </Card>
@@ -101,8 +102,8 @@ const ReportsPage = () => {
         <Col span={6}>
           <Card>
             <Statistic
-              title="Active Proposals"
-              value={overview?.activeProposals || 0}
+              title="Total Opportunities"
+              value={overview?.opportunities?.totalCount || 0}
               prefix={<FileTextOutlined />}
             />
           </Card>
@@ -180,35 +181,22 @@ const ReportsPage = () => {
           <Col span={8}>
             <Statistic
               title="Total Pipeline Value"
-              value={overview?.totalOpportunities || 0}
+              value={overview?.opportunities?.pipelineValue || 0}
               prefix={<DollarOutlined />}
             />
           </Col>
           <Col span={8}>
             <Statistic
               title="Total Contracts"
-              value={overview?.totalContracts || 0}
+              value={overview?.contracts?.totalContractValue || 0}
               prefix={<FileTextOutlined />}
             />
           </Col>
           <Col span={8}>
             <Statistic
-              title="Monthly Growth"
-              value={overview?.monthlyGrowth || 0}
-              suffix="%"
-              prefix={
-                overview?.monthlyGrowth && overview.monthlyGrowth >= 0 ? (
-                  <RiseOutlined />
-                ) : (
-                  <FallOutlined />
-                )
-              }
-              valueStyle={{
-                color:
-                  overview?.monthlyGrowth && overview.monthlyGrowth >= 0
-                    ? "#3f8600"
-                    : "#cf1322",
-              }}
+              title="Weighted Pipeline"
+              value={overview?.pipeline?.weightedPipelineValue || 0}
+              prefix={<DollarOutlined />}
             />
           </Col>
         </Row>
