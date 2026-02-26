@@ -61,6 +61,10 @@ RocketSales is a modern customer relationship management (CRM) system designed f
 - Activity types (Call, Meeting, Task, Email, Note)
 - Status tracking (Pending, In Progress, Completed)
 - Due date and priority management
+- Participant management for activities
+- Activity completion and cancellation
+- Upcoming and overdue activities filtering
+- My activities view
 
 ### Reports
 - Opportunity reports
