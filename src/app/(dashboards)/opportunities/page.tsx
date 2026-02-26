@@ -29,8 +29,12 @@ import {
   useOpportunityState,
   useOpportunityActions,
 } from "@/providers/opportunityProvider";
-import { useClientState } from "@/providers/clientProvider";
-import { useContactState } from "@/providers/contactProvider";
+import { useClientState, useClientActions } from "@/providers/clientProvider";
+import {
+  useContactState,
+  useContactActions,
+} from "@/providers/contactProvider";
+import OpportunityForm from "@/components/dashboards/opportunities/OpportunityForm";
 import {
   OpportunityDto,
   CreateOpportunityDto,
@@ -71,6 +75,8 @@ const OpportunitiesPage = () => {
   } = useOpportunityActions();
   const { clients } = useClientState();
   const { contacts } = useContactState();
+  const { fetchClients } = useClientActions();
+  const { fetchContacts } = useContactActions();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingOpportunity, setEditingOpportunity] =
     useState<OpportunityDto | null>(null);
@@ -81,6 +87,8 @@ const OpportunitiesPage = () => {
 
   useEffect(() => {
     fetchOpportunities();
+    fetchClients();
+    fetchContacts();
   }, []);
 
   const handleAddOpportunity = () => {
@@ -258,76 +266,15 @@ const OpportunitiesPage = () => {
               }),
           }}
         />
-        <Modal
-          title={editingOpportunity ? "Edit Opportunity" : "Add Opportunity"}
-          open={isModalVisible}
-          onOk={handleModalOk}
+        <OpportunityForm
+          visible={isModalVisible}
           onCancel={() => setIsModalVisible(false)}
-          width={600}
-        >
-          <Form form={form} layout="vertical">
-            <Form.Item
-              name="clientId"
-              label="Client"
-              rules={[{ required: true }]}
-            >
-              <Select>
-                {clients.map((c) => (
-                  <Option key={c.id} value={c.id}>
-                    {c.name}
-                  </Option>
-                ))}
-              </Select>
-            </Form.Item>
-            <Form.Item name="contactId" label="Contact">
-              <Select allowClear>
-                {contacts.map((c) => (
-                  <Option key={c.id} value={c.id}>
-                    {c.fullName}
-                  </Option>
-                ))}
-              </Select>
-            </Form.Item>
-            <Form.Item name="title" label="Title">
-              <Input />
-            </Form.Item>
-            <Form.Item name="estimatedValue" label="Value">
-              <InputNumber style={{ width: "100%" }} />
-            </Form.Item>
-            <Form.Item name="currency" label="Currency">
-              <Input placeholder="USD" />
-            </Form.Item>
-            <Form.Item name="probability" label="Probability (%)">
-              <InputNumber min={0} max={100} style={{ width: "100%" }} />
-            </Form.Item>
-            <Form.Item name="stage" label="Stage" rules={[{ required: true }]}>
-              <Select>
-                {Object.entries(stageLabels).map(([key, label]) => (
-                  <Option key={key} value={Number(key)}>
-                    {label}
-                  </Option>
-                ))}
-              </Select>
-            </Form.Item>
-            <Form.Item name="source" label="Source">
-              <Select>
-                {Object.values(OpportunitySource)
-                  .filter((s) => typeof s === "number")
-                  .map((s) => (
-                    <Option key={s} value={s}>
-                      {OpportunitySource[s]}
-                    </Option>
-                  ))}
-              </Select>
-            </Form.Item>
-            <Form.Item name="expectedCloseDate" label="Expected Close Date">
-              <DatePicker style={{ width: "100%" }} />
-            </Form.Item>
-            <Form.Item name="description" label="Description">
-              <Input.TextArea rows={3} />
-            </Form.Item>
-          </Form>
-        </Modal>
+          onSubmit={handleModalOk}
+          initialValues={editingOpportunity}
+          clients={clients}
+          contacts={contacts}
+          loading={isPending}
+        />
       </Card>
     </div>
   );
