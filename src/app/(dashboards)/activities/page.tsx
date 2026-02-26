@@ -415,7 +415,11 @@ const ActivitiesPage = () => {
               <Input />
             </Form.Item>
             <Form.Item name="assignedToId" label="Assigned To">
-              <UserSelector />
+              <UserSelector
+                role="SalesRep"
+                isActive
+                placeholder="Select assignee"
+              />
             </Form.Item>
             <Form.Item name="relatedToType" label="Related To Type">
               <Select

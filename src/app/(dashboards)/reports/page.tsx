@@ -53,38 +53,42 @@ const ReportsPage = () => {
     null,
   );
   const [groupBy, setGroupBy] = useState<"month" | "week">("month");
-  const salesPerformanceSummary = (salesPerformance || []).reduce(
-    (summary, item) => ({
-      dealsWon: summary.dealsWon + item.dealsWon,
-      dealsLost: summary.dealsLost + item.dealsLost,
-      averageDealValue: summary.averageDealValue + item.averageDealValue,
-      conversionRate: summary.conversionRate + item.conversionRate,
-    }),
-    { dealsWon: 0, dealsLost: 0, averageDealValue: 0, conversionRate: 0 },
-  );
 
+  // Initial load
   useEffect(() => {
     fetchOverview();
     fetchSalesPerformance();
     fetchActivitiesSummary();
     fetchOpportunityReport();
     fetchSalesByPeriod({ groupBy: "month" });
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handleDateFilter = () => {
-    const params = dateRange
+  // Re-fetch reports when filters change
+  useEffect(() => {
+    const dateParams = dateRange
       ? {
           startDate: dateRange[0].toISOString(),
           endDate: dateRange[1].toISOString(),
         }
       : {};
-    fetchOpportunityReport(params);
-    fetchSalesByPeriod({ ...params, groupBy });
-  };
+    fetchOpportunityReport(dateParams);
+    fetchSalesByPeriod({ ...dateParams, groupBy });
+  }, [dateRange, groupBy]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  useEffect(() => {
-    if (dateRange) handleDateFilter();
-  }, [dateRange, groupBy]);
+  // Correctly average rates/values, sum counts
+  const performanceList = Array.isArray(salesPerformance)
+    ? salesPerformance
+    : [];
+  const repCount = performanceList.length || 1;
+  const salesPerformanceSummary = performanceList.reduce(
+    (acc, item) => ({
+      dealsWon: acc.dealsWon + item.dealsWon,
+      dealsLost: acc.dealsLost + item.dealsLost,
+      averageDealValue: acc.averageDealValue + item.averageDealValue / repCount,
+      conversionRate: acc.conversionRate + item.conversionRate / repCount,
+    }),
+    { dealsWon: 0, dealsLost: 0, averageDealValue: 0, conversionRate: 0 },
+  );
 
   const oppColumns = [
     { title: "Title", dataIndex: "title", key: "title" },
@@ -104,7 +108,7 @@ const ReportsPage = () => {
       dataIndex: "stage",
       key: "stage",
       render: (s: number) => {
-        const info = stageMap[s] || { label: s, color: "default" };
+        const info = stageMap[s] || { label: String(s), color: "default" };
         return <Tag color={info.color}>{info.label}</Tag>;
       },
     },
@@ -138,6 +142,7 @@ const ReportsPage = () => {
     <div style={{ padding: "24px" }}>
       <Title level={3}>Reports &amp; Analytics</Title>
 
+      {/* Top KPIs */}
       <Row gutter={16} style={{ marginBottom: 24 }}>
         <Col span={6}>
           <Card>
@@ -180,6 +185,7 @@ const ReportsPage = () => {
         </Col>
       </Row>
 
+      {/* Sales Performance + Activities Summary */}
       <Row gutter={16} style={{ marginBottom: 24 }}>
         <Col span={12}>
           <Card title="Sales Performance">
@@ -202,15 +208,19 @@ const ReportsPage = () => {
               </Col>
               <Col span={12}>
                 <Statistic
-                  title="Conversion Rate"
-                  value={salesPerformanceSummary.conversionRate}
+                  title="Avg Conversion Rate"
+                  value={Number(
+                    salesPerformanceSummary.conversionRate.toFixed(1),
+                  )}
                   suffix="%"
                 />
               </Col>
               <Col span={12}>
                 <Statistic
                   title="Avg Deal Value"
-                  value={salesPerformanceSummary.averageDealValue}
+                  value={Number(
+                    salesPerformanceSummary.averageDealValue.toFixed(0),
+                  )}
                   prefix={<DollarOutlined />}
                 />
               </Col>
@@ -255,6 +265,7 @@ const ReportsPage = () => {
         </Col>
       </Row>
 
+      {/* Opportunities Report */}
       <Card
         title="Opportunities Report"
         style={{ marginBottom: 24 }}
@@ -277,6 +288,7 @@ const ReportsPage = () => {
         </Spin>
       </Card>
 
+      {/* Sales by Period */}
       <Card
         title="Sales by Period"
         extra={
