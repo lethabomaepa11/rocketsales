@@ -6,6 +6,8 @@ import {
   CreateActivityDto,
   UpdateActivityDto,
   ActivityQueryParams,
+  ActivityParticipantDto,
+  CreateActivityParticipantDto,
 } from "./types";
 
 export interface IActivityStateContext {
@@ -14,6 +16,7 @@ export interface IActivityStateContext {
   isError: boolean;
   activities: ActivityDto[];
   selectedActivity: ActivityDto | null;
+  participants: ActivityParticipantDto[];
   pagination: {
     pageNumber: number;
     pageSize: number;
@@ -33,6 +36,11 @@ export interface IActivityActionContext {
   deleteActivity: (id: string) => void;
   completeActivity: (id: string, outcome?: string) => void;
   cancelActivity: (id: string) => void;
+  fetchParticipants: (activityId: string) => void;
+  addParticipant: (
+    activityId: string,
+    participant: CreateActivityParticipantDto,
+  ) => void;
 }
 
 export const INITIAL_STATE: IActivityStateContext = {
@@ -41,6 +49,7 @@ export const INITIAL_STATE: IActivityStateContext = {
   isError: false,
   activities: [],
   selectedActivity: null,
+  participants: [],
   pagination: { pageNumber: 1, pageSize: 10, totalCount: 0, totalPages: 0 },
 };
 

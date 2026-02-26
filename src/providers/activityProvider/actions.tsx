@@ -39,3 +39,31 @@ export const deleteActivitySuccess = (id: string) => ({
   payload: id,
 });
 export const deleteActivityError = () => ({ type: DELETE_ACTIVITY_ERROR });
+
+export const FETCH_PARTICIPANTS_PENDING = "FETCH_PARTICIPANTS_PENDING";
+export const FETCH_PARTICIPANTS_SUCCESS = "FETCH_PARTICIPANTS_SUCCESS";
+export const FETCH_PARTICIPANTS_ERROR = "FETCH_PARTICIPANTS_ERROR";
+export const ADD_PARTICIPANT_PENDING = "ADD_PARTICIPANT_PENDING";
+export const ADD_PARTICIPANT_SUCCESS = "ADD_PARTICIPANT_SUCCESS";
+export const ADD_PARTICIPANT_ERROR = "ADD_PARTICIPANT_ERROR";
+
+export const fetchParticipantsPending = () => ({
+  type: FETCH_PARTICIPANTS_PENDING,
+});
+export const fetchParticipantsSuccess = (payload: unknown) => ({
+  type: FETCH_PARTICIPANTS_SUCCESS,
+  payload,
+});
+export const fetchParticipantsError = () => ({
+  type: FETCH_PARTICIPANTS_ERROR,
+});
+export const addParticipantPending = () => ({
+  type: ADD_PARTICIPANT_PENDING,
+});
+export const addParticipantSuccess = (payload: unknown) => ({
+  type: ADD_PARTICIPANT_SUCCESS,
+  payload,
+});
+export const addParticipantError = () => ({
+  type: ADD_PARTICIPANT_ERROR,
+});

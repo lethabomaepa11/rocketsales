@@ -1,36 +1,188 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# RocketSales
+
+A comprehensive sales automation CRM built with Next.js and Ant Design.
+
+## Overview
+
+RocketSales is a modern customer relationship management (CRM) system designed for sales teams to manage their pipeline, clients, contacts, opportunities, proposals, contracts, and activities efficiently.
+
+## Tech Stack
+
+- **Frontend Framework**: Next.js 16 (App Router)
+- **UI Library**: Ant Design
+- **State Management**: React Context API with useReducer
+- **HTTP Client**: Axios
+- **Language**: TypeScript
+- **Styling**: CSS Modules / Ant Design Theme
+
+## Features
+
+### Authentication
+- User login and registration
+- Role-based access control
+- JWT token management
+
+### Dashboard
+- Overview of key metrics
+- Pipeline performance
+- Activities summary
+- Expiring contracts alerts
+
+### Clients Management
+- Create, read, update, delete clients
+- Client details and statistics
+- Filter by industry, status
+
+### Contacts Management
+- Contact information management
+- Primary contact designation
+- Client-contact association
+
+### Opportunities (Pipeline)
+- Full sales pipeline management
+- Stage tracking (Lead, Qualified, Proposal, Negotiation, Closed Won, Closed Lost)
+- Probability and value tracking
+- Stage history
+
+### Proposals
+- Create and manage proposals
+- Line items management
+- Status tracking (Draft, Sent, Accepted, Rejected, Viewed, Expired)
+- Submit and approval workflow
+
+### Contracts
+- Contract lifecycle management
+- Status tracking (Draft, Active, Expired, Cancelled, Terminated)
+- Renewal management
+- Auto-renewal configuration
+
+### Activities
+- Task and event management
+- Activity types (Call, Meeting, Task, Email, Note)
+- Status tracking (Pending, In Progress, Completed)
+- Due date and priority management
+- Participant management for activities
+- Activity completion and cancellation
+- Upcoming and overdue activities filtering
+- My activities view
+
+### Reports
+- Opportunity reports
+- Sales performance by period
+
+## Project Structure
+
+```
+src/
+├── app/
+│   ├── (auth)/          # Authentication pages
+│   │   ├── login/
+│   │   └── register/
+│   ├── (dashboards)/    # Main dashboard pages
+│   │   ├── activities/
+│   │   ├── clients/
+│   │   ├── contacts/
+│   │   ├── contracts/
+│   │   ├── dashboard/
+│   │   ├── landing/
+│   │   ├── opportunities/
+│   │   ├── pricing-requests/
+│   │   ├── proposals/
+│   │   └── reports/
+│   ├── layout.tsx
+│   └── page.tsx
+├── components/
+│   ├── auth/            # Authentication components
+│   └── dashboards/      # Dashboard components
+│       └── sidebars/
+├── hoc/                 # Higher-order components
+├── providers/           # React Context providers
+│   ├── activityProvider/
+│   ├── authProvider/
+│   ├── clientProvider/
+│   ├── contactProvider/
+│   ├── contractProvider/
+│   ├── dashboardProvider/
+│   ├── opportunityProvider/
+│   ├── pricingRequestProvider/
+│   └── proposalProvider/
+└── utils/
+    ├── axiosInstance.ts
+    └── themeConfig.ts
+```
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- Node.js 18+
+- npm or yarn
+
+### Installation
+
+1. Clone the repository:
+```
+bash
+git clone <repository-url>
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Install dependencies:
+```
+bash
+npm install
+# or
+yarn install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3. Set up environment variables:
+Create a `.env.local` file with:
+```
+env
+NEXT_PUBLIC_API_URL=<your-api-url>
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+4. Run the development server:
+```
+bash
+npm run dev
+```
 
-## Learn More
+5. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-To learn more about Next.js, take a look at the following resources:
+## API Integration
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+The application is designed to work with a RESTful API. The API endpoints follow these conventions:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- Authentication: `/api/Auth/login`, `/api/Auth/register`, `/api/Auth/me`
+- Clients: `/api/Clients`
+- Contacts: `/api/Contacts`
+- Opportunities: `/api/Opportunities`
+- Proposals: `/api/Proposals`
+- Contracts: `/api/Contracts`
+- Activities: `/api/Activities`
+- Dashboard: `/api/Dashboard`
 
-## Deploy on Vercel
+## State Management
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+The application uses React Context API with useReducer pattern for state management. Each domain has its own provider:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `ActivityProvider` - Activities state and actions
+- `AuthProvider` - Authentication state
+- `ClientProvider` - Clients state and actions
+- `ContactProvider` - Contacts state and actions
+- `ContractProvider` - Contracts state and actions
+- `DashboardProvider` - Dashboard data
+- `OpportunityProvider` - Opportunities state and actions
+- `PricingRequestProvider` - Pricing requests
+- `ProposalProvider` - Proposals state and actions
+
+## Building for Production
+
+```
+bash
+npm run build
+```
+
+## License
+
+MIT

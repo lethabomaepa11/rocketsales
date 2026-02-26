@@ -11,11 +11,12 @@ import {
   Form,
   Input,
   InputNumber,
+  Select,
   DatePicker,
   Typography,
   Popconfirm,
   Tabs,
-  message,
+  Switch,
 } from "antd";
 import {
   PlusOutlined,
@@ -28,6 +29,11 @@ import {
   useContractState,
   useContractActions,
 } from "@/providers/contractProvider";
+import { useClientState, useClientActions } from "@/providers/clientProvider";
+import {
+  useOpportunityState,
+  useOpportunityActions,
+} from "@/providers/opportunityProvider";
 import {
   ContractDto,
   CreateContractDto,
@@ -63,6 +69,10 @@ const ContractsPage = () => {
     activateContract,
     cancelContract,
   } = useContractActions();
+  const { clients } = useClientState();
+  const { fetchClients } = useClientActions();
+  const { opportunities } = useOpportunityState();
+  const { fetchOpportunities } = useOpportunityActions();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingContract, setEditingContract] = useState<ContractDto | null>(
     null,
@@ -72,6 +82,8 @@ const ContractsPage = () => {
 
   useEffect(() => {
     fetchContracts();
+    fetchClients();
+    fetchOpportunities();
   }, []);
 
   const filteredContracts =
@@ -252,23 +264,72 @@ const ContractsPage = () => {
           width={600}
         >
           <Form form={form} layout="vertical">
-            <Form.Item name="clientId" label="Client">
-              <Input />
+            <Form.Item
+              name="clientId"
+              label="Client"
+              rules={[{ required: true, message: "Please select a client" }]}
+            >
+              <Select
+                placeholder="Select a client"
+                showSearch
+                optionFilterProp="children"
+              >
+                {clients.map((client) => (
+                  <Select.Option key={client.id} value={client.id}>
+                    {client.name}
+                  </Select.Option>
+                ))}
+              </Select>
+            </Form.Item>
+            <Form.Item name="opportunityId" label="Opportunity (Optional)">
+              <Select
+                placeholder="Select an opportunity"
+                showSearch
+                optionFilterProp="children"
+                allowClear
+              >
+                {opportunities.map((opp) => (
+                  <Select.Option key={opp.id} value={opp.id}>
+                    {opp.title}
+                  </Select.Option>
+                ))}
+              </Select>
             </Form.Item>
             <Form.Item name="title" label="Title" rules={[{ required: true }]}>
               <Input />
             </Form.Item>
-            <Form.Item name="description" label="Description">
-              <Input.TextArea rows={3} />
-            </Form.Item>
             <Form.Item name="contractValue" label="Total Value">
               <InputNumber style={{ width: "100%" }} min={0} precision={2} />
+            </Form.Item>
+            <Form.Item name="currency" label="Currency">
+              <Select placeholder="Select currency">
+                <Select.Option value="USD">USD</Select.Option>
+                <Select.Option value="EUR">EUR</Select.Option>
+                <Select.Option value="GBP">GBP</Select.Option>
+                <Select.Option value="ZAR">ZAR</Select.Option>
+              </Select>
             </Form.Item>
             <Form.Item name="startDate" label="Start Date">
               <DatePicker style={{ width: "100%" }} />
             </Form.Item>
             <Form.Item name="endDate" label="End Date">
               <DatePicker style={{ width: "100%" }} />
+            </Form.Item>
+            <Form.Item
+              name="renewalNoticePeriod"
+              label="Renewal Notice Period (days)"
+            >
+              <InputNumber style={{ width: "100%" }} min={0} />
+            </Form.Item>
+            <Form.Item
+              name="autoRenew"
+              label="Auto Renew"
+              valuePropName="checked"
+            >
+              <Switch />
+            </Form.Item>
+            <Form.Item name="terms" label="Terms">
+              <Input.TextArea rows={3} />
             </Form.Item>
           </Form>
         </Modal>

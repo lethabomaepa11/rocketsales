@@ -10,13 +10,11 @@ import {
   Modal,
   Form,
   Input,
-  InputNumber,
   Select,
   DatePicker,
   Typography,
   Popconfirm,
   Tabs,
-  message,
 } from "antd";
 import {
   PlusOutlined,
@@ -25,12 +23,15 @@ import {
   SendOutlined,
   CheckOutlined,
   CloseOutlined,
-  FileTextOutlined,
 } from "@ant-design/icons";
 import {
   useProposalState,
   useProposalActions,
 } from "@/providers/proposalProvider";
+import {
+  useOpportunityState,
+  useOpportunityActions,
+} from "@/providers/opportunityProvider";
 import {
   ProposalDto,
   CreateProposalDto,
@@ -70,6 +71,8 @@ const ProposalsPage = () => {
     approveProposal,
     rejectProposal,
   } = useProposalActions();
+  const { opportunities } = useOpportunityState();
+  const { fetchOpportunities } = useOpportunityActions();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingProposal, setEditingProposal] = useState<ProposalDto | null>(
     null,
@@ -79,6 +82,7 @@ const ProposalsPage = () => {
 
   useEffect(() => {
     fetchProposals();
+    fetchOpportunities();
   }, []);
 
   const filteredProposals =
@@ -152,8 +156,8 @@ const ProposalsPage = () => {
     },
     {
       title: "Total Value",
-      dataIndex: "totalValue",
-      key: "totalValue",
+      dataIndex: "totalAmount",
+      key: "totalAmount",
       render: (value: number) => (value ? `$${value.toLocaleString()}` : "N/A"),
     },
     {
@@ -259,8 +263,24 @@ const ProposalsPage = () => {
           width={600}
         >
           <Form form={form} layout="vertical">
-            <Form.Item name="opportunityId" label="Opportunity">
-              <Input />
+            <Form.Item
+              name="opportunityId"
+              label="Opportunity"
+              rules={[
+                { required: true, message: "Please select an opportunity" },
+              ]}
+            >
+              <Select
+                placeholder="Select an opportunity"
+                showSearch
+                optionFilterProp="children"
+              >
+                {opportunities.map((opp) => (
+                  <Select.Option key={opp.id} value={opp.id}>
+                    {opp.title} - {opp.clientName}
+                  </Select.Option>
+                ))}
+              </Select>
             </Form.Item>
             <Form.Item name="title" label="Title" rules={[{ required: true }]}>
               <Input />
@@ -268,8 +288,13 @@ const ProposalsPage = () => {
             <Form.Item name="description" label="Description">
               <TextArea rows={3} />
             </Form.Item>
-            <Form.Item name="totalValue" label="Total Value">
-              <InputNumber style={{ width: "100%" }} min={0} precision={2} />
+            <Form.Item name="currency" label="Currency">
+              <Select placeholder="Select currency">
+                <Select.Option value="USD">USD</Select.Option>
+                <Select.Option value="EUR">EUR</Select.Option>
+                <Select.Option value="GBP">GBP</Select.Option>
+                <Select.Option value="ZAR">ZAR</Select.Option>
+              </Select>
             </Form.Item>
             <Form.Item name="validUntil" label="Valid Until">
               <DatePicker style={{ width: "100%" }} />

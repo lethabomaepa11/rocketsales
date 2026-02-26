@@ -15,6 +15,7 @@ import {
   UpdateActivityDto,
   ActivityQueryParams,
   CompleteActivityDto,
+  CreateActivityParticipantDto,
 } from "./types";
 
 export const ActivityProvider = ({
@@ -200,6 +201,49 @@ export const ActivityProvider = ({
     [instance, notification],
   );
 
+  const fetchParticipants = useCallback(
+    async (activityId: string) => {
+      dispatch(ActivityActions.fetchParticipantsPending());
+      try {
+        const response = await instance.get(
+          `/Activities/${activityId}/participants`,
+        );
+        dispatch(ActivityActions.fetchParticipantsSuccess(response.data || []));
+      } catch {
+        dispatch(ActivityActions.fetchParticipantsError());
+        notification.error({
+          title: "Error",
+          description: "Failed to fetch participants",
+        });
+      }
+    },
+    [instance, notification],
+  );
+
+  const addParticipant = useCallback(
+    async (activityId: string, participant: CreateActivityParticipantDto) => {
+      dispatch(ActivityActions.addParticipantPending());
+      try {
+        const response = await instance.post(
+          `/Activities/${activityId}/participants`,
+          participant,
+        );
+        dispatch(ActivityActions.addParticipantSuccess(response.data));
+        notification.success({
+          title: "Success",
+          description: "Participant added",
+        });
+      } catch {
+        dispatch(ActivityActions.addParticipantError());
+        notification.error({
+          title: "Error",
+          description: "Failed to add participant",
+        });
+      }
+    },
+    [instance, notification],
+  );
+
   return (
     <ActivityStateContext.Provider value={state}>
       <ActivityActionContext.Provider
@@ -214,6 +258,8 @@ export const ActivityProvider = ({
           deleteActivity,
           completeActivity,
           cancelActivity,
+          fetchParticipants,
+          addParticipant,
         }}
       >
         {children}
