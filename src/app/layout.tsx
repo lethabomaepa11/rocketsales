@@ -14,6 +14,7 @@ import { ActivityProvider } from "@/providers/activityProvider";
 import { NoteProvider } from "@/providers/noteProvider";
 import { DocumentProvider } from "@/providers/documentProvider";
 import { DashboardProvider } from "@/providers/dashboardProvider";
+import { ReportProvider } from "@/providers/reportProvider";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -55,7 +56,7 @@ export default function RootLayout({
                               <NoteProvider>
                                 <DocumentProvider>
                                   <DashboardProvider>
-                                    {children}
+                                    <ReportProvider>{children}</ReportProvider>
                                   </DashboardProvider>
                                 </DocumentProvider>
                               </NoteProvider>

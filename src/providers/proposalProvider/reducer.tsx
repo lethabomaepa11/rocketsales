@@ -63,6 +63,13 @@ export const ProposalReducer = (
       };
     case ProposalActions.DELETE_PROPOSAL_ERROR:
       return { ...state, isPending: false, isSuccess: false, isError: true };
+    case ProposalActions.SET_SELECTED_PROPOSAL:
+      return {
+        ...state,
+        isPending: false,
+        selectedProposal:
+          action.payload as IProposalStateContext["selectedProposal"],
+      };
     default:
       return state;
   }

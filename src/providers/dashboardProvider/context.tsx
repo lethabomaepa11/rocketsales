@@ -10,14 +10,13 @@ import {
 } from "./types";
 
 export interface IDashboardStateContext {
-  isPending: boolean;
-  isSuccess: boolean;
-  isError: boolean;
   overview: DashboardOverviewDto | null;
   pipelineMetrics: PipelineMetricsDto | null;
-  salesPerformance: SalesPerformanceDto | null;
   activitiesSummary: ActivitiesSummaryDto | null;
-  expiringContracts: ContractExpiryDto[];
+  salesPerformance: SalesPerformanceDto[] | null;
+  contractsExpiring: ContractExpiryDto[] | null;
+  loading: boolean;
+  error: string | null;
 }
 
 export interface IDashboardActionContext {
@@ -30,14 +29,13 @@ export interface IDashboardActionContext {
 }
 
 export const INITIAL_STATE: IDashboardStateContext = {
-  isPending: false,
-  isSuccess: false,
-  isError: false,
   overview: null,
   pipelineMetrics: null,
-  salesPerformance: null,
   activitiesSummary: null,
-  expiringContracts: [],
+  salesPerformance: [],
+  contractsExpiring: [],
+  loading: false,
+  error: null,
 };
 
 export const DashboardStateContext =

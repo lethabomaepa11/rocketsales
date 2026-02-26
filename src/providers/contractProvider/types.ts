@@ -78,8 +78,8 @@ export enum ContractStatus {
   Draft = 1,
   Active = 2,
   Expired = 3,
-  Cancelled = 4,
-  Terminated = 5
+  Renewed = 4,
+  Cancelled = 5,
 }
 
 export enum RenewalStatus {
