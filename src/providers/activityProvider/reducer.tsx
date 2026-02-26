@@ -63,6 +63,33 @@ export const ActivityReducer = (
       };
     case ActivityActions.DELETE_ACTIVITY_ERROR:
       return { ...state, isPending: false, isSuccess: false, isError: true };
+    case ActivityActions.FETCH_PARTICIPANTS_PENDING:
+      return { ...state, isPending: true, isSuccess: false, isError: false };
+    case ActivityActions.FETCH_PARTICIPANTS_SUCCESS:
+      return {
+        ...state,
+        isPending: false,
+        isSuccess: true,
+        isError: false,
+        participants: action.payload as IActivityStateContext["participants"],
+      };
+    case ActivityActions.FETCH_PARTICIPANTS_ERROR:
+      return { ...state, isPending: false, isSuccess: false, isError: true };
+    case ActivityActions.ADD_PARTICIPANT_PENDING:
+      return { ...state, isPending: true, isSuccess: false, isError: false };
+    case ActivityActions.ADD_PARTICIPANT_SUCCESS:
+      return {
+        ...state,
+        isPending: false,
+        isSuccess: true,
+        isError: false,
+        participants: [
+          ...state.participants,
+          action.payload as IActivityStateContext["participants"][0],
+        ],
+      };
+    case ActivityActions.ADD_PARTICIPANT_ERROR:
+      return { ...state, isPending: false, isSuccess: false, isError: true };
     default:
       return state;
   }

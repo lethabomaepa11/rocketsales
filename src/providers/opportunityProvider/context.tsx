@@ -8,6 +8,8 @@ import {
   UpdateStageDto,
   OpportunityQueryParams,
   AssignOpportunityDto,
+  PipelineMetricsDto,
+  OpportunityStageHistoryDto,
 } from "./types";
 
 export interface IOpportunityStateContext {
@@ -16,7 +18,8 @@ export interface IOpportunityStateContext {
   isError: boolean;
   opportunities: OpportunityDto[];
   selectedOpportunity: OpportunityDto | null;
-  stageHistory: unknown[];
+  stageHistory: OpportunityStageHistoryDto[];
+  pipelineMetrics: PipelineMetricsDto | null;
   pagination: {
     pageNumber: number;
     pageSize: number;
@@ -46,6 +49,7 @@ export const INITIAL_STATE: IOpportunityStateContext = {
   opportunities: [],
   selectedOpportunity: null,
   stageHistory: [],
+  pipelineMetrics: null,
   pagination: { pageNumber: 1, pageSize: 10, totalCount: 0, totalPages: 0 },
 };
 

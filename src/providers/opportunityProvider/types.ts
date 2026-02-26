@@ -102,6 +102,33 @@ export interface OpportunityQueryParams {
   pageNumber?: number;
   pageSize?: number;
   clientId?: string;
+  ownerId?: string;
   stage?: OpportunityStage;
   searchTerm?: string;
+  isActive?: boolean;
+}
+
+export interface StageMetrics {
+  stage: OpportunityStage;
+  stageName: string | null;
+  count: number;
+  totalValue: number;
+  weightedValue: number;
+}
+
+export interface PipelineMetricsDto {
+  stageMetrics: {
+    Lead?: StageMetrics;
+    Qualified?: StageMetrics;
+    Proposal?: StageMetrics;
+    Negotiation?: StageMetrics;
+    ClosedWon?: StageMetrics;
+    ClosedLost?: StageMetrics;
+  } | null;
+  totalPipelineValue: number;
+  weightedPipelineValue: number;
+  totalOpportunities: number;
+  activeOpportunities: number;
+  averageDealSize: number;
+  winRate: number;
 }
