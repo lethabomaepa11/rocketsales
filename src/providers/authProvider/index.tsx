@@ -9,6 +9,7 @@ import {
   registerUserPending,
   registerUserSuccess,
   logoutUser,
+  setAuthLoading,
 } from "./actions";
 import {
   AuthActionContext,
@@ -23,7 +24,7 @@ import { getAxiosInstance, removeAuthToken } from "@/utils/axiosInstance";
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [state, dispatch] = useReducer(AuthReducer, INITIAL_STATE);
   const instance = getAxiosInstance();
-  const { notification } = App.useApp();
+  const { message } = App.useApp();
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -37,23 +38,25 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           removeAuthToken();
         }
       }
+      // Mark initial auth check as complete (regardless of whether user is logged in)
+      dispatch(setAuthLoading(false));
     }
   }, []);
 
   const registerUser = async (user: IUser) => {
     dispatch(registerUserPending());
     try {
-      await instance.post("/auth/register", user);
+      const response = await instance.post("/auth/register", user);
+      const { data } = response;
+
       dispatch(registerUserSuccess(user));
-      notification.success({
-        message: "Successfully signed up! Please login.",
-      });
+      message.success("Successfully signed up! Please login.");
+      localStorage.setItem("token", data.token || "");
+      localStorage.setItem("user", JSON.stringify(data));
     } catch (error: unknown) {
       const err = error as { response?: { data?: string } };
-      notification.error({
-        message: "Failed to signup",
-        description: err.response?.data || "An error occurred",
-      });
+      message.error("Failed to signup");
+      //message.error(err)
       dispatch(registerUserError());
     }
   };
@@ -68,13 +71,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       localStorage.setItem("user", JSON.stringify(data));
 
       dispatch(loginUserSuccess(data));
-      notification.success({ message: "Successfully logged in!" });
+      message.success("Successfully logged in!");
     } catch (error: unknown) {
       const err = error as { response?: { data?: string } };
-      notification.error({
-        message: "Login failed",
-        description: err.response?.data || "Invalid credentials",
-      });
+      message.error(
+        "Login failed: " + err.response?.data || "Invalid credentials",
+      );
       dispatch(loginUserError());
     }
   };
@@ -83,7 +85,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     removeAuthToken();
     localStorage.removeItem("user");
     dispatch(logoutUser());
-    notification.success({ message: "Logged out successfully" });
+    message.success("Logged out successfully");
   };
 
   return (
