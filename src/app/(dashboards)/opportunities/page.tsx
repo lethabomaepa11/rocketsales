@@ -24,6 +24,7 @@ import {
   DeleteOutlined,
   MoreOutlined,
   RightOutlined,
+  TeamOutlined,
 } from "@ant-design/icons";
 import {
   useOpportunityState,
@@ -35,6 +36,7 @@ import {
   useContactActions,
 } from "@/providers/contactProvider";
 import OpportunityForm from "@/components/dashboards/opportunities/OpportunityForm";
+import UserSelector from "@/components/common/UserSelector";
 import {
   OpportunityDto,
   CreateOpportunityDto,
@@ -72,6 +74,7 @@ const OpportunitiesPage = () => {
     updateOpportunity,
     deleteOpportunity,
     updateStage,
+    assignOpportunity,
   } = useOpportunityActions();
   const { clients } = useClientState();
   const { contacts } = useContactState();
@@ -84,6 +87,10 @@ const OpportunitiesPage = () => {
     OpportunityStage | undefined
   >();
   const [form] = Form.useForm();
+  const [assignForm] = Form.useForm();
+  const [isAssignModalVisible, setIsAssignModalVisible] = useState(false);
+  const [assigningOpportunity, setAssigningOpportunity] =
+    useState<OpportunityDto | null>(null);
 
   useEffect(() => {
     fetchOpportunities();
@@ -136,6 +143,25 @@ const OpportunitiesPage = () => {
     fetchOpportunities();
   };
 
+  const handleOpenAssignModal = (opportunity: OpportunityDto) => {
+    setAssigningOpportunity(opportunity);
+    assignForm.setFieldsValue({ userId: opportunity.ownerId || undefined });
+    setIsAssignModalVisible(true);
+  };
+
+  const handleAssignOpportunity = async () => {
+    if (!assigningOpportunity) {
+      return;
+    }
+
+    const values = await assignForm.validateFields();
+    await assignOpportunity(assigningOpportunity.id, { userId: values.userId });
+    setIsAssignModalVisible(false);
+    setAssigningOpportunity(null);
+    assignForm.resetFields();
+    fetchOpportunities();
+  };
+
   const getStageMenuItems = (opp: OpportunityDto) =>
     Object.values(OpportunityStage)
       .filter((s) => typeof s === "number")
@@ -177,6 +203,12 @@ const OpportunitiesPage = () => {
       ),
     },
     {
+      title: "Owner",
+      dataIndex: "ownerName",
+      key: "ownerName",
+      render: (ownerName: string | null) => ownerName || "Unassigned",
+    },
+    {
       title: "Expected Close",
       dataIndex: "expectedCloseDate",
       key: "expectedCloseDate",
@@ -206,6 +238,11 @@ const OpportunitiesPage = () => {
             type="link"
             icon={<EditOutlined />}
             onClick={() => handleEditOpportunity(record)}
+          />
+          <Button
+            type="link"
+            icon={<TeamOutlined />}
+            onClick={() => handleOpenAssignModal(record)}
           />
           <Popconfirm
             title="Delete this opportunity?"
@@ -278,6 +315,32 @@ const OpportunitiesPage = () => {
           contacts={contacts}
           loading={isPending}
         />
+
+        <Modal
+          title="Assign Opportunity Owner"
+          open={isAssignModalVisible}
+          onOk={handleAssignOpportunity}
+          onCancel={() => {
+            setIsAssignModalVisible(false);
+            setAssigningOpportunity(null);
+            assignForm.resetFields();
+          }}
+        >
+          <Form form={assignForm} layout="vertical">
+            <Form.Item
+              name="userId"
+              label="Owner"
+              rules={[{ required: true, message: "Please select an owner" }]}
+            >
+              <UserSelector
+                role="SalesRep"
+                isActive
+                placeholder="Select opportunity owner"
+                allowClear={false}
+              />
+            </Form.Item>
+          </Form>
+        </Modal>
       </Card>
     </div>
   );

@@ -21,12 +21,16 @@ import {
   EditOutlined,
   DeleteOutlined,
   CheckOutlined,
+  TeamOutlined,
 } from "@ant-design/icons";
 import {
   usePricingRequestState,
   usePricingRequestActions,
 } from "@/providers/pricingRequestProvider";
-import { useOpportunityState } from "@/providers/opportunityProvider";
+import {
+  useOpportunityState,
+  useOpportunityActions,
+} from "@/providers/opportunityProvider";
 import {
   PricingRequestDto,
   CreatePricingRequestDto,
@@ -34,6 +38,7 @@ import {
   PricingRequestStatus,
   Priority,
 } from "@/providers/pricingRequestProvider/types";
+import UserSelector from "@/components/common/UserSelector";
 import dayjs from "dayjs";
 
 const { Title } = Typography;
@@ -72,15 +77,22 @@ const PricingRequestsPage = () => {
     updatePricingRequest,
     deletePricingRequest,
     completePricingRequest,
+    assignPricingRequest,
   } = usePricingRequestActions();
   const { opportunities } = useOpportunityState();
+  const { fetchOpportunities } = useOpportunityActions();
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isAssignModalVisible, setIsAssignModalVisible] = useState(false);
   const [editingRequest, setEditingRequest] =
     useState<PricingRequestDto | null>(null);
+  const [assigningRequest, setAssigningRequest] =
+    useState<PricingRequestDto | null>(null);
   const [form] = Form.useForm();
+  const [assignForm] = Form.useForm();
 
   useEffect(() => {
     fetchPricingRequests();
+    fetchOpportunities();
   }, []);
 
   const handleAddRequest = () => {
@@ -106,6 +118,26 @@ const PricingRequestsPage = () => {
     await completePricingRequest(id);
     fetchPricingRequests();
   };
+
+  const handleOpenAssignModal = (request: PricingRequestDto) => {
+    setAssigningRequest(request);
+    assignForm.setFieldsValue({ userId: request.assignedToId || undefined });
+    setIsAssignModalVisible(true);
+  };
+
+  const handleAssignRequest = async () => {
+    if (!assigningRequest) {
+      return;
+    }
+
+    const values = await assignForm.validateFields();
+    await assignPricingRequest(assigningRequest.id, values.userId);
+    setIsAssignModalVisible(false);
+    setAssigningRequest(null);
+    assignForm.resetFields();
+    fetchPricingRequests();
+  };
+
   const handleModalOk = async () => {
     try {
       const values = await form.validateFields();
@@ -185,6 +217,11 @@ const PricingRequestsPage = () => {
             type="link"
             icon={<EditOutlined />}
             onClick={() => handleEditRequest(record)}
+          />
+          <Button
+            type="link"
+            icon={<TeamOutlined />}
+            onClick={() => handleOpenAssignModal(record)}
           />
           {record.status !== PricingRequestStatus.Completed && (
             <Button
@@ -276,6 +313,39 @@ const PricingRequestsPage = () => {
             </Form.Item>
             <Form.Item name="requiredByDate" label="Required By">
               <DatePicker style={{ width: "100%" }} />
+            </Form.Item>
+            <Form.Item name="assignedToId" label="Assign To">
+              <UserSelector
+                role="SalesManager"
+                isActive
+                placeholder="Select assignee"
+              />
+            </Form.Item>
+          </Form>
+        </Modal>
+
+        <Modal
+          title="Assign Pricing Request"
+          open={isAssignModalVisible}
+          onOk={handleAssignRequest}
+          onCancel={() => {
+            setIsAssignModalVisible(false);
+            setAssigningRequest(null);
+            assignForm.resetFields();
+          }}
+        >
+          <Form form={assignForm} layout="vertical">
+            <Form.Item
+              name="userId"
+              label="Assignee"
+              rules={[{ required: true, message: "Please select an assignee" }]}
+            >
+              <UserSelector
+                role="SalesManager"
+                isActive
+                allowClear={false}
+                placeholder="Select pricing request assignee"
+              />
             </Form.Item>
           </Form>
         </Modal>
