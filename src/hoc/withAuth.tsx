@@ -17,11 +17,12 @@ export function withAuth<P extends object>(
   const { allowedRoles, redirectTo = "/login" } = options;
 
   const WithAuthComponent: React.FC<P> = (props) => {
-    const { user, isSuccess } = useAuthState();
+    const { user, isLoading } = useAuthState();
     const router = useRouter();
 
     useEffect(() => {
-      if (isSuccess) {
+      // Only redirect after initial auth check is complete
+      if (!isLoading) {
         if (!user) {
           router.push(redirectTo);
           return;
@@ -36,9 +37,26 @@ export function withAuth<P extends object>(
           }
         }
       }
-    }, [isSuccess, user, allowedRoles, redirectTo, router]);
+    }, [isLoading, user, allowedRoles, redirectTo, router]);
 
-    if (!isSuccess || !user) {
+    // Show loading spinner while initial auth check is in progress
+    if (isLoading) {
+      return (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            minHeight: "100vh",
+          }}
+        >
+          <Spin size="large" />
+        </div>
+      );
+    }
+
+    // If not loading and no user, the useEffect will handle redirect
+    if (!user) {
       return (
         <div
           style={{

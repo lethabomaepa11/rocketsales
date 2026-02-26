@@ -32,6 +32,10 @@ export const AuthReducer = handleActions<IAuthStateContext, IAuthStateContext>(
       ...state,
       ...action.payload,
     }),
+    [AuthActionEnums.setAuthLoading]: (state, action) => ({
+      ...state,
+      ...action.payload,
+    }),
   },
   INITIAL_STATE,
 );

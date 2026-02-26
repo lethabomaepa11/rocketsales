@@ -9,6 +9,7 @@ import {
   registerUserPending,
   registerUserSuccess,
   logoutUser,
+  setAuthLoading,
 } from "./actions";
 import {
   AuthActionContext,
@@ -37,6 +38,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           removeAuthToken();
         }
       }
+      // Mark initial auth check as complete (regardless of whether user is logged in)
+      dispatch(setAuthLoading(false));
     }
   }, []);
 
