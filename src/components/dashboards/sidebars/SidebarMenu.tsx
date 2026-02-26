@@ -46,13 +46,6 @@ const SidebarMenu: React.FC<SidebarMenuProps> = ({
       icon: <TeamOutlined />,
       label: "Clients",
     },
-
-    {
-      key: "/contacts",
-      icon: <UserOutlined />,
-      label: "Contacts",
-    },
-
     {
       key: "/opportunities",
       icon: <AimOutlined />,

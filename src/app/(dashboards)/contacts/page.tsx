@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Card } from "antd";
+import { Card, Form } from "antd";
 import {
   useContactState,
   useContactActions,
@@ -15,7 +15,6 @@ import {
 import ClientListView from "@/components/dashboards/contacts/ClientListView";
 import ContactListView from "@/components/dashboards/contacts/ContactListView";
 import ContactForm from "@/components/dashboards/contacts/ContactForm";
-
 const ContactsPage = () => {
   const { contacts, isPending, pagination } = useContactState();
   const {
@@ -31,9 +30,21 @@ const ContactsPage = () => {
   const [selectedClientId, setSelectedClientId] = useState<string>("");
   const [viewingContacts, setViewingContacts] = useState(false);
   const [selectedClientName, setSelectedClientName] = useState<string>("");
+  const [form] = Form.useForm();
 
   useEffect(() => {
     fetchContacts();
+  }, []);
+
+  // Handle URL parameter for client selection
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const clientId = urlParams.get("clientId");
+    if (clientId) {
+      setSelectedClientId(clientId);
+      setViewingContacts(true);
+      fetchContacts({ clientId });
+    }
   }, []);
 
   useEffect(() => {
@@ -53,9 +64,14 @@ const ContactsPage = () => {
 
   const handleAddContact = () => {
     setEditingContact(null);
+    // Pre-select the current client if viewing contacts
+    if (selectedClientId) {
+      form.setFieldsValue({ clientId: selectedClientId });
+    } else {
+      form.setFieldsValue({ clientId: "" });
+    }
     setIsModalVisible(true);
   };
-
   const handleEditContact = (contact: ContactDto) => {
     setEditingContact(contact);
     setIsModalVisible(true);
@@ -71,7 +87,7 @@ const ContactsPage = () => {
     fetchContacts({ clientId });
   };
 
-  const handleModalOk = async (values: any) => {
+  const handleModalOk = async (values: CreateContactDto | UpdateContactDto) => {
     try {
       if (editingContact) {
         await updateContact(editingContact.id, values as UpdateContactDto);
@@ -88,13 +104,13 @@ const ContactsPage = () => {
   const handleClientSelect = (clientId: string) => {
     setSelectedClientId(clientId);
     setViewingContacts(true);
+    fetchContacts({ clientId });
+    // Pre-select the client in the form when switching views
+    form.setFieldsValue({ clientId });
   };
 
   const handleBackToClients = () => {
-    setSelectedClientId("");
-    setViewingContacts(false);
-    setSelectedClientName("");
-    fetchContacts();
+    window.history.back();
   };
 
   const handlePageChange = (page: number, pageSize: number) => {
@@ -108,26 +124,18 @@ const ContactsPage = () => {
   return (
     <div style={{ padding: "24px" }}>
       <Card>
-        {viewingContacts ? (
-          <ContactListView
-            contacts={contacts}
-            isPending={isPending}
-            selectedClientName={selectedClientName}
-            onBackToClients={handleBackToClients}
-            onAddContact={handleAddContact}
-            onEditContact={handleEditContact}
-            onDeleteContact={handleDeleteContact}
-            onSetPrimary={handleSetPrimary}
-            pagination={pagination}
-            onPageChange={handlePageChange}
-          />
-        ) : (
-          <ClientListView
-            clients={clients}
-            onAddContact={handleAddContact}
-            onViewContacts={handleClientSelect}
-          />
-        )}
+        <ContactListView
+          contacts={contacts}
+          isPending={isPending}
+          selectedClientName={selectedClientName}
+          onBackToClients={handleBackToClients}
+          onAddContact={handleAddContact}
+          onEditContact={handleEditContact}
+          onDeleteContact={handleDeleteContact}
+          onSetPrimary={handleSetPrimary}
+          pagination={pagination}
+          onPageChange={handlePageChange}
+        />
         <ContactForm
           visible={isModalVisible}
           editingContact={editingContact}
