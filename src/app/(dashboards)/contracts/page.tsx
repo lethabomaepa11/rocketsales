@@ -10,6 +10,7 @@ import {
   Typography,
   Popconfirm,
   Tabs,
+  Tooltip,
 } from "antd";
 import {
   PlusOutlined,
@@ -57,6 +58,14 @@ const statusLabels: Record<ContractStatus, string> = {
   [ContractStatus.Cancelled]: "Cancelled",
 };
 
+const toArray = <T,>(value: unknown): T[] => {
+  if (Array.isArray(value)) return value as T[];
+  if (value && typeof value === "object" && "items" in value) {
+    return (value as { items?: T[] }).items ?? [];
+  }
+  return [];
+};
+
 const ContractsPage = () => {
   const { contracts, renewals, isPending } = useContractState();
   const {
@@ -88,7 +97,9 @@ const ContractsPage = () => {
     fetchContracts();
     fetchClients();
     fetchOpportunities();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const contractsList = toArray<ContractDto>(contracts);
 
   const handleTabChange = (key: string) => {
     setActiveTab(key);
@@ -98,8 +109,10 @@ const ContractsPage = () => {
 
   const filteredContracts =
     activeTab === "all" || activeTab === "expiring"
-      ? contracts
-      : contracts.filter((c: ContractDto) => String(c.status) === activeTab);
+      ? contractsList
+      : contractsList.filter(
+          (c: ContractDto) => String(c.status) === activeTab,
+        );
 
   const handleFormSubmit = async (
     data: CreateContractDto | UpdateContractDto,
@@ -165,52 +178,65 @@ const ContractsPage = () => {
       key: "actions",
       render: (_: unknown, record: ContractDto) => (
         <Space>
-          <Button
-            type="link"
-            icon={<EditOutlined />}
-            onClick={() => {
-              setEditingContract(record);
-              setIsFormOpen(true);
-            }}
-          />
-          {record.status === ContractStatus.Draft && (
-            <Button
-              type="link"
-              icon={<CheckOutlined />}
-              onClick={async () => {
-                await activateContract(record.id);
-                fetchContracts();
-              }}
-            />
+          {(record.status === ContractStatus.Draft ||
+            record.status === ContractStatus.Active) && (
+            <Tooltip title="Edit">
+              <Button
+                type="link"
+                icon={<EditOutlined />}
+                onClick={() => {
+                  setEditingContract(record);
+                  setIsFormOpen(true);
+                }}
+              />
+            </Tooltip>
           )}
-          {record.status === ContractStatus.Active && (
-            <>
+          {record.status === ContractStatus.Draft && (
+            <Tooltip title="Activate">
               <Button
                 type="link"
-                icon={<SyncOutlined />}
-                onClick={() => handleOpenRenewals(record)}
-              >
-                Renew
-              </Button>
-              <Button
-                type="link"
-                danger
-                icon={<CloseOutlined />}
+                icon={<CheckOutlined />}
                 onClick={async () => {
-                  await cancelContract(record.id);
+                  await activateContract(record.id);
                   fetchContracts();
                 }}
               />
+            </Tooltip>
+          )}
+          {record.status === ContractStatus.Active && (
+            <>
+              <Tooltip title="Renew">
+                <Button
+                  type="link"
+                  icon={<SyncOutlined />}
+                  onClick={() => handleOpenRenewals(record)}
+                />
+              </Tooltip>
+              <Tooltip title="Cancel">
+                <Button
+                  type="link"
+                  danger
+                  icon={<CloseOutlined />}
+                  onClick={async () => {
+                    await cancelContract(record.id);
+                    fetchContracts();
+                  }}
+                />
+              </Tooltip>
             </>
           )}
           <Popconfirm
-            title="Delete?"
+            title="Delete this contract?"
             onConfirm={async () => {
               await deleteContract(record.id);
               fetchContracts();
             }}
+            okText="Yes"
+            cancelText="No"
           >
-            <Button type="link" danger icon={<DeleteOutlined />} />
+            <Tooltip title="Delete">
+              <Button type="link" danger icon={<DeleteOutlined />} />
+            </Tooltip>
           </Popconfirm>
         </Space>
       ),

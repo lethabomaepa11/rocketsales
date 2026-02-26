@@ -14,7 +14,7 @@ import {
   DatePicker,
   Typography,
   Popconfirm,
-  message,
+  Tooltip,
 } from "antd";
 import {
   PlusOutlined,
@@ -31,6 +31,7 @@ import {
   useOpportunityState,
   useOpportunityActions,
 } from "@/providers/opportunityProvider";
+import { useAuthState } from "@/providers/authProvider";
 import {
   PricingRequestDto,
   CreatePricingRequestDto,
@@ -42,7 +43,6 @@ import UserSelector from "@/components/common/UserSelector";
 import dayjs from "dayjs";
 
 const { Title } = Typography;
-const { Option } = Select;
 
 const statusColors: Record<PricingRequestStatus, string> = {
   [PricingRequestStatus.Pending]: "default",
@@ -73,6 +73,7 @@ const PricingRequestsPage = () => {
   const { pricingRequests, isPending } = usePricingRequestState();
   const {
     fetchPricingRequests,
+    fetchMyRequests,
     createPricingRequest,
     updatePricingRequest,
     deletePricingRequest,
@@ -80,7 +81,9 @@ const PricingRequestsPage = () => {
     assignPricingRequest,
   } = usePricingRequestActions();
   const { opportunities } = useOpportunityState();
+  const { user } = useAuthState();
   const { fetchOpportunities } = useOpportunityActions();
+
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isAssignModalVisible, setIsAssignModalVisible] = useState(false);
   const [editingRequest, setEditingRequest] =
@@ -90,16 +93,44 @@ const PricingRequestsPage = () => {
   const [form] = Form.useForm();
   const [assignForm] = Form.useForm();
 
+  const isSalesRepUser = user?.roles?.includes("SalesRep") ?? false;
+  const canManageAssignments =
+    user?.roles?.some((role) => role === "Admin" || role === "SalesManager") ??
+    false;
+
+  // Guard against non-array state
+  const pricingRequestsList = Array.isArray(pricingRequests)
+    ? pricingRequests
+    : ((pricingRequests as { items?: PricingRequestDto[] })?.items ?? []);
+
+  const opportunitiesList = Array.isArray(opportunities)
+    ? opportunities
+    : ((opportunities as { items?: { id: string; title: string }[] })?.items ??
+      []);
+
   useEffect(() => {
-    fetchPricingRequests();
+    if (isSalesRepUser) {
+      fetchMyRequests();
+    } else {
+      fetchPricingRequests();
+    }
     fetchOpportunities();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const refreshPricingRequests = () => {
+    if (isSalesRepUser) {
+      fetchMyRequests();
+    } else {
+      fetchPricingRequests();
+    }
+  };
 
   const handleAddRequest = () => {
     setEditingRequest(null);
     form.resetFields();
     setIsModalVisible(true);
   };
+
   const handleEditRequest = (request: PricingRequestDto) => {
     setEditingRequest(request);
     form.setFieldsValue({
@@ -110,13 +141,15 @@ const PricingRequestsPage = () => {
     });
     setIsModalVisible(true);
   };
+
   const handleDeleteRequest = async (id: string) => {
     await deletePricingRequest(id);
-    fetchPricingRequests();
+    refreshPricingRequests();
   };
+
   const handleCompleteRequest = async (id: string) => {
     await completePricingRequest(id);
-    fetchPricingRequests();
+    refreshPricingRequests();
   };
 
   const handleOpenAssignModal = (request: PricingRequestDto) => {
@@ -126,16 +159,13 @@ const PricingRequestsPage = () => {
   };
 
   const handleAssignRequest = async () => {
-    if (!assigningRequest) {
-      return;
-    }
-
+    if (!assigningRequest) return;
     const values = await assignForm.validateFields();
     await assignPricingRequest(assigningRequest.id, values.userId);
     setIsAssignModalVisible(false);
     setAssigningRequest(null);
     assignForm.resetFields();
-    fetchPricingRequests();
+    refreshPricingRequests();
   };
 
   const handleModalOk = async () => {
@@ -143,6 +173,9 @@ const PricingRequestsPage = () => {
       const values = await form.validateFields();
       const data = {
         ...values,
+        assignedToId: canManageAssignments
+          ? (values.assignedToId ?? null)
+          : null,
         requiredByDate: values.requiredByDate?.toISOString(),
       };
       if (editingRequest) {
@@ -154,11 +187,23 @@ const PricingRequestsPage = () => {
         await createPricingRequest(data as CreatePricingRequestDto);
       }
       setIsModalVisible(false);
-      fetchPricingRequests();
+      refreshPricingRequests();
     } catch (error) {
       console.error("Validation failed:", error);
     }
   };
+
+  const opportunityOptions = opportunitiesList.map((o) => ({
+    value: o.id,
+    label: o.title,
+  }));
+
+  const priorityOptions = Object.entries(priorityLabels).map(
+    ([key, label]) => ({
+      value: Number(key),
+      label,
+    }),
+  );
 
   const columns = [
     {
@@ -213,31 +258,46 @@ const PricingRequestsPage = () => {
       key: "actions",
       render: (_: unknown, record: PricingRequestDto) => (
         <Space>
-          <Button
-            type="link"
-            icon={<EditOutlined />}
-            onClick={() => handleEditRequest(record)}
-          />
-          <Button
-            type="link"
-            icon={<TeamOutlined />}
-            onClick={() => handleOpenAssignModal(record)}
-          />
-          {record.status !== PricingRequestStatus.Completed && (
-            <Button
-              type="link"
-              icon={<CheckOutlined />}
-              onClick={() => handleCompleteRequest(record.id)}
-            />
+          {!isSalesRepUser && (
+            <Tooltip title="Edit">
+              <Button
+                type="link"
+                icon={<EditOutlined />}
+                onClick={() => handleEditRequest(record)}
+              />
+            </Tooltip>
           )}
-          <Popconfirm
-            title="Delete this request?"
-            onConfirm={() => handleDeleteRequest(record.id)}
-            okText="Yes"
-            cancelText="No"
-          >
-            <Button type="link" danger icon={<DeleteOutlined />} />
-          </Popconfirm>
+          {canManageAssignments && (
+            <Tooltip title="Assign">
+              <Button
+                type="link"
+                icon={<TeamOutlined />}
+                onClick={() => handleOpenAssignModal(record)}
+              />
+            </Tooltip>
+          )}
+          {!isSalesRepUser &&
+            record.status !== PricingRequestStatus.Completed && (
+              <Tooltip title="Mark complete">
+                <Button
+                  type="link"
+                  icon={<CheckOutlined />}
+                  onClick={() => handleCompleteRequest(record.id)}
+                />
+              </Tooltip>
+            )}
+          {!isSalesRepUser && (
+            <Popconfirm
+              title="Delete this request?"
+              onConfirm={() => handleDeleteRequest(record.id)}
+              okText="Yes"
+              cancelText="No"
+            >
+              <Tooltip title="Delete">
+                <Button type="link" danger icon={<DeleteOutlined />} />
+              </Tooltip>
+            </Popconfirm>
+          )}
         </Space>
       ),
     },
@@ -262,13 +322,16 @@ const PricingRequestsPage = () => {
             Add Pricing Request
           </Button>
         </div>
+
         <Table
           columns={columns}
-          dataSource={pricingRequests}
+          dataSource={pricingRequestsList}
           loading={isPending}
           rowKey="id"
           pagination={{ pageSize: 10 }}
         />
+
+        {/* Create / Edit Modal */}
         <Modal
           title={
             editingRequest ? "Edit Pricing Request" : "Add Pricing Request"
@@ -284,15 +347,18 @@ const PricingRequestsPage = () => {
               label="Opportunity"
               rules={[{ required: true }]}
             >
-              <Select>
-                {opportunities.map((o) => (
-                  <Option key={o.id} value={o.id}>
-                    {o.title}
-                  </Option>
-                ))}
-              </Select>
+              <Select
+                showSearch
+                placeholder="Select an opportunity"
+                options={opportunityOptions}
+                filterOption={(input, option) =>
+                  (option?.label ?? "")
+                    .toLowerCase()
+                    .includes(input.toLowerCase())
+                }
+              />
             </Form.Item>
-            <Form.Item name="title" label="Title">
+            <Form.Item name="title" label="Title" rules={[{ required: true }]}>
               <Input />
             </Form.Item>
             <Form.Item name="description" label="Description">
@@ -303,52 +369,53 @@ const PricingRequestsPage = () => {
               label="Priority"
               rules={[{ required: true }]}
             >
-              <Select>
-                {Object.entries(priorityLabels).map(([key, label]) => (
-                  <Option key={key} value={Number(key)}>
-                    {label}
-                  </Option>
-                ))}
-              </Select>
+              <Select options={priorityOptions} />
             </Form.Item>
             <Form.Item name="requiredByDate" label="Required By">
               <DatePicker style={{ width: "100%" }} />
             </Form.Item>
-            <Form.Item name="assignedToId" label="Assign To">
-              <UserSelector
-                role="SalesManager"
-                isActive
-                placeholder="Select assignee"
-              />
-            </Form.Item>
+            {canManageAssignments && (
+              <Form.Item name="assignedToId" label="Assign To">
+                <UserSelector
+                  role="SalesManager"
+                  isActive
+                  placeholder="Select assignee"
+                />
+              </Form.Item>
+            )}
           </Form>
         </Modal>
 
-        <Modal
-          title="Assign Pricing Request"
-          open={isAssignModalVisible}
-          onOk={handleAssignRequest}
-          onCancel={() => {
-            setIsAssignModalVisible(false);
-            setAssigningRequest(null);
-            assignForm.resetFields();
-          }}
-        >
-          <Form form={assignForm} layout="vertical">
-            <Form.Item
-              name="userId"
-              label="Assignee"
-              rules={[{ required: true, message: "Please select an assignee" }]}
-            >
-              <UserSelector
-                role="SalesManager"
-                isActive
-                allowClear={false}
-                placeholder="Select pricing request assignee"
-              />
-            </Form.Item>
-          </Form>
-        </Modal>
+        {/* Assign Modal */}
+        {canManageAssignments && (
+          <Modal
+            title="Assign Pricing Request"
+            open={isAssignModalVisible}
+            onOk={handleAssignRequest}
+            onCancel={() => {
+              setIsAssignModalVisible(false);
+              setAssigningRequest(null);
+              assignForm.resetFields();
+            }}
+          >
+            <Form form={assignForm} layout="vertical">
+              <Form.Item
+                name="userId"
+                label="Assignee"
+                rules={[
+                  { required: true, message: "Please select an assignee" },
+                ]}
+              >
+                <UserSelector
+                  role="SalesManager"
+                  isActive
+                  allowClear={false}
+                  placeholder="Select pricing request assignee"
+                />
+              </Form.Item>
+            </Form>
+          </Modal>
+        )}
       </Card>
     </div>
   );

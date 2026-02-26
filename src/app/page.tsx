@@ -13,7 +13,7 @@ export default function Home() {
     if (isSuccess && user) {
       router.push("/dashboard");
     }
-  }, [isSuccess, user, router]);
+  });
 
   // Show landing page while checking auth or if user is not logged in
   if (!isSuccess || !user) {

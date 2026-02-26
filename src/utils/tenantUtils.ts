@@ -67,6 +67,46 @@ export const isManagerOrAdmin = (): boolean => {
 };
 
 /**
+ * Checks if user is a SalesRep
+ */
+export const isSalesRep = (): boolean => {
+  return hasRole("SalesRep");
+};
+
+/**
+ * Sales Rep navigation scope inside dashboard area
+ */
+export const SALES_REP_ALLOWED_DASHBOARD_ROUTES = [
+  "/dashboard",
+  "/opportunities",
+  "/pricing-requests",
+  "/activities",
+] as const;
+
+/**
+ * Checks if provided roles include SalesRep
+ */
+export const isSalesRepRole = (roles?: string[]): boolean => {
+  return roles?.includes("SalesRep") ?? false;
+};
+
+/**
+ * Checks if a dashboard route is allowed for provided roles
+ */
+export const isDashboardRouteAllowed = (
+  pathname: string,
+  roles?: string[],
+): boolean => {
+  if (!isSalesRepRole(roles)) {
+    return true;
+  }
+
+  return SALES_REP_ALLOWED_DASHBOARD_ROUTES.some(
+    (route) => pathname === route || pathname.startsWith(`${route}/`),
+  );
+};
+
+/**
  * Checks if user is a BusinessDevelopmentManager or higher
  */
 export const isBDMOrHigher = (): boolean => {
