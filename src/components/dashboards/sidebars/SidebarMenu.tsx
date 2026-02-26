@@ -74,6 +74,16 @@ const SidebarMenu: React.FC<SidebarMenuProps> = ({
       label: "Activities",
     },
     {
+      key: "/notes",
+      icon: <MessageOutlined />,
+      label: "Notes",
+    },
+    {
+      key: "/documents",
+      icon: <PaperClipOutlined />,
+      label: "Documents",
+    },
+    {
       key: "/reports",
       icon: <BarChartOutlined />,
       label: "Reports",
