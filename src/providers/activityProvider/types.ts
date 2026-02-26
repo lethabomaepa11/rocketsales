@@ -76,17 +76,18 @@ export interface CreateActivityParticipantDto {
 }
 
 export enum ActivityType {
-  Call = 1,
-  Meeting = 2,
-  Task = 3,
-  Email = 4,
-  Note = 5
+  Meeting = 1,
+  Call = 2,
+  Email = 3,
+  Task = 4,
+  Presentation = 5,
+  Other = 6
 }
 
 export enum ActivityStatus {
-  Pending = 1,
-  InProgress = 2,
-  Completed = 3
+  Scheduled = 1,
+  Completed = 2,
+  Cancelled = 3
 }
 
 export enum RelatedToType {

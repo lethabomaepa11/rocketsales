@@ -1,46 +1,70 @@
 // Dashboard Types from API Documentation
 
-export interface StageMetrics {
+export interface OpportunityMetrics {
+  totalCount: number;
+  wonCount: number;
+  winRate: number;
+  pipelineValue: number;
+}
+
+export interface PipelineStage {
   stage: number;
-  stageName: string | null;
+  stageName: string;
   count: number;
   totalValue: number;
   weightedValue: number;
 }
 
+export interface PipelineData {
+  stages: PipelineStage[];
+  weightedPipelineValue: number;
+}
+
+export interface ActivityMetrics {
+  upcomingCount: number;
+  overdueCount: number;
+  completedTodayCount: number;
+}
+
+export interface ContractMetrics {
+  totalActiveCount: number;
+  expiringThisMonthCount: number;
+  totalContractValue: number;
+}
+
+export interface MonthlyTrend {
+  month: string;
+  value: number;
+}
+
+export interface RevenueMetrics {
+  thisMonth: number;
+  thisQuarter: number;
+  thisYear: number;
+  monthlyTrend: MonthlyTrend[];
+}
+
 export interface DashboardOverviewDto {
-  totalClients: number;
-  totalOpportunities: number;
-  totalContracts: number;
-  activeProposals: number;
-  totalRevenue: number;
-  monthlyGrowth: number;
+  opportunities: OpportunityMetrics;
+  pipeline: PipelineData;
+  activities: ActivityMetrics;
+  contracts: ContractMetrics;
+  revenue: RevenueMetrics;
 }
 
 export interface PipelineMetricsDto {
-  stageMetrics: {
-    Lead?: StageMetrics;
-    Qualified?: StageMetrics;
-    Proposal?: StageMetrics;
-    Negotiation?: StageMetrics;
-    ClosedWon?: StageMetrics;
-    ClosedLost?: StageMetrics;
-  };
-  totalPipelineValue: number;
+  stages: PipelineStage[];
   weightedPipelineValue: number;
   totalOpportunities: number;
-  activeOpportunities: number;
-  averageDealSize: number;
   winRate: number;
 }
 
-export interface SalesPerformanceDto {
-  totalSales: number;
-  salesGrowth: number;
-  dealsWon: number;
-  dealsLost: number;
-  averageDealValue: number;
-  conversionRate: number;
+export interface StageActivityCount {
+  type: string;
+  typeName: string;
+  scheduled: number;
+  completed: number;
+  overdue: number;
 }
 
 export interface ActivitiesSummaryDto {
@@ -48,6 +72,18 @@ export interface ActivitiesSummaryDto {
   completedActivities: number;
   upcomingActivities: number;
   overdueActivities: number;
+  activityCounts: StageActivityCount[];
+}
+
+export interface SalesPerformanceDto {
+  userId: string;
+  userName: string;
+  totalSales: number;
+  salesGrowth: number;
+  dealsWon: number;
+  dealsLost: number;
+  averageDealValue: number;
+  conversionRate: number;
 }
 
 export interface ContractExpiryDto {
