@@ -17,6 +17,9 @@ export interface IDashboardStateContext {
   contractsExpiring: ContractExpiryDto[] | null;
   loading: boolean;
   error: string | null;
+  isPending: boolean;
+  isSuccess: boolean;
+  isError: boolean;
 }
 
 export interface IDashboardActionContext {
@@ -36,6 +39,9 @@ export const INITIAL_STATE: IDashboardStateContext = {
   contractsExpiring: [],
   loading: false,
   error: null,
+  isPending: false,
+  isSuccess: false,
+  isError: false,
 };
 
 export const DashboardStateContext =

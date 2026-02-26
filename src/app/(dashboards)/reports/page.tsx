@@ -53,6 +53,15 @@ const ReportsPage = () => {
     null,
   );
   const [groupBy, setGroupBy] = useState<"month" | "week">("month");
+  const salesPerformanceSummary = (salesPerformance || []).reduce(
+    (summary, item) => ({
+      dealsWon: summary.dealsWon + item.dealsWon,
+      dealsLost: summary.dealsLost + item.dealsLost,
+      averageDealValue: summary.averageDealValue + item.averageDealValue,
+      conversionRate: summary.conversionRate + item.conversionRate,
+    }),
+    { dealsWon: 0, dealsLost: 0, averageDealValue: 0, conversionRate: 0 },
+  );
 
   useEffect(() => {
     fetchOverview();
@@ -178,7 +187,7 @@ const ReportsPage = () => {
               <Col span={12}>
                 <Statistic
                   title="Deals Won"
-                  value={salesPerformance?.dealsWon || 0}
+                  value={salesPerformanceSummary.dealsWon}
                   prefix={<RiseOutlined />}
                   valueStyle={{ color: "#3f8600" }}
                 />
@@ -186,7 +195,7 @@ const ReportsPage = () => {
               <Col span={12}>
                 <Statistic
                   title="Deals Lost"
-                  value={salesPerformance?.dealsLost || 0}
+                  value={salesPerformanceSummary.dealsLost}
                   prefix={<FallOutlined />}
                   valueStyle={{ color: "#cf1322" }}
                 />
@@ -194,14 +203,14 @@ const ReportsPage = () => {
               <Col span={12}>
                 <Statistic
                   title="Conversion Rate"
-                  value={salesPerformance?.conversionRate || 0}
+                  value={salesPerformanceSummary.conversionRate}
                   suffix="%"
                 />
               </Col>
               <Col span={12}>
                 <Statistic
                   title="Avg Deal Value"
-                  value={salesPerformance?.averageDealValue || 0}
+                  value={salesPerformanceSummary.averageDealValue}
                   prefix={<DollarOutlined />}
                 />
               </Col>
