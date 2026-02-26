@@ -3,8 +3,10 @@
 import { createContext } from "react";
 import {
   ProposalDto,
+  ProposalWithLineItemsDto,
   CreateProposalDto,
   UpdateProposalDto,
+  CreateProposalLineItemDto,
   ProposalQueryParams,
 } from "./types";
 
@@ -13,7 +15,7 @@ export interface IProposalStateContext {
   isSuccess: boolean;
   isError: boolean;
   proposals: ProposalDto[];
-  selectedProposal: ProposalDto | null;
+  selectedProposal: ProposalWithLineItemsDto | null;
   pagination: {
     pageNumber: number;
     pageSize: number;
@@ -31,6 +33,13 @@ export interface IProposalActionContext {
   submitProposal: (id: string) => void;
   approveProposal: (id: string) => void;
   rejectProposal: (id: string) => void;
+  addLineItem: (proposalId: string, item: CreateProposalLineItemDto) => void;
+  updateLineItem: (
+    proposalId: string,
+    lineItemId: string,
+    item: CreateProposalLineItemDto,
+  ) => void;
+  deleteLineItem: (proposalId: string, lineItemId: string) => void;
 }
 
 export const INITIAL_STATE: IProposalStateContext = {

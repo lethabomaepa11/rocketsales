@@ -13,6 +13,7 @@ import * as ProposalActions from "./actions";
 import {
   CreateProposalDto,
   UpdateProposalDto,
+  CreateProposalLineItemDto,
   ProposalQueryParams,
 } from "./types";
 
@@ -183,6 +184,57 @@ export const ProposalProvider = ({
     [instance, notification],
   );
 
+  const addLineItem = useCallback(
+    async (proposalId: string, item: CreateProposalLineItemDto) => {
+      try {
+        await instance.post(`/Proposals/${proposalId}/line-items`, item);
+        const res = await instance.get(`/Proposals/${proposalId}`);
+        dispatch(ProposalActions.setSelectedProposal(res.data));
+        notification.success({ message: "Line item added" });
+      } catch {
+        notification.error({ message: "Failed to add line item" });
+      }
+    },
+    [instance, notification],
+  );
+
+  const updateLineItem = useCallback(
+    async (
+      proposalId: string,
+      lineItemId: string,
+      item: CreateProposalLineItemDto,
+    ) => {
+      try {
+        await instance.put(
+          `/Proposals/${proposalId}/line-items/${lineItemId}`,
+          item,
+        );
+        const res = await instance.get(`/Proposals/${proposalId}`);
+        dispatch(ProposalActions.setSelectedProposal(res.data));
+        notification.success({ message: "Line item updated" });
+      } catch {
+        notification.error({ message: "Failed to update line item" });
+      }
+    },
+    [instance, notification],
+  );
+
+  const deleteLineItem = useCallback(
+    async (proposalId: string, lineItemId: string) => {
+      try {
+        await instance.delete(
+          `/Proposals/${proposalId}/line-items/${lineItemId}`,
+        );
+        const res = await instance.get(`/Proposals/${proposalId}`);
+        dispatch(ProposalActions.setSelectedProposal(res.data));
+        notification.success({ message: "Line item removed" });
+      } catch {
+        notification.error({ message: "Failed to remove line item" });
+      }
+    },
+    [instance, notification],
+  );
+
   return (
     <ProposalStateContext.Provider value={state}>
       <ProposalActionContext.Provider
@@ -195,6 +247,9 @@ export const ProposalProvider = ({
           submitProposal,
           approveProposal,
           rejectProposal,
+          addLineItem,
+          updateLineItem,
+          deleteLineItem,
         }}
       >
         {children}

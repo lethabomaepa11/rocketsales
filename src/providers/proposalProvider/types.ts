@@ -67,11 +67,9 @@ export interface UpdateProposalDto {
 
 export enum ProposalStatus {
   Draft = 1,
-  Sent = 2,
-  Viewed = 3,
-  Accepted = 4,
-  Rejected = 5,
-  Expired = 6
+  Submitted = 2,
+  Rejected = 3,
+  Approved = 4,
 }
 
 export interface ProposalQueryParams {

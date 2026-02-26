@@ -95,3 +95,13 @@ export interface ContractExpiryDto {
   daysUntilExpiry: number;
   contractValue: number;
 }
+
+export interface IDashboardStateContext {
+  overview: DashboardOverviewDto | null;
+  pipelineMetrics: PipelineMetricsDto | null;
+  activitiesSummary: ActivitiesSummaryDto | null;
+  salesPerformance: SalesPerformanceDto[] | null;
+  contractsExpiring: ContractExpiryDto[] | null;
+  loading: boolean;
+  error: string | null;
+}

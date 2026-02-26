@@ -10,14 +10,16 @@ import {
 } from "./types";
 
 export interface IDashboardStateContext {
+  overview: DashboardOverviewDto | null;
+  pipelineMetrics: PipelineMetricsDto | null;
+  activitiesSummary: ActivitiesSummaryDto | null;
+  salesPerformance: SalesPerformanceDto[] | null;
+  contractsExpiring: ContractExpiryDto[] | null;
+  loading: boolean;
+  error: string | null;
   isPending: boolean;
   isSuccess: boolean;
   isError: boolean;
-  overview: DashboardOverviewDto | null;
-  pipelineMetrics: PipelineMetricsDto | null;
-  salesPerformance: SalesPerformanceDto | null;
-  activitiesSummary: ActivitiesSummaryDto | null;
-  expiringContracts: ContractExpiryDto[];
 }
 
 export interface IDashboardActionContext {
@@ -30,14 +32,16 @@ export interface IDashboardActionContext {
 }
 
 export const INITIAL_STATE: IDashboardStateContext = {
+  overview: null,
+  pipelineMetrics: null,
+  activitiesSummary: null,
+  salesPerformance: [],
+  contractsExpiring: [],
+  loading: false,
+  error: null,
   isPending: false,
   isSuccess: false,
   isError: false,
-  overview: null,
-  pipelineMetrics: null,
-  salesPerformance: null,
-  activitiesSummary: null,
-  expiringContracts: [],
 };
 
 export const DashboardStateContext =

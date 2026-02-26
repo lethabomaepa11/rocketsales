@@ -14,6 +14,7 @@ import {
   CreateContractDto,
   UpdateContractDto,
   ContractQueryParams,
+  CreateContractRenewalDto,
 } from "./types";
 
 export const ContractProvider = ({
@@ -172,6 +173,52 @@ export const ContractProvider = ({
     [instance, notification],
   );
 
+  const fetchRenewals = useCallback(
+    async (contractId: string) => {
+      dispatch(ContractActions.fetchRenewalsPending());
+      try {
+        const response = await instance.get(
+          `/Contracts/${contractId}/renewals`,
+        );
+        dispatch(ContractActions.fetchRenewalsSuccess(response.data || []));
+      } catch {
+        dispatch(ContractActions.fetchRenewalsError());
+      }
+    },
+    [instance],
+  );
+
+  const createRenewal = useCallback(
+    async (contractId: string, data: CreateContractRenewalDto) => {
+      try {
+        const response = await instance.post(
+          `/Contracts/${contractId}/renewals`,
+          data,
+        );
+        dispatch(ContractActions.createRenewalSuccess(response.data));
+        notification.success({ message: "Renewal created" });
+      } catch {
+        notification.error({ message: "Failed to create renewal" });
+      }
+    },
+    [instance, notification],
+  );
+
+  const completeRenewal = useCallback(
+    async (renewalId: string) => {
+      try {
+        const response = await instance.put(
+          `/Contracts/renewals/${renewalId}/complete`,
+        );
+        dispatch(ContractActions.createRenewalSuccess(response.data));
+        notification.success({ message: "Renewal completed" });
+      } catch {
+        notification.error({ message: "Failed to complete renewal" });
+      }
+    },
+    [instance, notification],
+  );
+
   return (
     <ContractStateContext.Provider value={state}>
       <ContractActionContext.Provider
@@ -184,6 +231,9 @@ export const ContractProvider = ({
           deleteContract,
           activateContract,
           cancelContract,
+          fetchRenewals,
+          createRenewal,
+          completeRenewal,
         }}
       >
         {children}
