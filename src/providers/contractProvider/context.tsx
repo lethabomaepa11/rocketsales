@@ -6,6 +6,8 @@ import {
   ContractQueryParams,
   CreateContractDto,
   UpdateContractDto,
+  ContractRenewalDto,
+  CreateContractRenewalDto,
 } from "./types";
 
 export interface IContractStateContext {
@@ -13,6 +15,7 @@ export interface IContractStateContext {
   isSuccess: boolean;
   isError: boolean;
   contracts: ContractDto[];
+  renewals: ContractRenewalDto[];
 }
 
 export interface IContractActionContext {
@@ -24,6 +27,9 @@ export interface IContractActionContext {
   deleteContract: (id: string) => void;
   activateContract: (id: string) => void;
   cancelContract: (id: string) => void;
+  fetchRenewals: (contractId: string) => void;
+  createRenewal: (contractId: string, data: CreateContractRenewalDto) => void;
+  completeRenewal: (renewalId: string) => void;
 }
 
 export const INITIAL_STATE: IContractStateContext = {
@@ -31,6 +37,7 @@ export const INITIAL_STATE: IContractStateContext = {
   isSuccess: false,
   isError: false,
   contracts: [],
+  renewals: [],
 };
 
 export const ContractStateContext =

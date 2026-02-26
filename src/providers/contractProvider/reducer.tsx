@@ -63,6 +63,27 @@ export const ContractReducer = (
       };
     case ContractActions.DELETE_CONTRACT_ERROR:
       return { ...state, isPending: false, isSuccess: false, isError: true };
+    case ContractActions.FETCH_RENEWALS_PENDING:
+      return { ...state, isPending: true, isError: false };
+    case ContractActions.FETCH_RENEWALS_SUCCESS:
+      return {
+        ...state,
+        isPending: false,
+        isSuccess: true,
+        renewals: action.payload as IContractStateContext["renewals"],
+      };
+    case ContractActions.FETCH_RENEWALS_ERROR:
+      return { ...state, isPending: false, isError: true };
+    case ContractActions.CREATE_RENEWAL_SUCCESS:
+      return {
+        ...state,
+        isPending: false,
+        isSuccess: true,
+        renewals: [
+          action.payload as IContractStateContext["renewals"][0],
+          ...state.renewals,
+        ],
+      };
     default:
       return state;
   }

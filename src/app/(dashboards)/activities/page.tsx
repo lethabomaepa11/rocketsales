@@ -108,11 +108,11 @@ const ActivitiesPage = () => {
   const [activeTab, setActiveTab] = useState("all");
   const [form] = Form.useForm();
   const [participantForm] = Form.useForm();
-  const relatedToType = Form.useWatch("relatedToType", form); // add this
+  const relatedToType = Form.useWatch("relatedToType", form);
 
   useEffect(() => {
     fetchActivities();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const filteredActivities =
     activeTab === "all"
@@ -124,6 +124,7 @@ const ActivitiesPage = () => {
     form.resetFields();
     setIsModalVisible(true);
   };
+
   const handleEditActivity = (activity: ActivityDto) => {
     setEditingActivity(activity);
     form.setFieldsValue({
@@ -132,18 +133,22 @@ const ActivitiesPage = () => {
     });
     setIsModalVisible(true);
   };
+
   const handleDeleteActivity = async (id: string) => {
     await deleteActivity(id);
     fetchActivities();
   };
+
   const handleCompleteActivity = async (id: string) => {
     await completeActivity(id);
     fetchActivities();
   };
+
   const handleCancelActivity = async (id: string) => {
     await cancelActivity(id);
     fetchActivities();
   };
+
   const handleModalOk = async () => {
     try {
       const values = await form.validateFields();
@@ -159,11 +164,13 @@ const ActivitiesPage = () => {
       console.error("Validation failed:", error);
     }
   };
+
   const handleViewParticipants = (activityId: string) => {
     setSelectedActivityId(activityId);
     fetchParticipants(activityId);
     setIsParticipantModalVisible(true);
   };
+
   const handleAddParticipant = async () => {
     if (!selectedActivityId) return;
     try {
@@ -288,20 +295,24 @@ const ActivitiesPage = () => {
             icon={<EditOutlined />}
             onClick={() => handleEditActivity(record)}
           />
-          {record.status !== ActivityStatus.Completed && (
-            <Button
-              type="link"
-              icon={<CheckOutlined />}
-              onClick={() => handleCompleteActivity(record.id)}
-            />
+          {record.status === ActivityStatus.Scheduled && (
+            <Tooltip title="Mark complete">
+              <Button
+                type="link"
+                icon={<CheckOutlined />}
+                onClick={() => handleCompleteActivity(record.id)}
+              />
+            </Tooltip>
           )}
-          {record.status !== ActivityStatus.Completed && (
-            <Button
-              type="link"
-              danger
-              icon={<CloseOutlined />}
-              onClick={() => handleCancelActivity(record.id)}
-            />
+          {record.status === ActivityStatus.Scheduled && (
+            <Tooltip title="Cancel">
+              <Button
+                type="link"
+                danger
+                icon={<CloseOutlined />}
+                onClick={() => handleCancelActivity(record.id)}
+              />
+            </Tooltip>
           )}
           <Popconfirm
             title="Delete this activity?"
@@ -342,7 +353,9 @@ const ActivitiesPage = () => {
             Add Activity
           </Button>
         </div>
+
         <Tabs activeKey={activeTab} onChange={setActiveTab} items={tabItems} />
+
         <Table
           columns={columns}
           dataSource={filteredActivities}
@@ -350,6 +363,8 @@ const ActivitiesPage = () => {
           rowKey="id"
           pagination={{ pageSize: 10 }}
         />
+
+        {/* Add / Edit Activity Modal */}
         <Modal
           title={editingActivity ? "Edit Activity" : "Add Activity"}
           open={isModalVisible}
@@ -388,13 +403,13 @@ const ActivitiesPage = () => {
                   { value: Priority.High, label: "High" },
                   { value: Priority.Urgent, label: "Urgent" },
                 ]}
-              ></Select>
+              />
             </Form.Item>
             <Form.Item name="dueDate" label="Due Date">
               <DatePicker style={{ width: "100%" }} />
             </Form.Item>
             <Form.Item name="duration" label="Duration (minutes)">
-              <Input type="number" />
+              <Input type="number" min={0} />
             </Form.Item>
             <Form.Item name="location" label="Location">
               <Input />
@@ -404,9 +419,8 @@ const ActivitiesPage = () => {
             </Form.Item>
             <Form.Item name="relatedToType" label="Related To Type">
               <Select
-                onChange={() => {
-                  form.setFieldValue("relatedToId", undefined);
-                }}
+                allowClear
+                onChange={() => form.setFieldValue("relatedToId", undefined)}
                 options={[
                   { value: RelatedToType.Client, label: "Client" },
                   { value: RelatedToType.Opportunity, label: "Opportunity" },
@@ -426,8 +440,7 @@ const ActivitiesPage = () => {
               rules={[
                 ({ getFieldValue }) => ({
                   validator(_, value) {
-                    const relatedToType = getFieldValue("relatedToType");
-                    if (relatedToType && !value) {
+                    if (getFieldValue("relatedToType") && !value) {
                       return Promise.reject(
                         new Error("Please select a related entity"),
                       );
@@ -441,29 +454,33 @@ const ActivitiesPage = () => {
             </Form.Item>
           </Form>
         </Modal>
+
+        {/* Participants Modal */}
         <Modal
           title="Activity Participants"
           open={isParticipantModalVisible}
           onCancel={() => setIsParticipantModalVisible(false)}
           footer={null}
-          width={500}
+          width={560}
         >
           <Form
             form={participantForm}
-            layout="inline"
+            layout="vertical"
             style={{ marginBottom: 16 }}
           >
-            <Form.Item name="userId" label="User ID">
-              <Input placeholder="User ID" style={{ width: 120 }} />
+            <Form.Item name="userId" label="User">
+              <UserSelector />
             </Form.Item>
             <Form.Item name="contactId" label="Contact ID">
-              <Input placeholder="Contact ID" style={{ width: 120 }} />
+              <Input placeholder="Enter contact ID" />
             </Form.Item>
             <Form.Item name="isRequired" label="Required">
-              <Select style={{ width: 80 }}>
-                <Select.Option value={true}>Yes</Select.Option>
-                <Select.Option value={false}>No</Select.Option>
-              </Select>
+              <Select
+                options={[
+                  { value: true, label: "Yes" },
+                  { value: false, label: "No" },
+                ]}
+              />
             </Form.Item>
             <Form.Item>
               <Button
@@ -471,10 +488,11 @@ const ActivitiesPage = () => {
                 icon={<PlusOutlined />}
                 onClick={handleAddParticipant}
               >
-                Add
+                Add Participant
               </Button>
             </Form.Item>
           </Form>
+
           <Table
             dataSource={participants}
             columns={[

@@ -11,7 +11,10 @@ import { PricingRequestProvider } from "@/providers/pricingRequestProvider";
 import { ProposalProvider } from "@/providers/proposalProvider";
 import { ContractProvider } from "@/providers/contractProvider";
 import { ActivityProvider } from "@/providers/activityProvider";
+import { NoteProvider } from "@/providers/noteProvider";
+import { DocumentProvider } from "@/providers/documentProvider";
 import { DashboardProvider } from "@/providers/dashboardProvider";
+import { ReportProvider } from "@/providers/reportProvider";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -50,7 +53,13 @@ export default function RootLayout({
                         <ProposalProvider>
                           <ContractProvider>
                             <ActivityProvider>
-                              <DashboardProvider>{children}</DashboardProvider>
+                              <NoteProvider>
+                                <DocumentProvider>
+                                  <DashboardProvider>
+                                    <ReportProvider>{children}</ReportProvider>
+                                  </DashboardProvider>
+                                </DocumentProvider>
+                              </NoteProvider>
                             </ActivityProvider>
                           </ContractProvider>
                         </ProposalProvider>

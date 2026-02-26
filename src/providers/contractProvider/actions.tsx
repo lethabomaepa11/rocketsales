@@ -37,3 +37,20 @@ export const deleteContractSuccess = (id: string) => ({
   payload: id,
 });
 export const deleteContractError = () => ({ type: DELETE_CONTRACT_ERROR });
+
+// Renewal actions
+export const FETCH_RENEWALS_PENDING = "FETCH_RENEWALS_PENDING";
+export const FETCH_RENEWALS_SUCCESS = "FETCH_RENEWALS_SUCCESS";
+export const FETCH_RENEWALS_ERROR = "FETCH_RENEWALS_ERROR";
+export const CREATE_RENEWAL_SUCCESS = "CREATE_RENEWAL_SUCCESS";
+
+export const fetchRenewalsPending = () => ({ type: FETCH_RENEWALS_PENDING });
+export const fetchRenewalsSuccess = (payload: unknown) => ({
+  type: FETCH_RENEWALS_SUCCESS,
+  payload,
+});
+export const fetchRenewalsError = () => ({ type: FETCH_RENEWALS_ERROR });
+export const createRenewalSuccess = (payload: unknown) => ({
+  type: CREATE_RENEWAL_SUCCESS,
+  payload,
+});

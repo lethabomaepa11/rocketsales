@@ -37,3 +37,9 @@ export const deleteProposalSuccess = (id: string) => ({
   payload: id,
 });
 export const deleteProposalError = () => ({ type: DELETE_PROPOSAL_ERROR });
+
+export const SET_SELECTED_PROPOSAL = "SET_SELECTED_PROPOSAL";
+export const setSelectedProposal = (payload: unknown) => ({
+  type: SET_SELECTED_PROPOSAL,
+  payload,
+});
