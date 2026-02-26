@@ -11,35 +11,40 @@ import {
   Space,
   Modal,
 } from "antd";
+import { useOpportunityActions } from "@/providers/opportunityProvider";
 import {
   OpportunityStage,
   OpportunitySource,
+  OpportunityDto,
 } from "@/providers/opportunityProvider/types";
 import dayjs from "dayjs";
+import { ClientDto } from "@/providers/clientProvider/types";
+import { ContactDto } from "@/providers/contactProvider/types";
 
 const { Option } = Select;
 
 interface OpportunityFormProps {
   visible: boolean;
   onCancel: () => void;
-  onSubmit: (values: any) => void;
-  initialValues?: any;
-  clients: any[];
-  contacts: any[];
+  initialValues?: OpportunityDto;
+  clients: ClientDto[];
+  contacts: ContactDto[];
   loading?: boolean;
 }
 
 const OpportunityForm: React.FC<OpportunityFormProps> = ({
   visible,
   onCancel,
-  onSubmit,
   initialValues,
   clients,
   contacts,
   loading = false,
 }) => {
   const [form] = Form.useForm();
-  const [filteredContacts, setFilteredContacts] = useState<any[]>(contacts);
+  const [filteredContacts, setFilteredContacts] =
+    useState<ContactDto[]>(contacts);
+  const { createOpportunity, updateOpportunity, fetchOpportunities } =
+    useOpportunityActions();
 
   useEffect(() => {
     if (initialValues) {
@@ -69,6 +74,25 @@ const OpportunityForm: React.FC<OpportunityFormProps> = ({
     form.setFieldsValue({ contactId: undefined }); // Clear contact selection
   };
 
+  const handleSubmit = async () => {
+    try {
+      const values = await form.validateFields();
+      const data = {
+        ...values,
+        expectedCloseDate: values.expectedCloseDate?.toISOString(),
+      };
+      console.log("Submitting opportunity data:", data);
+      if (initialValues) {
+        await updateOpportunity(initialValues.id, data);
+      } else {
+        await createOpportunity(data);
+      }
+      fetchOpportunities();
+    } catch (error) {
+      console.error("Validation failed:", error);
+    }
+  };
+
   const stageLabels: Record<OpportunityStage, string> = {
     [OpportunityStage.Lead]: "Lead",
     [OpportunityStage.Qualified]: "Qualified",
@@ -82,18 +106,7 @@ const OpportunityForm: React.FC<OpportunityFormProps> = ({
     <Modal
       title={initialValues ? "Edit Opportunity" : "Add Opportunity"}
       open={visible}
-      onOk={async () => {
-        try {
-          const values = await form.validateFields();
-          const data = {
-            ...values,
-            expectedCloseDate: values.expectedCloseDate?.toISOString(),
-          };
-          onSubmit(data);
-        } catch (error) {
-          console.error("Validation failed:", error);
-        }
-      }}
+      onOk={handleSubmit}
       onCancel={onCancel}
       width={600}
       confirmLoading={loading}
@@ -118,8 +131,8 @@ const OpportunityForm: React.FC<OpportunityFormProps> = ({
             allowClear
             showSearch
             filterOption={(input, option) =>
-              (option?.children as string)
-                ?.toLowerCase()
+              String(option?.children ?? "")
+                .toLowerCase()
                 .includes(input.toLowerCase())
             }
           >

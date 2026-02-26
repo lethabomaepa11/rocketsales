@@ -38,27 +38,31 @@ import {
   ActivityType,
   Priority,
   RelatedToType,
+  ActivityParticipantDto,
 } from "@/providers/activityProvider/types";
+import UserSelector from "@/components/common/UserSelector";
+import RelatedEntitySelector from "@/components/common/RelatedEntitySelector";
 import dayjs from "dayjs";
 
 const { Title, Text } = Typography;
 
 const statusColors: Record<ActivityStatus, string> = {
-  [ActivityStatus.Pending]: "default",
-  [ActivityStatus.InProgress]: "blue",
-  [ActivityStatus.Completed]: "green",
+  [ActivityStatus.Scheduled]: "processing",
+  [ActivityStatus.Completed]: "success",
+  [ActivityStatus.Cancelled]: "default",
 };
 const statusLabels: Record<ActivityStatus, string> = {
-  [ActivityStatus.Pending]: "Pending",
-  [ActivityStatus.InProgress]: "In Progress",
+  [ActivityStatus.Scheduled]: "Scheduled",
   [ActivityStatus.Completed]: "Completed",
+  [ActivityStatus.Cancelled]: "Cancelled",
 };
 const typeLabels: Record<ActivityType, string> = {
-  [ActivityType.Call]: "Call",
   [ActivityType.Meeting]: "Meeting",
+  [ActivityType.Call]: "Call",
   [ActivityType.Email]: "Email",
   [ActivityType.Task]: "Task",
-  [ActivityType.Note]: "Note",
+  [ActivityType.Presentation]: "Presentation",
+  [ActivityType.Other]: "Other",
 };
 const priorityLabels: Record<Priority, string> = {
   [Priority.Low]: "Low",
@@ -104,6 +108,7 @@ const ActivitiesPage = () => {
   const [activeTab, setActiveTab] = useState("all");
   const [form] = Form.useForm();
   const [participantForm] = Form.useForm();
+  const relatedToType = Form.useWatch("relatedToType", form); // add this
 
   useEffect(() => {
     fetchActivities();
@@ -313,9 +318,9 @@ const ActivitiesPage = () => {
 
   const tabItems = [
     { key: "all", label: "All Activities" },
-    { key: String(ActivityStatus.Pending), label: "Pending" },
-    { key: String(ActivityStatus.InProgress), label: "In Progress" },
+    { key: String(ActivityStatus.Scheduled), label: "Scheduled" },
     { key: String(ActivityStatus.Completed), label: "Completed" },
+    { key: String(ActivityStatus.Cancelled), label: "Cancelled" },
   ];
 
   return (
@@ -361,26 +366,29 @@ const ActivitiesPage = () => {
               <Input />
             </Form.Item>
             <Form.Item name="type" label="Type" rules={[{ required: true }]}>
-              <Select>
-                <Select.Option value={ActivityType.Call}>Call</Select.Option>
-                <Select.Option value={ActivityType.Meeting}>
-                  Meeting
-                </Select.Option>
-                <Select.Option value={ActivityType.Email}>Email</Select.Option>
-                <Select.Option value={ActivityType.Task}>Task</Select.Option>
-                <Select.Option value={ActivityType.Note}>Note</Select.Option>
-              </Select>
+              <Select
+                options={[
+                  { value: ActivityType.Meeting, label: "Meeting" },
+                  { value: ActivityType.Call, label: "Call" },
+                  { value: ActivityType.Email, label: "Email" },
+                  { value: ActivityType.Task, label: "Task" },
+                  { value: ActivityType.Presentation, label: "Presentation" },
+                  { value: ActivityType.Other, label: "Other" },
+                ]}
+              />
             </Form.Item>
             <Form.Item name="description" label="Description">
               <Input.TextArea rows={3} />
             </Form.Item>
             <Form.Item name="priority" label="Priority">
-              <Select>
-                <Select.Option value={Priority.Low}>Low</Select.Option>
-                <Select.Option value={Priority.Medium}>Medium</Select.Option>
-                <Select.Option value={Priority.High}>High</Select.Option>
-                <Select.Option value={Priority.Urgent}>Urgent</Select.Option>
-              </Select>
+              <Select
+                options={[
+                  { value: Priority.Low, label: "Low" },
+                  { value: Priority.Medium, label: "Medium" },
+                  { value: Priority.High, label: "High" },
+                  { value: Priority.Urgent, label: "Urgent" },
+                ]}
+              ></Select>
             </Form.Item>
             <Form.Item name="dueDate" label="Due Date">
               <DatePicker style={{ width: "100%" }} />
@@ -391,30 +399,45 @@ const ActivitiesPage = () => {
             <Form.Item name="location" label="Location">
               <Input />
             </Form.Item>
-            <Form.Item name="assignedToId" label="Assigned To ID">
-              <Input />
+            <Form.Item name="assignedToId" label="Assigned To">
+              <UserSelector />
             </Form.Item>
             <Form.Item name="relatedToType" label="Related To Type">
-              <Select>
-                <Select.Option value={RelatedToType.Client}>
-                  Client
-                </Select.Option>
-                <Select.Option value={RelatedToType.Opportunity}>
-                  Opportunity
-                </Select.Option>
-                <Select.Option value={RelatedToType.Proposal}>
-                  Proposal
-                </Select.Option>
-                <Select.Option value={RelatedToType.Contract}>
-                  Contract
-                </Select.Option>
-                <Select.Option value={RelatedToType.PricingRequest}>
-                  Pricing Request
-                </Select.Option>
-              </Select>
+              <Select
+                onChange={() => {
+                  form.setFieldValue("relatedToId", undefined);
+                }}
+                options={[
+                  { value: RelatedToType.Client, label: "Client" },
+                  { value: RelatedToType.Opportunity, label: "Opportunity" },
+                  { value: RelatedToType.Proposal, label: "Proposal" },
+                  { value: RelatedToType.Contract, label: "Contract" },
+                  {
+                    value: RelatedToType.PricingRequest,
+                    label: "Pricing Request",
+                  },
+                ]}
+              />
             </Form.Item>
-            <Form.Item name="relatedToId" label="Related To ID">
-              <Input />
+            <Form.Item
+              name="relatedToId"
+              label="Related To"
+              dependencies={["relatedToType"]}
+              rules={[
+                ({ getFieldValue }) => ({
+                  validator(_, value) {
+                    const relatedToType = getFieldValue("relatedToType");
+                    if (relatedToType && !value) {
+                      return Promise.reject(
+                        new Error("Please select a related entity"),
+                      );
+                    }
+                    return Promise.resolve();
+                  },
+                }),
+              ]}
+            >
+              <RelatedEntitySelector relatedToType={relatedToType} />
             </Form.Item>
           </Form>
         </Modal>
@@ -458,18 +481,13 @@ const ActivitiesPage = () => {
               {
                 title: "Name",
                 key: "name",
-                render: (
-                  _: unknown,
-                  record: {
-                    userName: string | null;
-                    contactName: string | null;
-                  },
-                ) => record.userName || record.contactName || "N/A",
+                render: (_: unknown, record: ActivityParticipantDto) =>
+                  record.userName || record.contactName || "N/A",
               },
               {
                 title: "Type",
                 key: "type",
-                render: (_: unknown, record: any) =>
+                render: (_: unknown, record: ActivityParticipantDto) =>
                   record.userId ? "User" : record.contactId ? "Contact" : "N/A",
               },
               {

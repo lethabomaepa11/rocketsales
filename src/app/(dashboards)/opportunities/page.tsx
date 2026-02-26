@@ -113,6 +113,7 @@ const OpportunitiesPage = () => {
   const handleModalOk = async () => {
     try {
       const values = await form.validateFields();
+      console.log(values);
       const data = {
         ...values,
         expectedCloseDate: values.expectedCloseDate?.toISOString(),
@@ -120,6 +121,7 @@ const OpportunitiesPage = () => {
       if (editingOpportunity) {
         await updateOpportunity(editingOpportunity.id, data);
       } else {
+        console.log(data);
         await createOpportunity(data as CreateOpportunityDto);
       }
       setIsModalVisible(false);
@@ -129,8 +131,8 @@ const OpportunitiesPage = () => {
     }
   };
 
-  const handleStageChange = async (id: string, newStage: OpportunityStage) => {
-    await updateStage(id, { newStage, notes: null, lossReason: null });
+  const handleStageChange = async (id: string, stage: OpportunityStage) => {
+    await updateStage(id, { stage, notes: null, lossReason: null });
     fetchOpportunities();
   };
 
@@ -168,8 +170,10 @@ const OpportunitiesPage = () => {
       title: "Stage",
       dataIndex: "stage",
       key: "stage",
-      render: (stage: OpportunityStage) => (
-        <Tag color={stageColors[stage]}>{stageLabels[stage]}</Tag>
+      render: (stage: OpportunityStage, record: OpportunityDto) => (
+        <Tag color={stageColors[stage]}>
+          {record.stageName || stageLabels[stage] || `Stage ${stage}`}
+        </Tag>
       ),
     },
     {
@@ -269,8 +273,7 @@ const OpportunitiesPage = () => {
         <OpportunityForm
           visible={isModalVisible}
           onCancel={() => setIsModalVisible(false)}
-          onSubmit={handleModalOk}
-          initialValues={editingOpportunity}
+          initialValues={editingOpportunity || undefined}
           clients={clients}
           contacts={contacts}
           loading={isPending}

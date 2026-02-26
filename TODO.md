@@ -1,44 +1,36 @@
-# TODO - Rocketsales Feature Implementation
+# Activity Entity Fixes - TODO
 
-## Analysis Complete
-After reviewing the swagger.json API documentation and comparing with the existing codebase, here are the features that need to be implemented:
+## Task: Fix activity entity implementation to match API requirements
 
-## Missing Features to Implement
+### 1. Fix ActivityType Enum (src/providers/activityProvider/types.ts)
+- [x] Change Call = 1 → Meeting = 1
+- [x] Change Meeting = 2 → Call = 2  
+- [x] Change Task = 3 → Email = 3
+- [x] Change Email = 4 → Task = 4
+- [x] Change Note = 5 → Presentation = 5
+- [x] Add Other = 6
 
-### 1. Activity Participants Management
-- [ ] GET /api/Activities/{activityId}/participants - Fetch participants
-- [ ] POST /api/Activities/{activityId}/participants - Add participant
+### 2. Fix ActivityStatus Enum (src/providers/activityProvider/types.ts)
+- [x] Change Pending = 1 → Scheduled = 1
+- [x] Change InProgress = 2 → Completed = 2
+- [x] Change Completed = 3 → Cancelled = 3
 
-### 2. Contract Renewals
-- [ ] GET /api/Contracts/{contractId}/renewals - Get renewals
-- [ ] PUT /api/Contracts/renewals/{renewalId}/complete - Complete renewal
+### 3. Update UI Labels in Activities Page (src/app/(dashboards)/activities/page.tsx)
+- [x] Update statusColors and statusLabels to match new enum
+- [x] Update typeLabels to match new enum
+- [x] Update RelatedToType label for PricingRequest (remove space)
+- [x] Update tab items to use new status values
+- [x] Update Type dropdown options to match new ActivityType enum
 
-### 3. Proposal Line Items
-- [ ] POST /api/Proposals/{proposalId}/line-items - Add line item
-- [ ] PUT /api/Proposals/{proposalId}/line-items/{lineItemId} - Update line item
+### 4. Fix RelatedEntitySelector Component (src/components/common/RelatedEntitySelector.tsx)
+- [x] Replace mock data with actual API calls
+- [x] Fetch real Clients from /api/clients
+- [x] Fetch real Opportunities from /api/opportunities
+- [x] Fetch real Proposals from /api/proposals
+- [x] Fetch real Contracts from /api/contracts
+- [x] Fetch real Pricing Requests from /api/pricingrequests
 
-### 4. Pricing Request Actions
-- [ ] POST /api/PricingRequests/{id}/assign - Assign pricing request
-- [ ] PUT /api/PricingRequests/{id}/complete - Complete pricing request
-
-### 5. Client Stats
-- [ ] GET /api/Clients/{id}/stats - Get client statistics
-
-### 6. Contact Primary
-- [ ] PUT /api/Contacts/{id}/set-primary - Set primary contact
-
-### 7. Pagination Fixes
-- [ ] Add pagination to opportunity provider
-- [ ] Add pagination to proposal provider
-- [ ] Add pagination to pricing request provider
-- [ ] Add pagination to contract provider
-
-### 8. Documentation & Cleanup
-- [ ] Write README.md
-
-## Implementation Order
-1. Create feature branches for each feature
-2. Implement one feature at a time
-3. Build and test each feature
-4. Push and merge to development
-5. Final README.md
+### 5. Test the Create Activity Modal
+- [x] Verify Related To Type dropdown shows all options
+- [x] Verify Related To Item dropdown shows real data when type is selected
+- [x] Verify payload sent to API has correct format
