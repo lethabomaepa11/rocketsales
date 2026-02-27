@@ -1,6 +1,6 @@
 "use client";
 
-import { Menu } from "antd";
+import { Menu, Dropdown, Avatar, Typography } from "antd";
 import {
   DashboardOutlined,
   TeamOutlined,
@@ -12,6 +12,9 @@ import {
   PaperClipOutlined,
   MessageOutlined,
   BarChartOutlined,
+  UserOutlined,
+  LogoutOutlined,
+  DownOutlined,
 } from "@ant-design/icons";
 import {
   isSalesRepRole,
@@ -25,6 +28,9 @@ interface SidebarMenuProps {
   selectedKeys?: string[];
   onMenuClick?: (key: string) => void;
   userRoles?: string[];
+  userName?: string;
+  userEmail?: string;
+  onLogout?: () => void;
 }
 
 const SidebarMenu: React.FC<SidebarMenuProps> = ({
@@ -32,10 +38,23 @@ const SidebarMenu: React.FC<SidebarMenuProps> = ({
   selectedKeys = ["/dashboard"],
   onMenuClick,
   userRoles,
+  userName,
+  userEmail,
+  onLogout,
 }) => {
   const { styles } = useStyles();
+  const displayName = userName?.trim() || "User";
+  const displayEmail = userEmail || "Account";
+
   const handleMenuClick: MenuProps["onClick"] = ({ key }) => {
     onMenuClick?.(key);
+  };
+
+  const handleProfileMenuClick: MenuProps["onClick"] = ({ key }) => {
+    if (key === "logout") {
+      onLogout?.();
+      return;
+    }
   };
 
   const menuItems: MenuProps["items"] = [
@@ -105,15 +124,62 @@ const SidebarMenu: React.FC<SidebarMenuProps> = ({
       })
     : menuItems;
 
+  const profileMenuItems: MenuProps["items"] = [
+    {
+      key: "logout",
+      icon: <LogoutOutlined />,
+      label: "Logout",
+      danger: true,
+    },
+  ];
+
   return (
-    <Menu
-      mode="inline"
-      selectedKeys={selectedKeys}
-      onClick={handleMenuClick}
-      className={styles.menu}
-      items={visibleMenuItems}
-      inlineCollapsed={collapsed}
-    />
+    <div className={styles.container}>
+      <Menu
+        mode="inline"
+        selectedKeys={selectedKeys}
+        onClick={handleMenuClick}
+        className={styles.menu}
+        items={visibleMenuItems}
+        inlineCollapsed={collapsed}
+      />
+
+      <div className={styles.profileSection}>
+        <Dropdown
+          menu={{ items: profileMenuItems, onClick: handleProfileMenuClick }}
+          placement="topRight"
+          trigger={["click"]}
+        >
+          <button
+            type="button"
+            className={`${styles.profileTrigger} ${
+              collapsed ? styles.profileTriggerCollapsed : ""
+            }`}
+          >
+            <Avatar icon={<UserOutlined />}>
+              {displayName.charAt(0).toUpperCase()}
+            </Avatar>
+
+            {!collapsed && (
+              <>
+                <span className={styles.profileMeta}>
+                  <Typography.Text className={styles.profileName}>
+                    {displayName}
+                  </Typography.Text>
+                  <Typography.Text
+                    type="secondary"
+                    className={styles.profileEmail}
+                  >
+                    {displayEmail}
+                  </Typography.Text>
+                </span>
+                <DownOutlined className={styles.profileChevron} />
+              </>
+            )}
+          </button>
+        </Dropdown>
+      </div>
+    </div>
   );
 };
 
