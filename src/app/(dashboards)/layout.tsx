@@ -1,20 +1,16 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Image, Layout, Breadcrumb, Dropdown, Avatar, Space } from "antd";
+import { Button, Image, Layout } from "antd";
+import { MenuOutlined } from "@ant-design/icons";
 import { useRouter, usePathname } from "next/navigation";
 import SidebarMenu from "@/components/dashboards/sidebars/SidebarMenu";
 import { useAuthState, useAuthActions } from "@/providers/authProvider";
-import {
-  UserOutlined,
-  LogoutOutlined,
-  SettingOutlined,
-} from "@ant-design/icons";
 import { withAuth } from "@/hoc/withAuth";
 import { isDashboardRouteAllowed } from "@/utils/tenantUtils";
 import { useStyles } from "./style/layout.style";
 
-const { Header, Content, Sider } = Layout;
+const { Content, Sider } = Layout;
 
 const DashboardLayoutContent = ({
   children,
@@ -22,6 +18,7 @@ const DashboardLayoutContent = ({
   children: React.ReactNode;
 }) => {
   const [collapsed, setCollapsed] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
   const { user } = useAuthState();
@@ -41,6 +38,15 @@ const DashboardLayoutContent = ({
 
   const handleMenuClick = (key: string) => {
     router.push(key);
+
+    if (isMobile) {
+      setCollapsed(true);
+    }
+  };
+
+  const handleBreakpoint = (broken: boolean) => {
+    setIsMobile(broken);
+    setCollapsed(broken);
   };
 
   const handleLogout = () => {
@@ -48,38 +54,34 @@ const DashboardLayoutContent = ({
     router.push("/login");
   };
 
-  const getBreadcrumbItems = () => {
-    const pathParts = pathname.split("/").filter(Boolean);
-    return pathParts.map((part, index) => ({
-      key: "/" + pathParts.slice(0, index + 1).join("/"),
-      title: part.charAt(0).toUpperCase() + part.slice(1).replace(/-/g, " "),
-    }));
-  };
-
-  const userMenuItems = [
-    { key: "profile", icon: <UserOutlined />, label: "Profile" },
-    { key: "settings", icon: <SettingOutlined />, label: "Settings" },
-    { type: "divider" as const },
-    {
-      key: "logout",
-      icon: <LogoutOutlined />,
-      label: "Logout",
-      danger: true,
-      onClick: handleLogout,
-    },
-  ];
-
   if (!user) {
     return null;
   }
 
+  const siderClassName = `${styles.sider} ${
+    isMobile ? styles.siderMobile : styles.siderDesktop
+  }`;
+
+  const mainLayoutClassName = `${styles.mainLayout} ${
+    isMobile
+      ? styles.mainLayoutMobile
+      : collapsed
+        ? styles.mainLayoutCollapsed
+        : styles.mainLayoutExpanded
+  }`;
+
   return (
     <Layout className={styles.layoutRoot}>
       <Sider
+        width={240}
+        collapsedWidth={isMobile ? 0 : 80}
+        breakpoint="lg"
+        trigger={null}
         collapsible
         collapsed={collapsed}
         onCollapse={setCollapsed}
-        className={styles.sider}
+        onBreakpoint={handleBreakpoint}
+        className={siderClassName}
       >
         <div className="demo-logo-vertical" />
         <Image
@@ -94,23 +96,33 @@ const DashboardLayoutContent = ({
           selectedKeys={[pathname]}
           onMenuClick={handleMenuClick}
           userRoles={user.roles}
+          userName={`${user.firstName} ${user.lastName}`.trim()}
+          userEmail={user.email}
+          onLogout={handleLogout}
         />
       </Sider>
-      <Layout>
-        <Header className={styles.header}>
-          <Breadcrumb
-            items={getBreadcrumbItems()}
-            className={styles.breadcrumb}
-          />
-          <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
-            <Space className={styles.userMenuTrigger}>
-              <Avatar icon={<UserOutlined />} src={user.firstName?.charAt(0)} />
-              <span>
-                {user.firstName} {user.lastName}
-              </span>
-            </Space>
-          </Dropdown>
-        </Header>
+
+      {isMobile && !collapsed && (
+        <button
+          type="button"
+          className={styles.mobileBackdrop}
+          onClick={() => setCollapsed(true)}
+          aria-label="Close navigation"
+        />
+      )}
+
+      <Layout className={mainLayoutClassName}>
+        {isMobile && (
+          <div className={styles.mobileTopBar}>
+            <Button
+              type="text"
+              icon={<MenuOutlined />}
+              className={styles.mobileMenuButton}
+              onClick={() => setCollapsed((prev) => !prev)}
+              aria-label="Toggle navigation menu"
+            />
+          </div>
+        )}
         <Content className={styles.content}>{children}</Content>
       </Layout>
     </Layout>
