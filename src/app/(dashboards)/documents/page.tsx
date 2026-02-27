@@ -32,6 +32,7 @@ import {
 } from "@/providers/documentProvider/types";
 import RelatedEntitySelector from "@/components/common/RelatedEntitySelector";
 import dayjs from "dayjs";
+import { useStyles } from "./style/page.style";
 
 const { Title, Text } = Typography;
 
@@ -70,6 +71,7 @@ const formatFileSize = (bytes: number) => {
 };
 
 const DocumentsPage = () => {
+  const { styles } = useStyles();
   const { documents, isPending } = useDocumentState();
   const { fetchDocuments, uploadDocument, downloadDocument, deleteDocument } =
     useDocumentActions();
@@ -146,7 +148,7 @@ const DocumentsPage = () => {
         record.relatedToTitle ? (
           <Space direction="vertical" size={0}>
             <span>{record.relatedToTitle}</span>
-            <Text type="secondary" style={{ fontSize: 12 }}>
+            <Text type="secondary" className={styles.relatedToMeta}>
               {record.relatedToType
                 ? relatedToLabels[record.relatedToType] ||
                   record.relatedToTypeName
@@ -194,21 +196,15 @@ const DocumentsPage = () => {
   ];
 
   return (
-    <div style={{ padding: "24px" }}>
+    <div className={styles.pageContainer}>
       <Card>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            marginBottom: 16,
-          }}
-        >
+        <div className={styles.headerRow}>
           <Title level={3}>Documents</Title>
           <Space>
             <Select
               placeholder="Filter by category"
               allowClear
-              style={{ width: 180 }}
+              className={styles.filterSelect}
               onChange={(val) => setFilterCategory(val)}
               options={Object.entries(categoryLabels).map(([k, v]) => ({
                 value: Number(k),

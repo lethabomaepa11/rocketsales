@@ -8,10 +8,12 @@ import {
 } from "@/providers/dashboardProvider";
 import { useDashboardState } from "@/providers/dashboardProvider";
 import DashboardMetrics from "@/components/dashboards/dashboard/DashboardMetrics";
+import { useStyles } from "./style/page.style";
 
 const { Title } = Typography;
 
 const DashboardPage = () => {
+  const { styles } = useStyles();
   const {
     overview,
     pipelineMetrics,
@@ -40,7 +42,7 @@ const DashboardPage = () => {
 
   if (loading) {
     return (
-      <div style={{ textAlign: "center", padding: "50px" }}>
+      <div className={styles.loadingState}>
         <Spin size="large" />
         <p>Loading dashboard data...</p>
       </div>
@@ -60,8 +62,8 @@ const DashboardPage = () => {
 
   return (
     <DashboardProvider>
-      <div style={{ padding: "24px" }}>
-        <Title level={2} style={{ marginBottom: "24px" }}>
+      <div className={styles.pageContainer}>
+        <Title level={2} className={styles.pageTitle}>
           Sales Dashboard
         </Title>
 
@@ -75,7 +77,7 @@ const DashboardPage = () => {
           {/* Pipeline Overview */}
           <Col xs={24} lg={12}>
             <Card title="Pipeline Overview" hoverable>
-              <div style={{ padding: "20px", textAlign: "center" }}>
+              <div className={styles.summaryCardContent}>
                 <p>Opportunities: {overview?.opportunities?.totalCount ?? 0}</p>
                 <p>
                   Pipeline Value: {overview?.opportunities?.pipelineValue ?? 0}{" "}
@@ -89,7 +91,7 @@ const DashboardPage = () => {
           {/* Sales Performance */}
           <Col xs={24} lg={12}>
             <Card title="Sales Performance" hoverable>
-              <div style={{ padding: "20px", textAlign: "center" }}>
+              <div className={styles.summaryCardContent}>
                 <p>This Month: {overview?.revenue?.thisMonth ?? 0} ZAR</p>
                 <p>This Quarter: {overview?.revenue?.thisQuarter ?? 0} ZAR</p>
                 <p>This Year: {overview?.revenue?.thisYear ?? 0} ZAR</p>
@@ -104,7 +106,7 @@ const DashboardPage = () => {
           {/* Activities Summary */}
           <Col xs={24} lg={12}>
             <Card title="Activities Summary" hoverable>
-              <div style={{ padding: "20px", textAlign: "center" }}>
+              <div className={styles.summaryCardContent}>
                 <p>Upcoming: {activitiesSummary?.upcomingActivities ?? 0}</p>
                 <p>Completed: {activitiesSummary?.completedActivities ?? 0}</p>
                 <p>Overdue: {activitiesSummary?.overdueActivities ?? 0}</p>
@@ -115,7 +117,7 @@ const DashboardPage = () => {
           {/* Contracts Expiring */}
           <Col xs={24} lg={12}>
             <Card title="Contracts Expiring Soon" hoverable>
-              <div style={{ padding: "20px", textAlign: "center" }}>
+              <div className={styles.summaryCardContent}>
                 <p>
                   Total Active: {overview?.contracts?.totalActiveCount ?? 0}
                 </p>

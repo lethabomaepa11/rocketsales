@@ -18,6 +18,7 @@ import {
   SALES_REP_ALLOWED_DASHBOARD_ROUTES,
 } from "@/utils/tenantUtils";
 import type { MenuProps } from "antd";
+import { useStyles } from "./style/SidebarMenu.style";
 
 interface SidebarMenuProps {
   collapsed?: boolean;
@@ -32,6 +33,7 @@ const SidebarMenu: React.FC<SidebarMenuProps> = ({
   onMenuClick,
   userRoles,
 }) => {
+  const { styles } = useStyles();
   const handleMenuClick: MenuProps["onClick"] = ({ key }) => {
     onMenuClick?.(key);
   };
@@ -108,7 +110,7 @@ const SidebarMenu: React.FC<SidebarMenuProps> = ({
       mode="inline"
       selectedKeys={selectedKeys}
       onClick={handleMenuClick}
-      style={{ background: "transparent", border: "none" }}
+      className={styles.menu}
       items={visibleMenuItems}
       inlineCollapsed={collapsed}
     />

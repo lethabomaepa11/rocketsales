@@ -17,6 +17,7 @@ import {
 import { ClientDto } from "@/providers/clientProvider/types";
 import { OpportunityDto } from "@/providers/opportunityProvider/types";
 import dayjs from "dayjs";
+import { useStyles } from "./style/ContractFormModal.style";
 
 interface ContractFormModalProps {
   open: boolean;
@@ -40,6 +41,7 @@ const ContractFormModal = ({
   onSubmit,
   onCancel,
 }: ContractFormModalProps) => {
+  const { styles } = useStyles();
   const [form] = Form.useForm();
 
   const handleOpen = () => {
@@ -118,7 +120,11 @@ const ContractFormModal = ({
           <Input />
         </Form.Item>
         <Form.Item name="contractValue" label="Value (ZAR)">
-          <InputNumber style={{ width: "100%" }} min={0} precision={2} />
+          <InputNumber
+            className={styles.fullWidthField}
+            min={0}
+            precision={2}
+          />
         </Form.Item>
         <Form.Item name="currency" label="Currency" initialValue="ZAR">
           <Select>
@@ -128,17 +134,17 @@ const ContractFormModal = ({
           </Select>
         </Form.Item>
         <Form.Item name="startDate" label="Start Date">
-          <DatePicker style={{ width: "100%" }} />
+          <DatePicker className={styles.fullWidthField} />
         </Form.Item>
         <Form.Item name="endDate" label="End Date">
-          <DatePicker style={{ width: "100%" }} />
+          <DatePicker className={styles.fullWidthField} />
         </Form.Item>
         <Form.Item
           name="renewalNoticePeriod"
           label="Renewal Notice (days)"
           initialValue={90}
         >
-          <InputNumber style={{ width: "100%" }} min={0} />
+          <InputNumber className={styles.fullWidthField} min={0} />
         </Form.Item>
         <Form.Item name="autoRenew" label="Auto Renew" valuePropName="checked">
           <Switch />

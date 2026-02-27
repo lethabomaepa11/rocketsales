@@ -40,6 +40,7 @@ import {
   OpportunityDto,
   OpportunityStage,
 } from "@/providers/opportunityProvider/types";
+import { useStyles } from "./style/page.style";
 
 const { Title } = Typography;
 
@@ -61,6 +62,7 @@ const stageLabels: Record<OpportunityStage, string> = {
 };
 
 const OpportunitiesPage = () => {
+  const { styles } = useStyles();
   const { opportunities, isPending, pagination } = useOpportunityState();
   const {
     fetchOpportunities,
@@ -293,20 +295,14 @@ const OpportunitiesPage = () => {
   );
 
   return (
-    <div style={{ padding: "24px" }}>
+    <div className={styles.pageContainer}>
       <Card>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            marginBottom: 16,
-          }}
-        >
+        <div className={styles.headerRow}>
           <Title level={3}>Opportunities</Title>
           <Space>
             <Select
               placeholder="Filter by Stage"
-              style={{ width: 150 }}
+              className={styles.stageFilterSelect}
               allowClear
               options={stageFilterOptions}
               onChange={setStageFilter}

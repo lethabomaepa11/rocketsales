@@ -44,6 +44,7 @@ import {
 import UserSelector from "@/components/common/UserSelector";
 import RelatedEntitySelector from "@/components/common/RelatedEntitySelector";
 import dayjs from "dayjs";
+import { useStyles } from "./style/page.style";
 
 const { Title, Text } = Typography;
 
@@ -86,6 +87,7 @@ const relatedToLabels: Record<RelatedToType, string> = {
 };
 
 const ActivitiesPage = () => {
+  const { styles } = useStyles();
   const { activities, participants, isPending } = useActivityState();
   const {
     fetchActivities,
@@ -266,7 +268,9 @@ const ActivitiesPage = () => {
       key: "dueDate",
       render: (date: string, record: ActivityDto) =>
         date ? (
-          <span style={{ color: record.isOverdue ? "red" : undefined }}>
+          <span
+            className={record.isOverdue ? styles.overdueDateText : undefined}
+          >
             {dayjs(date).format("YYYY-MM-DD")}
           </span>
         ) : (
@@ -300,7 +304,7 @@ const ActivitiesPage = () => {
         text ? (
           <Space direction="vertical" size={0}>
             <span>{text}</span>
-            <Text type="secondary" style={{ fontSize: 12 }}>
+            <Text type="secondary" className={styles.relatedMetaText}>
               {relatedToLabels[record.relatedToType]}
             </Text>
           </Space>
@@ -382,15 +386,9 @@ const ActivitiesPage = () => {
   ];
 
   return (
-    <div style={{ padding: "24px" }}>
+    <div className={styles.pageContainer}>
       <Card>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            marginBottom: 16,
-          }}
-        >
+        <div className={styles.headerRow}>
           <Title level={3}>Activities</Title>
           <Button
             type="primary"
@@ -453,7 +451,7 @@ const ActivitiesPage = () => {
               />
             </Form.Item>
             <Form.Item name="dueDate" label="Due Date">
-              <DatePicker style={{ width: "100%" }} />
+              <DatePicker className={styles.fullWidthDatePicker} />
             </Form.Item>
             <Form.Item name="duration" label="Duration (minutes)">
               <Input type="number" min={0} />
@@ -525,7 +523,7 @@ const ActivitiesPage = () => {
             <Form
               form={participantForm}
               layout="vertical"
-              style={{ marginBottom: 16 }}
+              className={styles.participantForm}
             >
               <Form.Item name="userId" label="User">
                 <UserSelector />

@@ -28,6 +28,7 @@ import {
   useDashboardActions,
 } from "@/providers/dashboardProvider";
 import { useReportState, useReportActions } from "@/providers/reportProvider";
+import { useStyles } from "./style/page.style";
 import dayjs from "dayjs";
 
 const { Title } = Typography;
@@ -43,6 +44,7 @@ const stageMap: Record<number, { label: string; color: string }> = {
 };
 
 const ReportsPage = () => {
+  const { styles } = useStyles();
   const { overview, salesPerformance, activitiesSummary } = useDashboardState();
   const { fetchOverview, fetchSalesPerformance, fetchActivitiesSummary } =
     useDashboardActions();
@@ -139,11 +141,11 @@ const ReportsPage = () => {
   ];
 
   return (
-    <div style={{ padding: "24px" }}>
+    <div className={styles.pageContainer}>
       <Title level={3}>Reports &amp; Analytics</Title>
 
       {/* Top KPIs */}
-      <Row gutter={16} style={{ marginBottom: 24 }}>
+      <Row gutter={16} className={styles.topKpiRow}>
         <Col span={6}>
           <Card>
             <Statistic
@@ -186,7 +188,7 @@ const ReportsPage = () => {
       </Row>
 
       {/* Sales Performance + Activities Summary */}
-      <Row gutter={16} style={{ marginBottom: 24 }}>
+      <Row gutter={16} className={styles.summaryRow}>
         <Col span={12}>
           <Card title="Sales Performance">
             <Row gutter={[16, 16]}>
@@ -268,7 +270,7 @@ const ReportsPage = () => {
       {/* Opportunities Report */}
       <Card
         title="Opportunities Report"
-        style={{ marginBottom: 24 }}
+        className={styles.opportunitiesCard}
         extra={
           <RangePicker
             onChange={(dates) =>
@@ -295,7 +297,7 @@ const ReportsPage = () => {
           <Select
             value={groupBy}
             onChange={setGroupBy}
-            style={{ width: 120 }}
+            className={styles.periodGroupSelect}
             options={[
               { label: "Monthly", value: "month" },
               { label: "Weekly", value: "week" },

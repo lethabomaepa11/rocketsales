@@ -40,6 +40,7 @@ import {
 import ContractFormModal from "@/components/dashboards/contracts/ContractFormModal";
 import ContractRenewalModal from "@/components/dashboards/contracts/ContractRenewalModal";
 import dayjs from "dayjs";
+import { useStyles } from "./style/page.style";
 
 const { Title } = Typography;
 
@@ -67,6 +68,7 @@ const toArray = <T,>(value: unknown): T[] => {
 };
 
 const ContractsPage = () => {
+  const { styles } = useStyles();
   const { contracts, renewals, isPending } = useContractState();
   const {
     fetchContracts,
@@ -259,15 +261,9 @@ const ContractsPage = () => {
   ];
 
   return (
-    <div style={{ padding: 24 }}>
+    <div className={styles.pageContainer}>
       <Card>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            marginBottom: 16,
-          }}
-        >
+        <div className={styles.headerRow}>
           <Title level={3}>Contracts</Title>
           <Button
             type="primary"

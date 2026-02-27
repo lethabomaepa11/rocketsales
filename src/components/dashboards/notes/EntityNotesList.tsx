@@ -22,6 +22,7 @@ import {
 } from "@ant-design/icons";
 import { useNoteState, useNoteActions } from "@/providers/noteProvider";
 import { NoteDto, RelatedToType } from "@/providers/noteProvider/types";
+import { useStyles } from "./style/EntityNotesList.style";
 import dayjs from "dayjs";
 
 const { Text, Paragraph } = Typography;
@@ -35,6 +36,7 @@ const EntityNotesList: React.FC<EntityNotesListProps> = ({
   relatedToType,
   relatedToId,
 }) => {
+  const { styles } = useStyles();
   const { notes, isPending } = useNoteState();
   const { fetchNotes, createNote, updateNote, deleteNote } = useNoteActions();
   const [isAdding, setIsAdding] = useState(false);
@@ -91,20 +93,12 @@ const EntityNotesList: React.FC<EntityNotesListProps> = ({
   };
 
   if (isPending && notes.length === 0) {
-    return (
-      <Spin style={{ display: "block", textAlign: "center", padding: 24 }} />
-    );
+    return <Spin className={styles.loadingSpinner} />;
   }
 
   return (
     <div>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          marginBottom: 12,
-        }}
-      >
+      <div className={styles.headerRow}>
         <Text strong>Notes</Text>
         <Button
           size="small"
@@ -117,7 +111,7 @@ const EntityNotesList: React.FC<EntityNotesListProps> = ({
       </div>
 
       {isAdding && (
-        <Form form={form} layout="vertical" style={{ marginBottom: 16 }}>
+        <Form form={form} layout="vertical" className={styles.addForm}>
           <Form.Item
             name="content"
             rules={[{ required: true, message: "Required" }]}
@@ -127,7 +121,7 @@ const EntityNotesList: React.FC<EntityNotesListProps> = ({
           <Form.Item
             name="isPrivate"
             valuePropName="checked"
-            style={{ marginBottom: 8 }}
+            className={styles.switchFormItem}
           >
             <Switch checkedChildren="Private" unCheckedChildren="Public" />
           </Form.Item>
@@ -182,19 +176,19 @@ const EntityNotesList: React.FC<EntityNotesListProps> = ({
                 <Form
                   form={editForm}
                   layout="vertical"
-                  style={{ width: "100%" }}
+                  className={styles.editForm}
                 >
                   <Form.Item
                     name="content"
                     rules={[{ required: true }]}
-                    style={{ marginBottom: 4 }}
+                    className={styles.compactFormItem}
                   >
                     <Input.TextArea rows={2} />
                   </Form.Item>
                   <Form.Item
                     name="isPrivate"
                     valuePropName="checked"
-                    style={{ marginBottom: 4 }}
+                    className={styles.compactFormItem}
                   >
                     <Switch
                       checkedChildren="Private"
@@ -223,14 +217,14 @@ const EntityNotesList: React.FC<EntityNotesListProps> = ({
                           Private
                         </Tag>
                       )}
-                      <Text type="secondary" style={{ fontSize: 12 }}>
+                      <Text type="secondary" className={styles.metaText}>
                         {note.createdByName} ·{" "}
                         {dayjs(note.createdAt).format("MMM D, HH:mm")}
                       </Text>
                     </Space>
                   }
                   description={
-                    <Paragraph style={{ marginBottom: 0 }}>
+                    <Paragraph className={styles.noteParagraph}>
                       {note.content}
                     </Paragraph>
                   }

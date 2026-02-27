@@ -15,7 +15,10 @@ import {
 import ClientListView from "@/components/dashboards/contacts/ClientListView";
 import ContactListView from "@/components/dashboards/contacts/ContactListView";
 import ContactForm from "@/components/dashboards/contacts/ContactForm";
+import { useStyles } from "./style/page.style";
+
 const ContactsPage = () => {
+  const { styles } = useStyles();
   const { contacts, isPending, pagination } = useContactState();
   const {
     fetchContacts,
@@ -122,7 +125,7 @@ const ContactsPage = () => {
   };
 
   return (
-    <div style={{ padding: "24px" }}>
+    <div className={styles.pageContainer}>
       <Card>
         <ContactListView
           contacts={contacts}

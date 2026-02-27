@@ -1,15 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import {
-  Image,
-  Layout,
-  theme,
-  Breadcrumb,
-  Dropdown,
-  Avatar,
-  Space,
-} from "antd";
+import { Image, Layout, Breadcrumb, Dropdown, Avatar, Space } from "antd";
 import { useRouter, usePathname } from "next/navigation";
 import SidebarMenu from "@/components/dashboards/sidebars/SidebarMenu";
 import { useAuthState, useAuthActions } from "@/providers/authProvider";
@@ -20,6 +12,7 @@ import {
 } from "@ant-design/icons";
 import { withAuth } from "@/hoc/withAuth";
 import { isDashboardRouteAllowed } from "@/utils/tenantUtils";
+import { useStyles } from "./style/layout.style";
 
 const { Header, Content, Sider } = Layout;
 
@@ -31,9 +24,9 @@ const DashboardLayoutContent = ({
   const [collapsed, setCollapsed] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
-  const { token } = theme.useToken();
   const { user } = useAuthState();
   const { logout } = useAuthActions();
+  const { styles } = useStyles();
 
   useEffect(() => {
     if (!user) {
@@ -81,19 +74,19 @@ const DashboardLayoutContent = ({
   }
 
   return (
-    <Layout style={{ minHeight: "100vh" }}>
+    <Layout className={styles.layoutRoot}>
       <Sider
         collapsible
         collapsed={collapsed}
         onCollapse={setCollapsed}
-        style={{ backgroundColor: token.colorBgContainer }}
+        className={styles.sider}
       >
         <div className="demo-logo-vertical" />
         <Image
           src="/images/logo.png"
           alt="Logo"
           width="100%"
-          style={{ marginBlock: "10px" }}
+          className={styles.logoImage}
           preview={false}
         />
         <SidebarMenu
@@ -104,21 +97,13 @@ const DashboardLayoutContent = ({
         />
       </Sider>
       <Layout>
-        <Header
-          style={{
-            backgroundColor: token.colorBgContainer,
-            padding: "0 24px",
-            display: "flex",
-            justifyContent: "flex-end",
-            alignItems: "center",
-          }}
-        >
+        <Header className={styles.header}>
           <Breadcrumb
             items={getBreadcrumbItems()}
-            style={{ flex: 1, lineHeight: "64px" }}
+            className={styles.breadcrumb}
           />
           <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
-            <Space style={{ cursor: "pointer" }}>
+            <Space className={styles.userMenuTrigger}>
               <Avatar icon={<UserOutlined />} src={user.firstName?.charAt(0)} />
               <span>
                 {user.firstName} {user.lastName}
@@ -126,15 +111,7 @@ const DashboardLayoutContent = ({
             </Space>
           </Dropdown>
         </Header>
-        <Content
-          style={{
-            padding: "24px",
-            minHeight: 280,
-            background: token.colorBgContainer,
-          }}
-        >
-          {children}
-        </Content>
+        <Content className={styles.content}>{children}</Content>
       </Layout>
     </Layout>
   );

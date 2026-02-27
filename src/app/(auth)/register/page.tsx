@@ -5,7 +5,8 @@ import type { FormProps } from "antd";
 import { Button, Flex, Form, Input, Tabs, Select } from "antd";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useStyles } from "../style/authStyles";
+import { useStyles as useAuthStyles } from "../style/authStyles";
+import { useStyles } from "./style/page.style";
 import { useAuthActions, useAuthState } from "@/providers/authProvider";
 
 type FieldType = {
@@ -32,6 +33,7 @@ const ROLE_OPTIONS = [
 ];
 
 const RegisterPage = () => {
+  const { styles: authStyles } = useAuthStyles();
   const { styles } = useStyles();
   const { registerUser } = useAuthActions();
   const { isSuccess } = useAuthState();
@@ -89,7 +91,7 @@ const RegisterPage = () => {
       <h1>Join RocketSales</h1>
       <p>
         Already have an account?
-        <Link className={styles.link} href="/login">
+        <Link className={authStyles.link} href="/login">
           Login
         </Link>
       </p>
@@ -152,7 +154,7 @@ const RegisterPage = () => {
               key: "default",
               label: "Use Default Workspace",
               children: (
-                <p style={{ color: "#666", fontSize: "12px" }}>
+                <p className={styles.defaultWorkspaceText}>
                   You will be added to the shared demo workspace.
                 </p>
               ),
@@ -226,7 +228,7 @@ const RegisterPage = () => {
       </Form.Item>
 
       <Form.Item label={null}>
-        <Button className={styles.button} type="primary" htmlType="submit">
+        <Button className={authStyles.button} type="primary" htmlType="submit">
           Sign up
         </Button>
       </Form.Item>

@@ -3,6 +3,7 @@
 import { Button, InputNumber, Input, Space, Table } from "antd";
 import { PlusOutlined, DeleteOutlined } from "@ant-design/icons";
 import { CreateProposalLineItemDto } from "@/providers/proposalProvider/types";
+import { useStyles } from "./style/ProposalLineItemsForm.style";
 
 interface ProposalLineItemsFormProps {
   lineItems: CreateProposalLineItemDto[];
@@ -29,6 +30,7 @@ const ProposalLineItemsForm = ({
   onChange,
   disabled,
 }: ProposalLineItemsFormProps) => {
+  const { styles } = useStyles();
   const updateItem = (
     index: number,
     field: keyof CreateProposalLineItemDto,
@@ -164,9 +166,7 @@ const ProposalLineItemsForm = ({
         size="small"
         pagination={false}
       />
-      <Space
-        style={{ marginTop: 8, width: "100%", justifyContent: "space-between" }}
-      >
+      <Space className={styles.summaryRow}>
         {!disabled && (
           <Button
             type="dashed"

@@ -29,6 +29,7 @@ import {
 } from "@/providers/noteProvider/types";
 import RelatedEntitySelector from "@/components/common/RelatedEntitySelector";
 import dayjs from "dayjs";
+import { useStyles } from "./style/page.style";
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -41,6 +42,7 @@ const relatedToLabels: Record<number, string> = {
 };
 
 const NotesPage = () => {
+  const { styles } = useStyles();
   const { notes, isPending } = useNoteState();
   const { fetchNotes, createNote, updateNote, deleteNote } = useNoteActions();
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -100,7 +102,7 @@ const NotesPage = () => {
       key: "content",
       width: "35%",
       render: (text: string) => (
-        <Paragraph ellipsis={{ rows: 2 }} style={{ marginBottom: 0 }}>
+        <Paragraph ellipsis={{ rows: 2 }} className={styles.noteContent}>
           {text || "N/A"}
         </Paragraph>
       ),
@@ -112,7 +114,7 @@ const NotesPage = () => {
         record.relatedToTitle ? (
           <Space direction="vertical" size={0}>
             <span>{record.relatedToTitle}</span>
-            <Text type="secondary" style={{ fontSize: 12 }}>
+            <Text type="secondary" className={styles.relatedMetaText}>
               {relatedToLabels[record.relatedToType] ||
                 record.relatedToTypeName}
             </Text>
@@ -171,21 +173,15 @@ const NotesPage = () => {
   ];
 
   return (
-    <div style={{ padding: "24px" }}>
+    <div className={styles.pageContainer}>
       <Card>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            marginBottom: 16,
-          }}
-        >
+        <div className={styles.headerRow}>
           <Title level={3}>Notes</Title>
           <Space>
             <Select
               placeholder="Filter by entity type"
               allowClear
-              style={{ width: 180 }}
+              className={styles.filterSelect}
               onChange={(val) => setFilterType(val)}
               options={[
                 { value: RelatedToType.Client, label: "Client" },
