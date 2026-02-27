@@ -41,6 +41,7 @@ import {
   CreateProposalLineItemDto,
 } from "@/providers/proposalProvider/types";
 import ProposalLineItemsForm from "@/components/dashboards/proposals/ProposalLineItemsForm";
+import { useStyles } from "./style/page.style";
 import dayjs from "dayjs";
 
 const { Title, Text } = Typography;
@@ -60,6 +61,7 @@ const statusLabels: Record<ProposalStatus, string> = {
 };
 
 const ProposalsPage = () => {
+  const { styles } = useStyles();
   const { proposals, isPending } = useProposalState();
   const {
     fetchProposals,
@@ -270,15 +272,9 @@ const ProposalsPage = () => {
   ];
 
   return (
-    <div style={{ padding: 24 }}>
+    <div className={styles.pageContainer}>
       <Card>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            marginBottom: 16,
-          }}
-        >
+        <div className={styles.headerRow}>
           <Title level={3}>Proposals</Title>
           <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
             Create Proposal
@@ -337,14 +333,14 @@ const ProposalsPage = () => {
             />
           </Form.Item>
           <Form.Item name="validUntil" label="Valid Until">
-            <DatePicker style={{ width: "100%" }} />
+            <DatePicker className={styles.fullWidthDatePicker} />
           </Form.Item>
         </Form>
 
         {!editingProposal && (
-          <div style={{ marginTop: 16 }}>
+          <div className={styles.lineItemsSection}>
             <Text strong>Line Items</Text>
-            <div style={{ marginTop: 8 }}>
+            <div className={styles.lineItemsWrapper}>
               <ProposalLineItemsForm
                 lineItems={lineItems}
                 onChange={setLineItems}

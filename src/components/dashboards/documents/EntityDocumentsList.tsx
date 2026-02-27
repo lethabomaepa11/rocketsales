@@ -29,6 +29,7 @@ import {
   DocumentCategory,
   RelatedToType,
 } from "@/providers/documentProvider/types";
+import { useStyles } from "./style/EntityDocumentsList.style";
 import dayjs from "dayjs";
 
 const { Text } = Typography;
@@ -68,6 +69,7 @@ const EntityDocumentsList: React.FC<EntityDocumentsListProps> = ({
   relatedToType,
   relatedToId,
 }) => {
+  const { styles } = useStyles();
   const { documents, isPending } = useDocumentState();
   const { fetchDocuments, uploadDocument, downloadDocument, deleteDocument } =
     useDocumentActions();
@@ -109,20 +111,12 @@ const EntityDocumentsList: React.FC<EntityDocumentsListProps> = ({
   };
 
   if (isPending && documents.length === 0) {
-    return (
-      <Spin style={{ display: "block", textAlign: "center", padding: 24 }} />
-    );
+    return <Spin className={styles.loadingSpinner} />;
   }
 
   return (
     <div>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          marginBottom: 12,
-        }}
-      >
+      <div className={styles.headerRow}>
         <Text strong>Documents</Text>
         <Button
           size="small"
@@ -135,7 +129,7 @@ const EntityDocumentsList: React.FC<EntityDocumentsListProps> = ({
       </div>
 
       {isUploading && (
-        <Form form={form} layout="vertical" style={{ marginBottom: 16 }}>
+        <Form form={form} layout="vertical" className={styles.uploadForm}>
           <Form.Item label="File" required>
             <Upload
               beforeUpload={(file) => {
@@ -229,13 +223,13 @@ const EntityDocumentsList: React.FC<EntityDocumentsListProps> = ({
                 }
                 description={
                   <Space>
-                    <Text type="secondary" style={{ fontSize: 12 }}>
+                    <Text type="secondary" className={styles.metaText}>
                       {formatFileSize(doc.fileSize || 0)}
                     </Text>
-                    <Text type="secondary" style={{ fontSize: 12 }}>
+                    <Text type="secondary" className={styles.metaText}>
                       {doc.uploadedByName || ""}
                     </Text>
-                    <Text type="secondary" style={{ fontSize: 12 }}>
+                    <Text type="secondary" className={styles.metaText}>
                       {dayjs(doc.createdAt).format("MMM D, HH:mm")}
                     </Text>
                   </Space>

@@ -1,6 +1,7 @@
 import { Table, Button, Typography } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import { ClientDto } from "@/providers/clientProvider/types";
+import { useStyles } from "./style/ClientListView.style";
 
 const { Title } = Typography;
 
@@ -15,6 +16,7 @@ const ClientListView: React.FC<ClientListViewProps> = ({
   onAddContact,
   onViewContacts,
 }) => {
+  const { styles } = useStyles();
   const columns = [
     {
       title: "Client Name",
@@ -40,13 +42,7 @@ const ClientListView: React.FC<ClientListViewProps> = ({
 
   return (
     <div>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          marginBottom: 16,
-        }}
-      >
+      <div className={styles.headerRow}>
         <Title level={3}>Clients</Title>
         <Button type="primary" icon={<PlusOutlined />} onClick={onAddContact}>
           Add Contact

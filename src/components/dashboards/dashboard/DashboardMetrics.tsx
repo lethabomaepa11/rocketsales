@@ -1,20 +1,19 @@
 "use client";
 
-import { Row, Col, Card, Statistic, Progress, Badge } from "antd";
+import { Row, Col, Card, Progress } from "antd";
 import {
   ArrowUpOutlined,
-  ArrowDownOutlined,
   FireOutlined,
   TrophyOutlined,
   ClockCircleOutlined,
   DollarOutlined,
-  TeamOutlined,
   FileTextOutlined,
 } from "@ant-design/icons";
 import {
   DashboardOverviewDto,
   ActivitiesSummaryDto,
 } from "@/providers/dashboardProvider/types";
+import { useStyles } from "./style/DashboardMetrics.style";
 
 interface DashboardMetricsProps {
   overview: DashboardOverviewDto | null;
@@ -31,89 +30,13 @@ const fmtCurrency = (n: number) =>
     maximumFractionDigits: 0,
   }).format(n);
 
-const styles = {
-  page: {
-    fontFamily: "'DM Sans', 'Segoe UI', sans-serif",
-    background: "#f5f5f0",
-    minHeight: "100vh",
-    padding: "32px",
-  } as React.CSSProperties,
-  heading: {
-    fontSize: 22,
-    fontWeight: 700,
-    color: "#111",
-    letterSpacing: "-0.5px",
-    marginBottom: 4,
-  } as React.CSSProperties,
-  sub: { fontSize: 13, color: "#888", marginBottom: 28 } as React.CSSProperties,
-
-  // Primary KPI cards
-  kpiCard: {
-    borderRadius: 16,
-    border: "none",
-    boxShadow: "0 1px 3px rgba(0,0,0,0.07)",
-    overflow: "hidden",
-  } as React.CSSProperties,
-  kpiDark: { background: "#111", color: "#fff" } as React.CSSProperties,
-  kpiAccent: { background: "#2563eb", color: "#fff" } as React.CSSProperties,
-  kpiGreen: { background: "#16a34a", color: "#fff" } as React.CSSProperties,
-  kpiLight: { background: "#fff" } as React.CSSProperties,
-
-  label: {
-    fontSize: 12,
-    fontWeight: 500,
-    opacity: 0.65,
-    textTransform: "uppercase",
-    letterSpacing: "0.5px",
-  } as React.CSSProperties,
-  value: {
-    fontSize: 32,
-    fontWeight: 800,
-    letterSpacing: "-1px",
-    lineHeight: 1.1,
-    marginTop: 6,
-  } as React.CSSProperties,
-  valueLight: { color: "#111" } as React.CSSProperties,
-  valueWhite: { color: "#fff" } as React.CSSProperties,
-  delta: {
-    fontSize: 12,
-    marginTop: 10,
-    display: "flex",
-    alignItems: "center",
-    gap: 4,
-  } as React.CSSProperties,
-
-  // Secondary cards
-  secCard: {
-    borderRadius: 16,
-    border: "1px solid #e8e8e0",
-    boxShadow: "none",
-    background: "#fff",
-  } as React.CSSProperties,
-  secTitle: {
-    fontSize: 13,
-    fontWeight: 600,
-    color: "#333",
-    marginBottom: 16,
-  } as React.CSSProperties,
-  row: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 10,
-  } as React.CSSProperties,
-  pill: {
-    borderRadius: 20,
-    padding: "2px 10px",
-    fontSize: 12,
-    fontWeight: 600,
-  } as React.CSSProperties,
-};
+type MetricsClassNames = ReturnType<typeof useStyles>["styles"];
 
 const DashboardMetrics = ({
   overview,
   activitiesSummary,
 }: DashboardMetricsProps) => {
+  const { styles } = useStyles();
   const rev = overview?.revenue;
   const opp = overview?.opportunities;
   const act = overview?.activities;
@@ -133,26 +56,25 @@ const DashboardMetrics = ({
   const weightedVal = pipeline?.weightedPipelineValue ?? 0;
 
   return (
-    <div style={styles.page}>
-      <div style={styles.heading}>Sales Dashboard</div>
-      <div style={styles.sub}>Performance overview · Updated just now</div>
+    <div className={styles.page}>
+      <div className={styles.heading}>Sales Dashboard</div>
+      <div className={styles.subHeading}>
+        Performance overview · Updated just now
+      </div>
 
       {/* Top KPI row */}
-      <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
+      <Row gutter={[16, 16]} className={styles.topKpiRow}>
         <Col xs={24} sm={12} lg={6}>
-          <Card
-            style={{ ...styles.kpiCard, ...styles.kpiDark }}
-            bodyStyle={{ padding: 24 }}
-          >
-            <div style={{ ...styles.label, color: "rgba(255,255,255,0.5)" }}>
+          <Card className={`${styles.kpiCard} ${styles.kpiDark}`}>
+            <div className={`${styles.kpiLabel} ${styles.kpiLabelMutedOnDark}`}>
               Annual Revenue
             </div>
-            <div style={{ ...styles.value, ...styles.valueWhite }}>
+            <div className={`${styles.kpiValue} ${styles.kpiValueWhite}`}>
               {fmtCurrency(rev?.thisYear ?? 0)}
             </div>
-            <div style={{ ...styles.delta, color: "rgba(255,255,255,0.6)" }}>
-              <ArrowUpOutlined style={{ color: "#4ade80" }} />
-              <span style={{ color: "#4ade80" }}>
+            <div className={`${styles.kpiDelta} ${styles.kpiDeltaOnDark}`}>
+              <ArrowUpOutlined className={styles.textPositive} />
+              <span className={styles.textPositive}>
                 {fmtCurrency(rev?.thisMonth ?? 0)}
               </span>
               &nbsp;this month
@@ -161,17 +83,14 @@ const DashboardMetrics = ({
         </Col>
 
         <Col xs={24} sm={12} lg={6}>
-          <Card
-            style={{ ...styles.kpiCard, ...styles.kpiAccent }}
-            bodyStyle={{ padding: 24 }}
-          >
-            <div style={{ ...styles.label, color: "rgba(255,255,255,0.55)" }}>
+          <Card className={`${styles.kpiCard} ${styles.kpiAccent}`}>
+            <div className={`${styles.kpiLabel} ${styles.kpiLabelSoftOnDark}`}>
               Pipeline Value
             </div>
-            <div style={{ ...styles.value, ...styles.valueWhite }}>
+            <div className={`${styles.kpiValue} ${styles.kpiValueWhite}`}>
               {fmtCurrency(opp?.pipelineValue ?? 0)}
             </div>
-            <div style={{ ...styles.delta, color: "rgba(255,255,255,0.6)" }}>
+            <div className={`${styles.kpiDelta} ${styles.kpiDeltaOnDark}`}>
               <DollarOutlined />
               Weighted: {fmtCurrency(weightedVal)}
             </div>
@@ -179,17 +98,14 @@ const DashboardMetrics = ({
         </Col>
 
         <Col xs={24} sm={12} lg={6}>
-          <Card
-            style={{ ...styles.kpiCard, ...styles.kpiGreen }}
-            bodyStyle={{ padding: 24 }}
-          >
-            <div style={{ ...styles.label, color: "rgba(255,255,255,0.55)" }}>
+          <Card className={`${styles.kpiCard} ${styles.kpiGreen}`}>
+            <div className={`${styles.kpiLabel} ${styles.kpiLabelSoftOnDark}`}>
               Win Rate
             </div>
-            <div style={{ ...styles.value, ...styles.valueWhite }}>
+            <div className={`${styles.kpiValue} ${styles.kpiValueWhite}`}>
               {winRate.toFixed(1)}%
             </div>
-            <div style={{ ...styles.delta, color: "rgba(255,255,255,0.6)" }}>
+            <div className={`${styles.kpiDelta} ${styles.kpiDeltaOnDark}`}>
               <TrophyOutlined />
               {opp?.wonCount ?? 0} won of {opp?.totalCount ?? 0} total
             </div>
@@ -197,29 +113,28 @@ const DashboardMetrics = ({
         </Col>
 
         <Col xs={24} sm={12} lg={6}>
-          <Card
-            style={{ ...styles.kpiCard, ...styles.kpiLight }}
-            bodyStyle={{ padding: 24 }}
-          >
-            <div style={{ ...styles.label, color: "#999" }}>
+          <Card className={`${styles.kpiCard} ${styles.kpiLight}`}>
+            <div
+              className={`${styles.kpiLabel} ${styles.kpiLabelMutedOnLight}`}
+            >
               Active Contracts
             </div>
-            <div style={{ ...styles.value, ...styles.valueLight }}>
+            <div className={`${styles.kpiValue} ${styles.kpiValueDark}`}>
               {contracts?.totalActiveCount ?? 0}
             </div>
-            <div style={{ ...styles.delta, color: "#888" }}>
+            <div className={`${styles.kpiDelta} ${styles.kpiDeltaOnLight}`}>
               {contracts?.expiringThisMonthCount ? (
                 <>
-                  <FireOutlined style={{ color: "#f97316" }} />{" "}
-                  <span style={{ color: "#f97316" }}>
+                  <FireOutlined className={styles.textWarning} />{" "}
+                  <span className={styles.textWarning}>
                     {contracts.expiringThisMonthCount} expiring
                   </span>{" "}
                   this month
                 </>
               ) : (
                 <>
-                  <span style={{ color: "#16a34a" }}>✓</span> None expiring this
-                  month
+                  <span className={styles.textSuccess}>✓</span> None expiring
+                  this month
                 </>
               )}
             </div>
@@ -231,35 +146,39 @@ const DashboardMetrics = ({
       <Row gutter={[16, 16]}>
         {/* Activity breakdown */}
         <Col xs={24} md={8}>
-          <Card style={styles.secCard} bodyStyle={{ padding: 24 }}>
-            <div style={styles.secTitle}>
-              <CalIconInline /> Activity Breakdown
+          <Card className={styles.secondaryCard}>
+            <div className={styles.secondaryTitle}>
+              <ClockCircleOutlined className={styles.titleIcon} /> Activity
+              Breakdown
             </div>
             <ActivityRow
               label="Upcoming"
               value={act?.upcomingCount ?? 0}
-              color="#2563eb"
+              variant="blue"
+              styles={styles}
             />
             <ActivityRow
               label="Completed Today"
               value={act?.completedTodayCount ?? 0}
-              color="#16a34a"
+              variant="green"
+              styles={styles}
             />
             <ActivityRow
               label="Overdue"
               value={act?.overdueCount ?? 0}
-              color="#ef4444"
+              variant="red"
+              styles={styles}
             />
-            <div style={{ marginTop: 16 }}>
-              <div style={{ fontSize: 12, color: "#999", marginBottom: 6 }}>
-                Overdue ratio
-              </div>
+            <div className={styles.sectionSpacingTop}>
+              <div className={styles.mutedCaption}>Overdue ratio</div>
               <Progress
                 percent={overdueRatio}
                 strokeColor="#ef4444"
                 trailColor="#f0f0f0"
                 size="small"
-                format={(p) => <span style={{ fontSize: 11 }}>{p}%</span>}
+                format={(p) => (
+                  <span className={styles.progressPercent}>{p}%</span>
+                )}
               />
             </div>
           </Card>
@@ -267,29 +186,29 @@ const DashboardMetrics = ({
 
         {/* Revenue split */}
         <Col xs={24} md={8}>
-          <Card style={styles.secCard} bodyStyle={{ padding: 24 }}>
-            <div style={styles.secTitle}>
-              <DollarOutlined style={{ marginRight: 6 }} />
+          <Card className={styles.secondaryCard}>
+            <div className={styles.secondaryTitle}>
+              <DollarOutlined className={styles.titleIcon} />
               Revenue Breakdown
             </div>
             <RevenueRow
               label="This Month"
               value={rev?.thisMonth ?? 0}
               highlight
+              styles={styles}
             />
-            <RevenueRow label="This Quarter" value={rev?.thisQuarter ?? 0} />
-            <RevenueRow label="This Year" value={rev?.thisYear ?? 0} />
-            <div
-              style={{
-                marginTop: 16,
-                padding: "10px 12px",
-                background: "#f9f9f7",
-                borderRadius: 10,
-              }}
-            >
-              <div style={{ fontSize: 11, color: "#999", marginBottom: 2 }}>
-                Quarterly pace
-              </div>
+            <RevenueRow
+              label="This Quarter"
+              value={rev?.thisQuarter ?? 0}
+              styles={styles}
+            />
+            <RevenueRow
+              label="This Year"
+              value={rev?.thisYear ?? 0}
+              styles={styles}
+            />
+            <div className={styles.summaryBox}>
+              <div className={styles.summaryBoxCaption}>Quarterly pace</div>
               <Progress
                 percent={
                   rev?.thisQuarter && rev?.thisYear
@@ -306,28 +225,34 @@ const DashboardMetrics = ({
 
         {/* Pipeline health */}
         <Col xs={24} md={8}>
-          <Card style={styles.secCard} bodyStyle={{ padding: 24 }}>
-            <div style={styles.secTitle}>
-              <FileTextOutlined style={{ marginRight: 6 }} />
+          <Card className={styles.secondaryCard}>
+            <div className={styles.secondaryTitle}>
+              <FileTextOutlined className={styles.titleIcon} />
               Pipeline Health
             </div>
             <HealthRow
               label="Total Opportunities"
               value={fmt(opp?.totalCount ?? 0)}
+              styles={styles}
             />
-            <HealthRow label="Deals Won" value={fmt(opp?.wonCount ?? 0)} good />
+            <HealthRow
+              label="Deals Won"
+              value={fmt(opp?.wonCount ?? 0)}
+              good
+              styles={styles}
+            />
             <HealthRow
               label="Contracts Value"
               value={fmtCurrency(contracts?.totalContractValue ?? 0)}
+              styles={styles}
             />
             <HealthRow
               label="Weighted Pipeline"
               value={fmtCurrency(weightedVal)}
+              styles={styles}
             />
-            <div style={{ marginTop: 16 }}>
-              <div style={{ fontSize: 12, color: "#999", marginBottom: 6 }}>
-                Win rate target (30%)
-              </div>
+            <div className={styles.sectionSpacingTop}>
+              <div className={styles.mutedCaption}>Win rate target (30%)</div>
               <Progress
                 percent={Math.min(winRate, 100)}
                 success={{ percent: 30, strokeColor: "#e8e8e0" }}
@@ -343,28 +268,28 @@ const DashboardMetrics = ({
   );
 };
 
-// Small helper components (keep total lines low)
-const CalIconInline = () => <ClockCircleOutlined style={{ marginRight: 6 }} />;
-
 const ActivityRow = ({
   label,
   value,
-  color,
+  variant,
+  styles,
 }: {
   label: string;
   value: number;
-  color: string;
+  variant: "blue" | "green" | "red";
+  styles: MetricsClassNames;
 }) => (
-  <div
-    style={{
-      display: "flex",
-      justifyContent: "space-between",
-      alignItems: "center",
-      marginBottom: 10,
-    }}
-  >
-    <span style={{ fontSize: 13, color: "#555" }}>{label}</span>
-    <span style={{ ...styles.pill, background: color + "15", color }}>
+  <div className={styles.infoRow}>
+    <span className={styles.infoLabel}>{label}</span>
+    <span
+      className={`${styles.infoPill} ${
+        variant === "blue"
+          ? styles.infoPillBlue
+          : variant === "green"
+            ? styles.infoPillGreen
+            : styles.infoPillRed
+      }`}
+    >
       {value}
     </span>
   </div>
@@ -374,34 +299,25 @@ const RevenueRow = ({
   label,
   value,
   highlight,
+  styles,
 }: {
   label: string;
   value: number;
   highlight?: boolean;
+  styles: MetricsClassNames;
 }) => (
-  <div
-    style={{
-      display: "flex",
-      justifyContent: "space-between",
-      alignItems: "center",
-      marginBottom: 10,
-    }}
-  >
+  <div className={styles.infoRow}>
     <span
-      style={{
-        fontSize: 13,
-        color: highlight ? "#111" : "#555",
-        fontWeight: highlight ? 600 : 400,
-      }}
+      className={
+        highlight ? styles.revenueLabelHighlight : styles.revenueLabelDefault
+      }
     >
       {label}
     </span>
     <span
-      style={{
-        fontSize: 13,
-        fontWeight: 700,
-        color: highlight ? "#2563eb" : "#333",
-      }}
+      className={`${styles.revenueValue} ${
+        highlight ? styles.revenueValueHighlight : styles.revenueValueDefault
+      }`}
     >
       {fmtCurrency(value)}
     </span>
@@ -412,26 +328,19 @@ const HealthRow = ({
   label,
   value,
   good,
+  styles,
 }: {
   label: string;
   value: string;
   good?: boolean;
+  styles: MetricsClassNames;
 }) => (
-  <div
-    style={{
-      display: "flex",
-      justifyContent: "space-between",
-      alignItems: "center",
-      marginBottom: 10,
-    }}
-  >
-    <span style={{ fontSize: 13, color: "#555" }}>{label}</span>
+  <div className={styles.infoRow}>
+    <span className={styles.infoLabel}>{label}</span>
     <span
-      style={{
-        fontSize: 13,
-        fontWeight: 600,
-        color: good ? "#16a34a" : "#111",
-      }}
+      className={`${styles.healthValue} ${
+        good ? styles.healthValueGood : styles.healthValueDefault
+      }`}
     >
       {value}
     </span>

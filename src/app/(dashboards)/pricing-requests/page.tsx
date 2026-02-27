@@ -41,6 +41,7 @@ import {
 } from "@/providers/pricingRequestProvider/types";
 import UserSelector from "@/components/common/UserSelector";
 import dayjs from "dayjs";
+import { useStyles } from "./style/page.style";
 
 const { Title } = Typography;
 
@@ -70,6 +71,7 @@ const priorityLabels: Record<Priority, string> = {
 };
 
 const PricingRequestsPage = () => {
+  const { styles } = useStyles();
   const { pricingRequests, isPending } = usePricingRequestState();
   const {
     fetchPricingRequests,
@@ -304,15 +306,9 @@ const PricingRequestsPage = () => {
   ];
 
   return (
-    <div style={{ padding: "24px" }}>
+    <div className={styles.pageContainer}>
       <Card>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            marginBottom: 16,
-          }}
-        >
+        <div className={styles.headerRow}>
           <Title level={3}>Pricing Requests</Title>
           <Button
             type="primary"
@@ -372,7 +368,7 @@ const PricingRequestsPage = () => {
               <Select options={priorityOptions} />
             </Form.Item>
             <Form.Item name="requiredByDate" label="Required By">
-              <DatePicker style={{ width: "100%" }} />
+              <DatePicker className={styles.fullWidthDatePicker} />
             </Form.Item>
             {canManageAssignments && (
               <Form.Item name="assignedToId" label="Assign To">

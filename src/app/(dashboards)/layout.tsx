@@ -1,27 +1,17 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import {
-  Image,
-  Layout,
-  theme,
-  Breadcrumb,
-  Dropdown,
-  Avatar,
-  Space,
-} from "antd";
+import { Button, Image, Layout, ConfigProvider } from "antd";
+import { MenuOutlined } from "@ant-design/icons";
 import { useRouter, usePathname } from "next/navigation";
 import SidebarMenu from "@/components/dashboards/sidebars/SidebarMenu";
 import { useAuthState, useAuthActions } from "@/providers/authProvider";
-import {
-  UserOutlined,
-  LogoutOutlined,
-  SettingOutlined,
-} from "@ant-design/icons";
 import { withAuth } from "@/hoc/withAuth";
 import { isDashboardRouteAllowed } from "@/utils/tenantUtils";
+import { useStyles } from "./style/layout.style";
+import { lightTheme, darkTheme } from "@/utils/themeConfig";
 
-const { Header, Content, Sider } = Layout;
+const { Content, Sider } = Layout;
 
 const DashboardLayoutContent = ({
   children,
@@ -29,11 +19,22 @@ const DashboardLayoutContent = ({
   children: React.ReactNode;
 }) => {
   const [collapsed, setCollapsed] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
-  const { token } = theme.useToken();
   const { user } = useAuthState();
   const { logout } = useAuthActions();
+  const { styles } = useStyles();
+
+  // Load theme preference on mount from localStorage
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme === "dark") {
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      setIsDarkMode(true);
+    }
+  }, []);
 
   useEffect(() => {
     if (!user) {
@@ -48,6 +49,15 @@ const DashboardLayoutContent = ({
 
   const handleMenuClick = (key: string) => {
     router.push(key);
+
+    if (isMobile) {
+      setCollapsed(true);
+    }
+  };
+
+  const handleBreakpoint = (broken: boolean) => {
+    setIsMobile(broken);
+    setCollapsed(broken);
   };
 
   const handleLogout = () => {
@@ -55,88 +65,101 @@ const DashboardLayoutContent = ({
     router.push("/login");
   };
 
-  const getBreadcrumbItems = () => {
-    const pathParts = pathname.split("/").filter(Boolean);
-    return pathParts.map((part, index) => ({
-      key: "/" + pathParts.slice(0, index + 1).join("/"),
-      title: part.charAt(0).toUpperCase() + part.slice(1).replace(/-/g, " "),
-    }));
+  const handleToggleDarkMode = (checked: boolean) => {
+    setIsDarkMode(checked);
+    localStorage.setItem("theme", checked ? "dark" : "light");
   };
-
-  const userMenuItems = [
-    { key: "profile", icon: <UserOutlined />, label: "Profile" },
-    { key: "settings", icon: <SettingOutlined />, label: "Settings" },
-    { type: "divider" as const },
-    {
-      key: "logout",
-      icon: <LogoutOutlined />,
-      label: "Logout",
-      danger: true,
-      onClick: handleLogout,
-    },
-  ];
 
   if (!user) {
     return null;
   }
 
+  const siderClassName = `${styles.sider} ${
+    isMobile ? styles.siderMobile : styles.siderDesktop
+  }`;
+
+  const mainLayoutClassName = `${styles.mainLayout} ${
+    isMobile
+      ? styles.mainLayoutMobile
+      : collapsed
+        ? styles.mainLayoutCollapsed
+        : styles.mainLayoutExpanded
+  }`;
+
   return (
-    <Layout style={{ minHeight: "100vh" }}>
-      <Sider
-        collapsible
-        collapsed={collapsed}
-        onCollapse={setCollapsed}
-        style={{ backgroundColor: token.colorBgContainer }}
-      >
-        <div className="demo-logo-vertical" />
-        <Image
-          src="/images/logo.png"
-          alt="Logo"
-          width="100%"
-          style={{ marginBlock: "10px" }}
-          preview={false}
-        />
-        <SidebarMenu
+    <ConfigProvider theme={isDarkMode ? darkTheme : lightTheme}>
+      <Layout className={styles.layoutRoot}>
+        <Sider
+          width={240}
+          collapsedWidth={isMobile ? 0 : 80}
+          breakpoint="lg"
+          trigger={null}
+          collapsible
           collapsed={collapsed}
-          selectedKeys={[pathname]}
-          onMenuClick={handleMenuClick}
-          userRoles={user.roles}
-        />
-      </Sider>
-      <Layout>
-        <Header
+          onCollapse={setCollapsed}
+          onBreakpoint={handleBreakpoint}
+          className={siderClassName}
           style={{
-            backgroundColor: token.colorBgContainer,
-            padding: "0 24px",
-            display: "flex",
-            justifyContent: "flex-end",
-            alignItems: "center",
+            background: isDarkMode ? "#141414" : undefined,
           }}
         >
-          <Breadcrumb
-            items={getBreadcrumbItems()}
-            style={{ flex: 1, lineHeight: "64px" }}
+          <Image
+            src="/images/logo.png"
+            alt="Logo"
+            width="100%"
+            className={styles.logoImage}
+            preview={false}
+            style={{
+              background: isDarkMode ? "#141414" : undefined,
+              padding: 0,
+              margin: 0,
+            }}
           />
-          <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
-            <Space style={{ cursor: "pointer" }}>
-              <Avatar icon={<UserOutlined />} src={user.firstName?.charAt(0)} />
-              <span>
-                {user.firstName} {user.lastName}
-              </span>
-            </Space>
-          </Dropdown>
-        </Header>
-        <Content
-          style={{
-            padding: "24px",
-            minHeight: 280,
-            background: token.colorBgContainer,
-          }}
-        >
-          {children}
-        </Content>
+          <SidebarMenu
+            collapsed={collapsed}
+            selectedKeys={[pathname]}
+            onMenuClick={handleMenuClick}
+            userRoles={user.roles}
+            userName={`${user.firstName} ${user.lastName}`.trim()}
+            userEmail={user.email}
+            onLogout={handleLogout}
+            isDarkMode={isDarkMode}
+            onToggleDarkMode={handleToggleDarkMode}
+          />
+        </Sider>
+
+        {isMobile && !collapsed && (
+          <button
+            type="button"
+            className={styles.mobileBackdrop}
+            onClick={() => setCollapsed(true)}
+            aria-label="Close navigation"
+          />
+        )}
+
+        <Layout className={mainLayoutClassName}>
+          {isMobile && (
+            <div className={styles.mobileTopBar}>
+              <Button
+                type="text"
+                icon={<MenuOutlined />}
+                className={styles.mobileMenuButton}
+                onClick={() => setCollapsed((prev) => !prev)}
+                aria-label="Toggle navigation menu"
+              />
+            </div>
+          )}
+          <Content
+            className={styles.content}
+            style={{
+              background: isDarkMode ? "#141414" : undefined,
+            }}
+          >
+            {children}
+          </Content>
+        </Layout>
       </Layout>
-    </Layout>
+    </ConfigProvider>
   );
 };
 

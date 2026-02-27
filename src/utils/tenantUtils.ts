@@ -97,6 +97,16 @@ export const isDashboardRouteAllowed = (
   pathname: string,
   roles?: string[],
 ): boolean => {
+  // deprecated standalone routes should be blocked for everyone
+  const blockedRoutes = ["/contacts", "/documents", "/notes"];
+  if (
+    blockedRoutes.some(
+      (route) => pathname === route || pathname.startsWith(`${route}/`),
+    )
+  ) {
+    return false;
+  }
+
   if (!isSalesRepRole(roles)) {
     return true;
   }

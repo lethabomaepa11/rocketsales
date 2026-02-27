@@ -10,6 +10,7 @@ import {
 } from "@/providers/contractProvider/types";
 import { useContractActions } from "@/providers/contractProvider";
 import dayjs from "dayjs";
+import { useStyles } from "./style/ContractRenewalModal.style";
 
 interface ContractRenewalModalProps {
   open: boolean;
@@ -39,6 +40,7 @@ const ContractRenewalModal = ({
   onClose,
   onRefresh,
 }: ContractRenewalModalProps) => {
+  const { styles } = useStyles();
   const { createRenewal, completeRenewal } = useContractActions();
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [form] = Form.useForm();
@@ -111,7 +113,7 @@ const ContractRenewalModal = ({
       footer={null}
       width={700}
     >
-      <div style={{ marginBottom: 16 }}>
+      <div className={styles.contractMetaRow}>
         <Space>
           <span>
             Contract expires:{" "}
@@ -141,14 +143,18 @@ const ContractRenewalModal = ({
           type="dashed"
           icon={<PlusOutlined />}
           onClick={() => setShowCreateForm(true)}
-          style={{ marginTop: 16, width: "100%" }}
+          className={styles.createRenewalButton}
         >
           Create Renewal
         </Button>
       )}
 
       {showCreateForm && (
-        <Form form={form} layout="vertical" style={{ marginTop: 16 }}>
+        <Form
+          form={form}
+          layout="vertical"
+          className={styles.createRenewalForm}
+        >
           <Form.Item name="notes" label="Renewal Notes">
             <Input.TextArea rows={2} placeholder="e.g. Annual CPI adjustment" />
           </Form.Item>

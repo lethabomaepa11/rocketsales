@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   Form,
   Input,
@@ -20,6 +20,7 @@ import {
 import dayjs from "dayjs";
 import { ClientDto } from "@/providers/clientProvider/types";
 import { ContactDto } from "@/providers/contactProvider/types";
+import { useStyles } from "./style/OpportunityForm.style";
 
 const { Option } = Select;
 
@@ -40,6 +41,7 @@ const OpportunityForm: React.FC<OpportunityFormProps> = ({
   contacts,
   loading = false,
 }) => {
+  const { styles } = useStyles();
   const [form] = Form.useForm();
   const [filteredContacts, setFilteredContacts] =
     useState<ContactDto[]>(contacts);
@@ -67,12 +69,15 @@ const OpportunityForm: React.FC<OpportunityFormProps> = ({
     }
   }, [initialValues, form, contacts]);
 
-  const handleClientChange = (clientId: string) => {
-    // Filter contacts based on selected client
-    const clientContacts = contacts.filter((c) => c.clientId === clientId);
-    setFilteredContacts(clientContacts);
-    form.setFieldsValue({ contactId: undefined }); // Clear contact selection
-  };
+  const handleClientChange = useCallback(
+    (clientId: string) => {
+      // Filter contacts based on selected client
+      const clientContacts = contacts.filter((c) => c.clientId === clientId);
+      setFilteredContacts(clientContacts);
+      form.setFieldsValue({ contactId: undefined }); // Clear contact selection
+    },
+    [contacts, form],
+  );
 
   const handleSubmit = async () => {
     try {
@@ -152,7 +157,7 @@ const OpportunityForm: React.FC<OpportunityFormProps> = ({
         </Form.Item>
         <Form.Item name="estimatedValue" label="Value">
           <InputNumber
-            style={{ width: "100%" }}
+            className={styles.fullWidthField}
             placeholder="Enter estimated value"
             min={0}
           />
@@ -164,7 +169,7 @@ const OpportunityForm: React.FC<OpportunityFormProps> = ({
           <InputNumber
             min={0}
             max={100}
-            style={{ width: "100%" }}
+            className={styles.fullWidthField}
             placeholder="Enter probability"
           />
         </Form.Item>
@@ -193,7 +198,7 @@ const OpportunityForm: React.FC<OpportunityFormProps> = ({
           </Select>
         </Form.Item>
         <Form.Item name="expectedCloseDate" label="Expected Close Date">
-          <DatePicker style={{ width: "100%" }} />
+          <DatePicker className={styles.fullWidthField} />
         </Form.Item>
         <Form.Item name="description" label="Description">
           <Input.TextArea rows={3} placeholder="Enter description" />

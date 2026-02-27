@@ -29,24 +29,19 @@ import {
   CreateClientDto,
 } from "@/providers/clientProvider/types";
 import { useRouter } from "next/navigation";
+import { useStyles } from "./style/page.style";
 
 const { Title } = Typography;
 const { Option } = Select;
 
 const ClientsPage = () => {
+  const { styles } = useStyles();
   const { clients, isPending, pagination } = useClientState();
   const router = useRouter();
-  const {
-    fetchClients,
-    createClient,
-    updateClient,
-    deleteClient,
-    fetchClientStats,
-  } = useClientActions();
+  const { fetchClients, createClient, updateClient, deleteClient } =
+    useClientActions();
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [isViewModalVisible, setIsViewModalVisible] = useState(false);
   const [editingClient, setEditingClient] = useState<ClientDto | null>(null);
-  const [viewingClient, setViewingClient] = useState<ClientDto | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [form] = Form.useForm();
 
@@ -70,14 +65,11 @@ const ClientsPage = () => {
     setIsModalVisible(true);
   };
 
-  const handleViewClient = async (client: ClientDto) => {
-    setViewingClient(client);
-    await fetchClientStats(client.id);
-    setIsViewModalVisible(true);
+  const handleViewClient = (client: ClientDto) => {
+    router.push(`/clients/${client.id}`);
   };
 
   const handleViewContacts = (clientId: string) => {
-    // Navigate to contacts page with the client pre-selected
     router.push(`/contacts?clientId=${clientId}`);
   };
 
@@ -197,15 +189,9 @@ const ClientsPage = () => {
   ];
 
   return (
-    <div style={{ padding: "24px" }}>
+    <div className={styles.pageContainer}>
       <Card>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            marginBottom: 16,
-          }}
-        >
+        <div className={styles.headerRow}>
           <Title level={3}>Clients</Title>
           <Button
             type="primary"
@@ -216,13 +202,13 @@ const ClientsPage = () => {
           </Button>
         </div>
 
-        <Space style={{ marginBottom: 16 }}>
+        <Space className={styles.filtersRow}>
           <Input
             placeholder="Search clients..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             onPressEnter={handleSearch}
-            style={{ width: 200 }}
+            className={styles.searchInput}
           />
           <Button icon={<SearchOutlined />} onClick={handleSearch}>
             Search
@@ -286,37 +272,6 @@ const ClientsPage = () => {
               </Select>
             </Form.Item>
           </Form>
-        </Modal>
-
-        <Modal
-          title="Client Details"
-          open={isViewModalVisible}
-          onCancel={() => setIsViewModalVisible(false)}
-          footer={null}
-          width={600}
-        >
-          {viewingClient && (
-            <div>
-              <p>
-                <strong>Name:</strong> {viewingClient.name}
-              </p>
-              <p>
-                <strong>Industry:</strong> {viewingClient.industry}
-              </p>
-              <p>
-                <strong>Company Size:</strong> {viewingClient.companySize}
-              </p>
-              <p>
-                <strong>Website:</strong> {viewingClient.website}
-              </p>
-              <p>
-                <strong>Billing Address:</strong> {viewingClient.billingAddress}
-              </p>
-              <p>
-                <strong>Tax Number:</strong> {viewingClient.taxNumber}
-              </p>
-            </div>
-          )}
         </Modal>
       </Card>
     </div>

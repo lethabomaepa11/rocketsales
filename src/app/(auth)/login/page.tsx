@@ -36,7 +36,10 @@ const LoginPage = () => {
 
   useEffect(() => {
     if (isSuccess) {
-      router.push("/dashboard");
+      if (typeof window !== "undefined") {
+        // force window reload to ensure auth state is fully updated across the app
+        location.href = "/dashboard";
+      }
     }
   });
 

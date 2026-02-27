@@ -5,6 +5,7 @@ import { Select, Spin } from "antd";
 import { UserOutlined } from "@ant-design/icons";
 import { getAxiosInstance } from "@/utils/axiosInstance";
 import { TenantUserDto, UserRole } from "@/types/user";
+import { useStyles } from "./style/UserSelector.style";
 
 interface UserOption {
   id: string;
@@ -37,6 +38,7 @@ const UserSelector: React.FC<UserSelectorProps> = ({
   allowClear = true,
   style,
 }) => {
+  const { styles } = useStyles();
   const instance = getAxiosInstance();
   const [users, setUsers] = useState<UserOption[]>([]);
   const [loading, setLoading] = useState(false);
@@ -145,9 +147,9 @@ const UserSelector: React.FC<UserSelectorProps> = ({
     >
       {users.map((user) => (
         <Select.Option key={user.id} value={user.id} title={user.name}>
-          <div style={{ display: "flex", flexDirection: "column" }}>
-            <span style={{ fontWeight: 500 }}>{user.name}</span>
-            <span style={{ fontSize: 12, color: "#666" }}>{user.email}</span>
+          <div className={styles.optionContent}>
+            <span className={styles.optionName}>{user.name}</span>
+            <span className={styles.optionEmail}>{user.email}</span>
           </div>
         </Select.Option>
       ))}

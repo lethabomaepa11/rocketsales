@@ -4,10 +4,12 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthState } from "@/providers/authProvider";
 import LandingPage from "./(dashboards)/landing/page";
+import { useStyles } from "./style/page.style";
 
 export default function Home() {
   const router = useRouter();
   const { user, isSuccess } = useAuthState();
+  const { styles } = useStyles();
 
   useEffect(() => {
     if (isSuccess && user) {
@@ -22,15 +24,7 @@ export default function Home() {
 
   // Show loading while redirecting
   return (
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        minHeight: "100vh",
-        background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-      }}
-    >
+    <div className={styles.loadingContainer}>
       <div>Loading...</div>
     </div>
   );

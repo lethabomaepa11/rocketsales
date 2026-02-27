@@ -4,6 +4,8 @@ import { useAuthState } from "@/providers/authProvider";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Spin } from "antd";
+import { useStyles } from "./style/withAuth.style";
+import { logoutUser } from "@/providers/authProvider/actions";
 
 interface WithAuthOptions {
   allowedRoles?: string[];
@@ -19,6 +21,7 @@ export function withAuth<P extends object>(
   const WithAuthComponent: React.FC<P> = (props) => {
     const { user, isLoading } = useAuthState();
     const router = useRouter();
+    const { styles } = useStyles();
 
     useEffect(() => {
       // Only redirect after initial auth check is complete
@@ -26,6 +29,13 @@ export function withAuth<P extends object>(
         if (!user) {
           router.push(redirectTo);
           return;
+        }
+
+        if (typeof window !== "undefined") {
+          //check if the auth token is expired based on the exp claim in the token
+          if (user?.expiresAt && Date.now() >= Date.parse(user.expiresAt)) {
+            logoutUser();
+          }
         }
 
         if (allowedRoles && allowedRoles.length > 0) {
@@ -42,14 +52,7 @@ export function withAuth<P extends object>(
     // Show loading spinner while initial auth check is in progress
     if (isLoading) {
       return (
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            minHeight: "100vh",
-          }}
-        >
+        <div className={styles.loadingContainer}>
           <Spin size="large" />
         </div>
       );
@@ -58,14 +61,7 @@ export function withAuth<P extends object>(
     // If not loading and no user, the useEffect will handle redirect
     if (!user) {
       return (
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            minHeight: "100vh",
-          }}
-        >
+        <div className={styles.loadingContainer}>
           <Spin size="large" />
         </div>
       );

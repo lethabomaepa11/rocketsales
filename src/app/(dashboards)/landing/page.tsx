@@ -11,14 +11,14 @@ import {
   ArrowRightOutlined,
 } from "@ant-design/icons";
 import { useAuthState } from "@/providers/authProvider";
-import { useLandingStyles } from "./landingStyles";
+import { useStyles } from "./style/page.style";
 
 const { Title, Text, Paragraph } = Typography;
 
 const LandingPage = () => {
   const router = useRouter();
   const { user, isSuccess } = useAuthState();
-  const { styles } = useLandingStyles();
+  const { styles } = useStyles();
 
   useEffect(() => {
     if (isSuccess && user) {
@@ -28,19 +28,19 @@ const LandingPage = () => {
 
   const features = [
     {
-      icon: <TeamOutlined style={{ fontSize: 48 }} />,
+      icon: <TeamOutlined className={styles.featureIconSize} />,
       title: "Client Management",
       description:
         "Manage your clients and contacts efficiently with our comprehensive CRM tools.",
     },
     {
-      icon: <DollarOutlined style={{ fontSize: 48 }} />,
+      icon: <DollarOutlined className={styles.featureIconSize} />,
       title: "Sales Pipeline",
       description:
         "Track opportunities and monitor your sales pipeline with real-time analytics.",
     },
     {
-      icon: <FileTextOutlined style={{ fontSize: 48 }} />,
+      icon: <FileTextOutlined className={styles.featureIconSize} />,
       title: "Proposals & Contracts",
       description:
         "Create professional proposals and manage contracts seamlessly.",
@@ -52,7 +52,7 @@ const LandingPage = () => {
       {/* Header */}
       <div className={styles.header}>
         <div className={styles.logoContainer}>
-          <RocketOutlined style={{ fontSize: 32, color: "#fff" }} />
+          <RocketOutlined className={styles.logoIcon} />
           <Title level={3} className={styles.logoText}>
             RocketSales
           </Title>
@@ -60,14 +60,14 @@ const LandingPage = () => {
         <Space>
           <Button
             ghost
-            style={{ color: "#fff", borderColor: "#fff" }}
+            className={styles.loginButton}
             onClick={() => router.push("/login")}
           >
             Login
           </Button>
           <Button
             type="primary"
-            style={{ background: "#fff", border: "none" }}
+            className={styles.getStartedButton}
             onClick={() => router.push("/register")}
           >
             Get Started
@@ -88,7 +88,7 @@ const LandingPage = () => {
           <Button
             type="primary"
             size="large"
-            style={{ padding: "8px 32px", height: 56 }}
+            className={styles.heroPrimaryButton}
             onClick={() => router.push("/register")}
           >
             Start Free Trial <ArrowRightOutlined />
@@ -96,12 +96,7 @@ const LandingPage = () => {
           <Button
             size="large"
             ghost
-            style={{
-              color: "#fff",
-              borderColor: "#fff",
-              padding: "8px 32px",
-              height: 56,
-            }}
+            className={styles.heroDemoButton}
             onClick={() => router.push("/login")}
           >
             View Demo
@@ -178,7 +173,7 @@ const LandingPage = () => {
           <Button
             type="primary"
             size="large"
-            style={{ padding: "8px 48px", height: 56 }}
+            className={styles.ctaButton}
             onClick={() => router.push("/register")}
           >
             Create Free Account

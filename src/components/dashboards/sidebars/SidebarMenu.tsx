@@ -1,6 +1,6 @@
 "use client";
 
-import { Menu } from "antd";
+import { Menu, Dropdown, Avatar, Typography, Switch } from "antd";
 import {
   DashboardOutlined,
   TeamOutlined,
@@ -9,21 +9,30 @@ import {
   FileDoneOutlined,
   FileTextOutlined,
   CalendarOutlined,
-  PaperClipOutlined,
-  MessageOutlined,
   BarChartOutlined,
+  UserOutlined,
+  LogoutOutlined,
+  DownOutlined,
+  SunOutlined,
+  MoonOutlined,
 } from "@ant-design/icons";
 import {
   isSalesRepRole,
   SALES_REP_ALLOWED_DASHBOARD_ROUTES,
 } from "@/utils/tenantUtils";
 import type { MenuProps } from "antd";
+import { useStyles } from "./style/SidebarMenu.style";
 
 interface SidebarMenuProps {
   collapsed?: boolean;
   selectedKeys?: string[];
   onMenuClick?: (key: string) => void;
   userRoles?: string[];
+  userName?: string;
+  userEmail?: string;
+  onLogout?: () => void;
+  isDarkMode?: boolean;
+  onToggleDarkMode?: (checked: boolean) => void;
 }
 
 const SidebarMenu: React.FC<SidebarMenuProps> = ({
@@ -31,9 +40,25 @@ const SidebarMenu: React.FC<SidebarMenuProps> = ({
   selectedKeys = ["/dashboard"],
   onMenuClick,
   userRoles,
+  userName,
+  userEmail,
+  onLogout,
+  isDarkMode = false,
+  onToggleDarkMode,
 }) => {
+  const { styles } = useStyles();
+  const displayName = userName?.trim() || "User";
+  const displayEmail = userEmail || "Account";
+
   const handleMenuClick: MenuProps["onClick"] = ({ key }) => {
     onMenuClick?.(key);
+  };
+
+  const handleProfileMenuClick: MenuProps["onClick"] = ({ key }) => {
+    if (key === "logout") {
+      onLogout?.();
+      return;
+    }
   };
 
   const menuItems: MenuProps["items"] = [
@@ -76,16 +101,6 @@ const SidebarMenu: React.FC<SidebarMenuProps> = ({
       label: "Activities",
     },
     {
-      key: "/notes",
-      icon: <MessageOutlined />,
-      label: "Notes",
-    },
-    {
-      key: "/documents",
-      icon: <PaperClipOutlined />,
-      label: "Documents",
-    },
-    {
       key: "/reports",
       icon: <BarChartOutlined />,
       label: "Reports",
@@ -103,15 +118,77 @@ const SidebarMenu: React.FC<SidebarMenuProps> = ({
       })
     : menuItems;
 
+  const profileMenuItems: MenuProps["items"] = [
+    {
+      key: "logout",
+      icon: <LogoutOutlined />,
+      label: "Logout",
+      danger: true,
+    },
+  ];
+
   return (
-    <Menu
-      mode="inline"
-      selectedKeys={selectedKeys}
-      onClick={handleMenuClick}
-      style={{ background: "transparent", border: "none" }}
-      items={visibleMenuItems}
-      inlineCollapsed={collapsed}
-    />
+    <div className={styles.container}>
+      <Menu
+        mode="inline"
+        selectedKeys={selectedKeys}
+        onClick={handleMenuClick}
+        className={styles.menu}
+        items={visibleMenuItems}
+        inlineCollapsed={collapsed}
+        style={{
+          background: isDarkMode ? "#141414" : undefined,
+        }}
+      />
+
+      <div className={styles.profileSection}>
+        {!collapsed && (
+          <div className={styles.themeToggle}>
+            <SunOutlined className={styles.themeIcon} />
+            <Switch
+              checked={isDarkMode}
+              onChange={onToggleDarkMode}
+              size="small"
+            />
+            <MoonOutlined className={styles.themeIcon} />
+          </div>
+        )}
+
+        <Dropdown
+          menu={{ items: profileMenuItems, onClick: handleProfileMenuClick }}
+          placement="topRight"
+          trigger={["click"]}
+        >
+          <button
+            type="button"
+            className={`${styles.profileTrigger} ${
+              collapsed ? styles.profileTriggerCollapsed : ""
+            }`}
+          >
+            <Avatar icon={<UserOutlined />}>
+              {displayName.charAt(0).toUpperCase()}
+            </Avatar>
+
+            {!collapsed && (
+              <>
+                <span className={styles.profileMeta}>
+                  <Typography.Text className={styles.profileName}>
+                    {displayName}
+                  </Typography.Text>
+                  <Typography.Text
+                    type="secondary"
+                    className={styles.profileEmail}
+                  >
+                    {displayEmail}
+                  </Typography.Text>
+                </span>
+                <DownOutlined className={styles.profileChevron} />
+              </>
+            )}
+          </button>
+        </Dropdown>
+      </div>
+    </div>
   );
 };
 

@@ -16,6 +16,7 @@ import {
   PlusOutlined,
 } from "@ant-design/icons";
 import { ContactDto } from "@/providers/contactProvider/types";
+import { useStyles } from "./style/ContactListView.style";
 
 const { Title } = Typography;
 
@@ -48,6 +49,7 @@ const ContactListView: React.FC<ContactListViewProps> = ({
   pagination,
   onPageChange,
 }) => {
+  const { styles } = useStyles();
   const columns = [
     {
       title: "Name",
@@ -127,20 +129,13 @@ const ContactListView: React.FC<ContactListViewProps> = ({
 
   return (
     <div>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: 16,
-        }}
-      >
+      <div className={styles.headerRow}>
         <div>
           <Button
             type="text"
             icon={<ArrowLeftOutlined />}
             onClick={onBackToClients}
-            style={{ marginRight: 16 }}
+            className={styles.backButton}
           >
             Back to Clients
           </Button>

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Select, Spin } from "antd";
 import { getAxiosInstance } from "@/utils/axiosInstance";
 import { RelatedToType } from "@/providers/activityProvider/types";
+import { useStyles } from "./style/RelatedEntitySelector.style";
 
 interface EntityOption {
   id: string;
@@ -26,6 +27,7 @@ const RelatedEntitySelector: React.FC<RelatedEntitySelectorProps> = ({
   value,
   onChange,
 }) => {
+  const { styles } = useStyles();
   const [entities, setEntities] = useState<EntityOption[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -140,10 +142,10 @@ const RelatedEntitySelector: React.FC<RelatedEntitySelectorProps> = ({
 
   const entityOptions = entities.map((entity) => ({
     label: (
-      <div style={{ display: "flex", flexDirection: "column" }}>
-        <span style={{ fontWeight: 500 }}>{entity.title}</span>
+      <div className={styles.entityOption}>
+        <span className={styles.entityTitle}>{entity.title}</span>
         {entity.subtitle && (
-          <span style={{ fontSize: 12, color: "#666" }}>{entity.subtitle}</span>
+          <span className={styles.entitySubtitle}>{entity.subtitle}</span>
         )}
       </div>
     ),
@@ -158,7 +160,8 @@ const RelatedEntitySelector: React.FC<RelatedEntitySelectorProps> = ({
         relatedToType ? getPlaceholder() : "Select related type first"
       }
       disabled={disabled || !relatedToType}
-      style={{ width: "100%", ...style }}
+      className={styles.selector}
+      style={style}
       loading={loading}
       notFoundContent={loading ? <Spin size="small" /> : "No items found"}
       allowClear
