@@ -5,6 +5,7 @@ import { createStyles } from "antd-style";
 export const useStyles = createStyles(({ token }) => ({
   layoutRoot: {
     minHeight: "100vh",
+    backgroundColor: token.colorBgLayout,
   },
   sider: {
     backgroundColor: token.colorBgContainer,
@@ -19,21 +20,42 @@ export const useStyles = createStyles(({ token }) => ({
       display: "flex",
       flexDirection: "column",
       height: "100%",
+      backgroundColor: token.colorBgContainer,
+    },
+    "& .ant-menu": {
+      backgroundColor: token.colorBgContainer,
+    },
+    "& .ant-menu-item": {
+      color: token.colorText,
+      "&:hover": {
+        color: token.colorPrimary,
+        backgroundColor: token.colorBgTextHover,
+      },
+      "&.ant-menu-item-selected": {
+        backgroundColor: token.colorPrimaryBg,
+        color: token.colorPrimary,
+      },
+    },
+    "& .ant-menu-item-icon": {
+      color: "inherit",
     },
   },
   siderDesktop: {
-    boxShadow: "2px 0 8px rgba(0, 0, 0, 0.06)",
+    boxShadow: token.boxShadow,
   },
   siderMobile: {
     zIndex: 30,
+    boxShadow: token.boxShadowSecondary,
   },
   logoImage: {
     marginBlock: "10px",
+    paddingInline: "16px",
   },
   mainLayout: {
     minWidth: 0,
     minHeight: "100vh",
     transition: "margin-left 0.2s ease",
+    backgroundColor: token.colorBgLayout,
   },
   mainLayoutExpanded: {
     marginLeft: 240,
@@ -53,17 +75,19 @@ export const useStyles = createStyles(({ token }) => ({
   },
   mobileMenuButton: {
     fontSize: 18,
+    color: token.colorText,
   },
   mobileBackdrop: {
     position: "fixed",
     inset: 0,
-    background: "rgba(0, 0, 0, 0.35)",
+    background: token.colorBgMask,
     zIndex: 15,
   },
   content: {
     padding: "24px",
     minHeight: 280,
-    background: token.colorBgContainer,
+    backgroundColor: token.colorBgLayout,
+    color: token.colorText,
     "@media (max-width: 991px)": {
       padding: "16px",
     },

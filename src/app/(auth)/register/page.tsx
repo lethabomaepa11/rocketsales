@@ -75,7 +75,10 @@ const RegisterPage = () => {
 
   useEffect(() => {
     if (isSuccess) {
-      router.push("/login");
+      if (typeof window !== "undefined") {
+        // Force reload to ensure auth state is fully updated across the app
+        location.reload();
+      }
     }
   }, [isSuccess, router]);
 

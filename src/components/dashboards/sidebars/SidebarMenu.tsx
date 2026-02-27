@@ -1,6 +1,6 @@
 "use client";
 
-import { Menu, Dropdown, Avatar, Typography } from "antd";
+import { Menu, Dropdown, Avatar, Typography, Switch } from "antd";
 import {
   DashboardOutlined,
   TeamOutlined,
@@ -9,12 +9,12 @@ import {
   FileDoneOutlined,
   FileTextOutlined,
   CalendarOutlined,
-  PaperClipOutlined,
-  MessageOutlined,
   BarChartOutlined,
   UserOutlined,
   LogoutOutlined,
   DownOutlined,
+  SunOutlined,
+  MoonOutlined,
 } from "@ant-design/icons";
 import {
   isSalesRepRole,
@@ -31,6 +31,8 @@ interface SidebarMenuProps {
   userName?: string;
   userEmail?: string;
   onLogout?: () => void;
+  isDarkMode?: boolean;
+  onToggleDarkMode?: (checked: boolean) => void;
 }
 
 const SidebarMenu: React.FC<SidebarMenuProps> = ({
@@ -41,6 +43,8 @@ const SidebarMenu: React.FC<SidebarMenuProps> = ({
   userName,
   userEmail,
   onLogout,
+  isDarkMode = false,
+  onToggleDarkMode,
 }) => {
   const { styles } = useStyles();
   const displayName = userName?.trim() || "User";
@@ -97,16 +101,6 @@ const SidebarMenu: React.FC<SidebarMenuProps> = ({
       label: "Activities",
     },
     {
-      key: "/notes",
-      icon: <MessageOutlined />,
-      label: "Notes",
-    },
-    {
-      key: "/documents",
-      icon: <PaperClipOutlined />,
-      label: "Documents",
-    },
-    {
       key: "/reports",
       icon: <BarChartOutlined />,
       label: "Reports",
@@ -142,9 +136,24 @@ const SidebarMenu: React.FC<SidebarMenuProps> = ({
         className={styles.menu}
         items={visibleMenuItems}
         inlineCollapsed={collapsed}
+        style={{
+          background: isDarkMode ? "#141414" : undefined,
+        }}
       />
 
       <div className={styles.profileSection}>
+        {!collapsed && (
+          <div className={styles.themeToggle}>
+            <SunOutlined className={styles.themeIcon} />
+            <Switch
+              checked={isDarkMode}
+              onChange={onToggleDarkMode}
+              size="small"
+            />
+            <MoonOutlined className={styles.themeIcon} />
+          </div>
+        )}
+
         <Dropdown
           menu={{ items: profileMenuItems, onClick: handleProfileMenuClick }}
           placement="topRight"

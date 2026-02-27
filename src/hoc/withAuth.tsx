@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Spin } from "antd";
 import { useStyles } from "./style/withAuth.style";
+import { logoutUser } from "@/providers/authProvider/actions";
 
 interface WithAuthOptions {
   allowedRoles?: string[];
@@ -28,6 +29,13 @@ export function withAuth<P extends object>(
         if (!user) {
           router.push(redirectTo);
           return;
+        }
+
+        if (typeof window !== "undefined") {
+          //check if the auth token is expired based on the exp claim in the token
+          if (user?.expiresAt && Date.now() >= Date.parse(user.expiresAt)) {
+            logoutUser();
+          }
         }
 
         if (allowedRoles && allowedRoles.length > 0) {
