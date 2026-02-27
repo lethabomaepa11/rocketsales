@@ -4,6 +4,11 @@ import { useContext, useReducer, useCallback } from "react";
 import { App } from "antd";
 import { getAxiosInstance } from "@/utils/axiosInstance";
 import {
+  getCurrentUser,
+  isManagerOrAdmin,
+  isSalesRep,
+} from "@/utils/tenantUtils";
+import {
   PricingRequestStateContext,
   PricingRequestActionContext,
   INITIAL_STATE,
@@ -25,14 +30,46 @@ export const PricingRequestProvider = ({
   const instance = getAxiosInstance();
   const { notification } = App.useApp();
 
+  const isPricingRequestOwnedByCurrentUser = useCallback((request: unknown) => {
+    const currentUserId = getCurrentUser()?.userId;
+    if (!currentUserId || !request || typeof request !== "object") {
+      return false;
+    }
+
+    const record = request as {
+      requestedById?: string;
+      assignedToId?: string | null;
+    };
+
+    return (
+      record.requestedById === currentUserId ||
+      record.assignedToId === currentUserId
+    );
+  }, []);
+
+  const blockSalesRepMutation = useCallback((): boolean => {
+    if (!isSalesRep()) {
+      return false;
+    }
+
+    notification.warning({
+      title: "Access denied",
+      description: "Sales reps can only create pricing requests.",
+    });
+    return true;
+  }, [notification]);
+
   const fetchPricingRequests = useCallback(
     async (params?: PricingRequestQueryParams) => {
       dispatch(PricingRequestActions.fetchPricingRequestsPending());
       try {
-        const response = await instance.get("/PricingRequests", { params });
+        const response = isSalesRep()
+          ? await instance.get("/PricingRequests/my-requests")
+          : await instance.get("/PricingRequests", { params });
+
         dispatch(
           PricingRequestActions.fetchPricingRequestsSuccess(
-            response.data.items || [],
+            isSalesRep() ? response.data || [] : response.data.items || [],
           ),
         );
       } catch {
@@ -51,6 +88,20 @@ export const PricingRequestProvider = ({
       dispatch(PricingRequestActions.fetchPricingRequestsPending());
       try {
         const response = await instance.get(`/PricingRequests/${id}`);
+
+        if (
+          isSalesRep() &&
+          !isPricingRequestOwnedByCurrentUser(response.data)
+        ) {
+          dispatch(PricingRequestActions.fetchPricingRequestsError());
+          notification.warning({
+            title: "Access denied",
+            description:
+              "Sales reps can only access their own pricing requests.",
+          });
+          return;
+        }
+
         dispatch(
           PricingRequestActions.fetchPricingRequestsSuccess([response.data]),
         );
@@ -58,12 +109,22 @@ export const PricingRequestProvider = ({
         dispatch(PricingRequestActions.fetchPricingRequestsError());
       }
     },
-    [instance],
+    [instance, isPricingRequestOwnedByCurrentUser, notification],
   );
 
   const fetchPendingRequests = useCallback(async () => {
     dispatch(PricingRequestActions.fetchPricingRequestsPending());
     try {
+      if (isSalesRep()) {
+        const response = await instance.get("/PricingRequests/my-requests");
+        dispatch(
+          PricingRequestActions.fetchPricingRequestsSuccess(
+            response.data || [],
+          ),
+        );
+        return;
+      }
+
       const response = await instance.get("/PricingRequests/pending");
       dispatch(
         PricingRequestActions.fetchPricingRequestsSuccess(response.data || []),
@@ -110,6 +171,10 @@ export const PricingRequestProvider = ({
 
   const updatePricingRequest = useCallback(
     async (id: string, request: UpdatePricingRequestDto) => {
+      if (blockSalesRepMutation()) {
+        return;
+      }
+
       dispatch(PricingRequestActions.updatePricingRequestPending());
       try {
         const response = await instance.put(`/PricingRequests/${id}`, request);
@@ -128,11 +193,15 @@ export const PricingRequestProvider = ({
         });
       }
     },
-    [instance, notification],
+    [blockSalesRepMutation, instance, notification],
   );
 
   const deletePricingRequest = useCallback(
     async (id: string) => {
+      if (blockSalesRepMutation()) {
+        return;
+      }
+
       dispatch(PricingRequestActions.deletePricingRequestPending());
       try {
         await instance.delete(`/PricingRequests/${id}`);
@@ -149,11 +218,15 @@ export const PricingRequestProvider = ({
         });
       }
     },
-    [instance, notification],
+    [blockSalesRepMutation, instance, notification],
   );
 
   const completePricingRequest = useCallback(
     async (id: string) => {
+      if (blockSalesRepMutation()) {
+        return;
+      }
+
       dispatch(PricingRequestActions.updatePricingRequestPending());
       try {
         const response = await instance.put(`/PricingRequests/${id}/complete`);
@@ -172,11 +245,28 @@ export const PricingRequestProvider = ({
         });
       }
     },
-    [instance, notification],
+    [blockSalesRepMutation, instance, notification],
   );
 
   const assignPricingRequest = useCallback(
     async (id: string, userId: string) => {
+      if (isSalesRep()) {
+        notification.warning({
+          title: "Access denied",
+          description: "Sales reps can only create pricing requests.",
+        });
+        return;
+      }
+
+      if (!isManagerOrAdmin()) {
+        notification.warning({
+          title: "Access denied",
+          description:
+            "Only Admin and Sales Manager users can assign pricing requests.",
+        });
+        return;
+      }
+
       dispatch(PricingRequestActions.updatePricingRequestPending());
       try {
         const response = await instance.post(`/PricingRequests/${id}/assign`, {

@@ -29,11 +29,13 @@ import {
   CreateClientDto,
 } from "@/providers/clientProvider/types";
 import { useRouter } from "next/navigation";
+import { useStyles } from "./style/page.style";
 
 const { Title } = Typography;
 const { Option } = Select;
 
 const ClientsPage = () => {
+  const { styles } = useStyles();
   const { clients, isPending, pagination } = useClientState();
   const router = useRouter();
   const {
@@ -197,15 +199,9 @@ const ClientsPage = () => {
   ];
 
   return (
-    <div style={{ padding: "24px" }}>
+    <div className={styles.pageContainer}>
       <Card>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            marginBottom: 16,
-          }}
-        >
+        <div className={styles.headerRow}>
           <Title level={3}>Clients</Title>
           <Button
             type="primary"
@@ -216,13 +212,13 @@ const ClientsPage = () => {
           </Button>
         </div>
 
-        <Space style={{ marginBottom: 16 }}>
+        <Space className={styles.filtersRow}>
           <Input
             placeholder="Search clients..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             onPressEnter={handleSearch}
-            style={{ width: 200 }}
+            className={styles.searchInput}
           />
           <Button icon={<SearchOutlined />} onClick={handleSearch}>
             Search

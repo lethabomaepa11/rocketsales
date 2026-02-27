@@ -3,6 +3,7 @@
 import { useContext, useReducer, useCallback } from "react";
 import { App } from "antd";
 import { getAxiosInstance } from "@/utils/axiosInstance";
+import { getCurrentUser, isSalesRep } from "@/utils/tenantUtils";
 import {
   ActivityStateContext,
   ActivityActionContext,
@@ -27,13 +28,75 @@ export const ActivityProvider = ({
   const instance = getAxiosInstance();
   const { notification } = App.useApp();
 
+  const isActivityOwnedByCurrentUser = useCallback((activity: unknown) => {
+    const currentUserId = getCurrentUser()?.userId;
+    if (!currentUserId || !activity || typeof activity !== "object") {
+      return false;
+    }
+
+    const record = activity as {
+      assignedToId?: string;
+      createdById?: string;
+    };
+
+    return (
+      record.assignedToId === currentUserId ||
+      record.createdById === currentUserId
+    );
+  }, []);
+
+  const ensureSalesRepCanViewActivity = useCallback(
+    async (activityId: string): Promise<boolean> => {
+      if (!isSalesRep()) {
+        return true;
+      }
+
+      try {
+        const response = await instance.get(`/Activities/${activityId}`);
+        if (!isActivityOwnedByCurrentUser(response.data)) {
+          notification.warning({
+            title: "Access denied",
+            description: "Sales reps can only access their own activities.",
+          });
+          return false;
+        }
+
+        return true;
+      } catch {
+        notification.error({
+          title: "Error",
+          description: "Failed to verify activity access",
+        });
+        return false;
+      }
+    },
+    [instance, isActivityOwnedByCurrentUser, notification],
+  );
+
+  const blockSalesRepMutation = useCallback((): boolean => {
+    if (!isSalesRep()) {
+      return false;
+    }
+
+    notification.warning({
+      title: "Access denied",
+      description: "Sales reps can only create activities.",
+    });
+    return true;
+  }, [notification]);
+
   const fetchActivities = useCallback(
     async (params?: ActivityQueryParams) => {
       dispatch(ActivityActions.fetchActivitiesPending());
       try {
-        const response = await instance.get("/Activities", { params });
+        const response = isSalesRep()
+          ? await instance.get("/Activities/my-activities")
+          : await instance.get("/Activities", { params });
+
         dispatch(
-          ActivityActions.fetchActivitiesSuccess(response.data.items || []),
+          ActivityActions.fetchActivitiesSuccess(
+            isSalesRep() ? response.data || [] : response.data.items || [],
+          ),
         );
       } catch {
         dispatch(ActivityActions.fetchActivitiesError());
@@ -51,18 +114,34 @@ export const ActivityProvider = ({
       dispatch(ActivityActions.fetchActivitiesPending());
       try {
         const response = await instance.get(`/Activities/${id}`);
+
+        if (isSalesRep() && !isActivityOwnedByCurrentUser(response.data)) {
+          dispatch(ActivityActions.fetchActivitiesError());
+          notification.warning({
+            title: "Access denied",
+            description: "Sales reps can only access their own activities.",
+          });
+          return;
+        }
+
         dispatch(ActivityActions.fetchActivitiesSuccess([response.data]));
       } catch {
         dispatch(ActivityActions.fetchActivitiesError());
       }
     },
-    [instance],
+    [instance, isActivityOwnedByCurrentUser, notification],
   );
 
   const fetchUpcomingActivities = useCallback(
     async (daysAhead = 30) => {
       dispatch(ActivityActions.fetchActivitiesPending());
       try {
+        if (isSalesRep()) {
+          const response = await instance.get("/Activities/my-activities");
+          dispatch(ActivityActions.fetchActivitiesSuccess(response.data || []));
+          return;
+        }
+
         const response = await instance.get("/Activities/upcoming", {
           params: { daysAhead },
         });
@@ -77,6 +156,12 @@ export const ActivityProvider = ({
   const fetchOverdueActivities = useCallback(async () => {
     dispatch(ActivityActions.fetchActivitiesPending());
     try {
+      if (isSalesRep()) {
+        const response = await instance.get("/Activities/my-activities");
+        dispatch(ActivityActions.fetchActivitiesSuccess(response.data || []));
+        return;
+      }
+
       const response = await instance.get("/Activities/overdue");
       dispatch(ActivityActions.fetchActivitiesSuccess(response.data || []));
     } catch {
@@ -117,6 +202,10 @@ export const ActivityProvider = ({
 
   const updateActivity = useCallback(
     async (id: string, activity: UpdateActivityDto) => {
+      if (blockSalesRepMutation()) {
+        return;
+      }
+
       dispatch(ActivityActions.updateActivityPending());
       try {
         const response = await instance.put(`/Activities/${id}`, activity);
@@ -133,11 +222,15 @@ export const ActivityProvider = ({
         });
       }
     },
-    [instance, notification],
+    [blockSalesRepMutation, instance, notification],
   );
 
   const deleteActivity = useCallback(
     async (id: string) => {
+      if (blockSalesRepMutation()) {
+        return;
+      }
+
       dispatch(ActivityActions.deleteActivityPending());
       try {
         await instance.delete(`/Activities/${id}`);
@@ -154,11 +247,15 @@ export const ActivityProvider = ({
         });
       }
     },
-    [instance, notification],
+    [blockSalesRepMutation, instance, notification],
   );
 
   const completeActivity = useCallback(
     async (id: string, outcome?: string) => {
+      if (blockSalesRepMutation()) {
+        return;
+      }
+
       dispatch(ActivityActions.updateActivityPending());
       try {
         const response = await instance.put(`/Activities/${id}/complete`, {
@@ -177,11 +274,15 @@ export const ActivityProvider = ({
         });
       }
     },
-    [instance, notification],
+    [blockSalesRepMutation, instance, notification],
   );
 
   const cancelActivity = useCallback(
     async (id: string) => {
+      if (blockSalesRepMutation()) {
+        return;
+      }
+
       dispatch(ActivityActions.updateActivityPending());
       try {
         const response = await instance.put(`/Activities/${id}/cancel`);
@@ -198,11 +299,16 @@ export const ActivityProvider = ({
         });
       }
     },
-    [instance, notification],
+    [blockSalesRepMutation, instance, notification],
   );
 
   const fetchParticipants = useCallback(
     async (activityId: string) => {
+      const canView = await ensureSalesRepCanViewActivity(activityId);
+      if (!canView) {
+        return;
+      }
+
       dispatch(ActivityActions.fetchParticipantsPending());
       try {
         const response = await instance.get(
@@ -217,11 +323,15 @@ export const ActivityProvider = ({
         });
       }
     },
-    [instance, notification],
+    [ensureSalesRepCanViewActivity, instance, notification],
   );
 
   const addParticipant = useCallback(
     async (activityId: string, participant: CreateActivityParticipantDto) => {
+      if (blockSalesRepMutation()) {
+        return;
+      }
+
       dispatch(ActivityActions.addParticipantPending());
       try {
         const response = await instance.post(
@@ -241,7 +351,7 @@ export const ActivityProvider = ({
         });
       }
     },
-    [instance, notification],
+    [blockSalesRepMutation, instance, notification],
   );
 
   return (
