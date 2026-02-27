@@ -4,6 +4,11 @@ import { useContext, useReducer, useCallback } from "react";
 import { App } from "antd";
 import { getAxiosInstance } from "@/utils/axiosInstance";
 import {
+  getCurrentUser,
+  isManagerOrAdmin,
+  isSalesRep,
+} from "@/utils/tenantUtils";
+import {
   OpportunityStateContext,
   OpportunityActionContext,
   INITIAL_STATE,
@@ -28,14 +33,57 @@ export const OpportunityProvider = ({
   const instance = getAxiosInstance();
   const { notification } = App.useApp();
 
+  const ensureSalesRepCanModifyOpportunity = useCallback(
+    async (id: string): Promise<boolean> => {
+      if (!isSalesRep()) {
+        return true;
+      }
+
+      const currentUserId = getCurrentUser()?.userId;
+      if (!currentUserId) {
+        notification.warning({
+          title: "Access denied",
+          description: "Unable to validate your user scope.",
+        });
+        return false;
+      }
+
+      try {
+        const response = await instance.get(`/Opportunities/${id}`);
+        const ownerId = response.data?.ownerId as string | undefined;
+
+        if (ownerId !== currentUserId) {
+          notification.warning({
+            title: "Access denied",
+            description:
+              "Sales reps can only update opportunities assigned to them.",
+          });
+          return false;
+        }
+
+        return true;
+      } catch {
+        notification.error({
+          title: "Error",
+          description: "Failed to verify opportunity access",
+        });
+        return false;
+      }
+    },
+    [instance, notification],
+  );
+
   const fetchOpportunities = useCallback(
     async (params?: OpportunityQueryParams) => {
       dispatch(OpportunityActions.fetchOpportunitiesPending());
       try {
-        const response = await instance.get("/Opportunities", { params });
+        const response = isSalesRep()
+          ? await instance.get("/Opportunities/my-opportunities")
+          : await instance.get("/Opportunities", { params });
+
         dispatch(
           OpportunityActions.fetchOpportunitiesSuccess(
-            response.data.items || [],
+            isSalesRep() ? response.data || [] : response.data.items || [],
           ),
         );
       } catch {
@@ -54,6 +102,20 @@ export const OpportunityProvider = ({
       dispatch(OpportunityActions.fetchOpportunityByIdPending());
       try {
         const response = await instance.get(`/Opportunities/${id}`);
+
+        if (isSalesRep()) {
+          const currentUserId = getCurrentUser()?.userId;
+          if (!currentUserId || response.data?.ownerId !== currentUserId) {
+            dispatch(OpportunityActions.fetchOpportunityByIdError());
+            notification.warning({
+              title: "Access denied",
+              description:
+                "Sales reps can only view opportunities assigned to them.",
+            });
+            return;
+          }
+        }
+
         dispatch(OpportunityActions.fetchOpportunityByIdSuccess(response.data));
       } catch {
         dispatch(OpportunityActions.fetchOpportunityByIdError());
@@ -107,6 +169,14 @@ export const OpportunityProvider = ({
 
   const createOpportunity = useCallback(
     async (opportunity: CreateOpportunityDto) => {
+      if (isSalesRep()) {
+        notification.warning({
+          title: "Access denied",
+          description: "Sales reps cannot create opportunities.",
+        });
+        return;
+      }
+
       dispatch(OpportunityActions.createOpportunityPending());
       try {
         const response = await instance.post("/Opportunities", opportunity);
@@ -128,6 +198,11 @@ export const OpportunityProvider = ({
 
   const updateOpportunity = useCallback(
     async (id: string, opportunity: UpdateOpportunityDto) => {
+      const hasAccess = await ensureSalesRepCanModifyOpportunity(id);
+      if (!hasAccess) {
+        return;
+      }
+
       dispatch(OpportunityActions.updateOpportunityPending());
       try {
         const response = await instance.put(
@@ -147,11 +222,19 @@ export const OpportunityProvider = ({
         });
       }
     },
-    [instance, notification],
+    [ensureSalesRepCanModifyOpportunity, instance, notification],
   );
 
   const deleteOpportunity = useCallback(
     async (id: string) => {
+      if (isSalesRep()) {
+        notification.warning({
+          title: "Access denied",
+          description: "Sales reps cannot delete opportunities.",
+        });
+        return;
+      }
+
       dispatch(OpportunityActions.deleteOpportunityPending());
       try {
         await instance.delete(`/Opportunities/${id}`);
@@ -173,6 +256,11 @@ export const OpportunityProvider = ({
 
   const updateStage = useCallback(
     async (id: string, data: UpdateStageDto) => {
+      const hasAccess = await ensureSalesRepCanModifyOpportunity(id);
+      if (!hasAccess) {
+        return;
+      }
+
       dispatch(OpportunityActions.updateStagePending());
       try {
         const response = await instance.put(`/Opportunities/${id}/stage`, data);
@@ -189,11 +277,20 @@ export const OpportunityProvider = ({
         });
       }
     },
-    [instance, notification],
+    [ensureSalesRepCanModifyOpportunity, instance, notification],
   );
 
   const assignOpportunity = useCallback(
     async (id: string, data: AssignOpportunityDto) => {
+      if (!isManagerOrAdmin()) {
+        notification.warning({
+          title: "Access denied",
+          description:
+            "Only Admin and Sales Manager users can assign opportunities.",
+        });
+        return;
+      }
+
       dispatch(OpportunityActions.assignOpportunityPending());
       try {
         const response = await instance.post(

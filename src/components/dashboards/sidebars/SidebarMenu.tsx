@@ -4,31 +4,33 @@ import { Menu } from "antd";
 import {
   DashboardOutlined,
   TeamOutlined,
-  UserOutlined,
   AimOutlined,
   TagOutlined,
   FileDoneOutlined,
-  AlertOutlined,
   FileTextOutlined,
   CalendarOutlined,
-  ClockCircleOutlined,
   PaperClipOutlined,
   MessageOutlined,
   BarChartOutlined,
 } from "@ant-design/icons";
-import { useState } from "react";
+import {
+  isSalesRepRole,
+  SALES_REP_ALLOWED_DASHBOARD_ROUTES,
+} from "@/utils/tenantUtils";
 import type { MenuProps } from "antd";
 
 interface SidebarMenuProps {
   collapsed?: boolean;
   selectedKeys?: string[];
   onMenuClick?: (key: string) => void;
+  userRoles?: string[];
 }
 
 const SidebarMenu: React.FC<SidebarMenuProps> = ({
   collapsed = false,
   selectedKeys = ["/dashboard"],
   onMenuClick,
+  userRoles,
 }) => {
   const handleMenuClick: MenuProps["onClick"] = ({ key }) => {
     onMenuClick?.(key);
@@ -90,13 +92,24 @@ const SidebarMenu: React.FC<SidebarMenuProps> = ({
     },
   ];
 
+  const allowedSalesRepRoutes = new Set<string>(
+    SALES_REP_ALLOWED_DASHBOARD_ROUTES,
+  );
+
+  const visibleMenuItems = isSalesRepRole(userRoles)
+    ? menuItems.filter((item) => {
+        const key = item?.key;
+        return typeof key === "string" && allowedSalesRepRoutes.has(key);
+      })
+    : menuItems;
+
   return (
     <Menu
       mode="inline"
       selectedKeys={selectedKeys}
       onClick={handleMenuClick}
       style={{ background: "transparent", border: "none" }}
-      items={menuItems}
+      items={visibleMenuItems}
       inlineCollapsed={collapsed}
     />
   );

@@ -38,7 +38,7 @@ const LoginPage = () => {
     if (isSuccess) {
       router.push("/dashboard");
     }
-  }, [isSuccess, router]);
+  });
 
   return (
     <Form

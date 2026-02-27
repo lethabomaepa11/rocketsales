@@ -115,7 +115,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       message.success("Successfully logged in!");
     } catch (error: unknown) {
       const err = error as { response?: { data?: string } };
-      const msg = err.response?.data || "Invalid credentials";
+      const msg = "Invalid credentials";
       message.error("Login failed: " + msg);
       dispatch(loginUserError());
     }

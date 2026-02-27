@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Image,
   Layout,
@@ -19,6 +19,7 @@ import {
   SettingOutlined,
 } from "@ant-design/icons";
 import { withAuth } from "@/hoc/withAuth";
+import { isDashboardRouteAllowed } from "@/utils/tenantUtils";
 
 const { Header, Content, Sider } = Layout;
 
@@ -33,6 +34,17 @@ const DashboardLayoutContent = ({
   const { token } = theme.useToken();
   const { user } = useAuthState();
   const { logout } = useAuthActions();
+
+  useEffect(() => {
+    if (!user) {
+      return;
+    }
+
+    const isAllowed = isDashboardRouteAllowed(pathname, user.roles);
+    if (!isAllowed) {
+      router.replace("/dashboard");
+    }
+  }, [pathname, router, user]);
 
   const handleMenuClick = (key: string) => {
     router.push(key);
@@ -88,6 +100,7 @@ const DashboardLayoutContent = ({
           collapsed={collapsed}
           selectedKeys={[pathname]}
           onMenuClick={handleMenuClick}
+          userRoles={user.roles}
         />
       </Sider>
       <Layout>

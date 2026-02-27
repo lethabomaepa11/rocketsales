@@ -9,20 +9,18 @@ import {
   Card,
   Modal,
   Form,
-  Input,
   Select,
-  InputNumber,
-  DatePicker,
   Typography,
   Popconfirm,
   Progress,
   Dropdown,
+  message,
+  Tooltip,
 } from "antd";
 import {
   PlusOutlined,
   EditOutlined,
   DeleteOutlined,
-  MoreOutlined,
   RightOutlined,
   TeamOutlined,
 } from "@ant-design/icons";
@@ -35,19 +33,15 @@ import {
   useContactState,
   useContactActions,
 } from "@/providers/contactProvider";
+import { useAuthState } from "@/providers/authProvider";
 import OpportunityForm from "@/components/dashboards/opportunities/OpportunityForm";
 import UserSelector from "@/components/common/UserSelector";
 import {
   OpportunityDto,
-  CreateOpportunityDto,
-  UpdateOpportunityDto,
   OpportunityStage,
-  OpportunitySource,
 } from "@/providers/opportunityProvider/types";
-import dayjs from "dayjs";
 
 const { Title } = Typography;
-const { Option } = Select;
 
 const stageColors: Record<OpportunityStage, string> = {
   [OpportunityStage.Lead]: "default",
@@ -70,77 +64,95 @@ const OpportunitiesPage = () => {
   const { opportunities, isPending, pagination } = useOpportunityState();
   const {
     fetchOpportunities,
-    createOpportunity,
-    updateOpportunity,
+    fetchMyOpportunities,
     deleteOpportunity,
     updateStage,
     assignOpportunity,
   } = useOpportunityActions();
   const { clients } = useClientState();
   const { contacts } = useContactState();
+  const { user } = useAuthState();
   const { fetchClients } = useClientActions();
   const { fetchContacts } = useContactActions();
+
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingOpportunity, setEditingOpportunity] =
     useState<OpportunityDto | null>(null);
   const [stageFilter, setStageFilter] = useState<
     OpportunityStage | undefined
   >();
-  const [form] = Form.useForm();
   const [assignForm] = Form.useForm();
   const [isAssignModalVisible, setIsAssignModalVisible] = useState(false);
   const [assigningOpportunity, setAssigningOpportunity] =
     useState<OpportunityDto | null>(null);
 
+  const isSalesRepUser = user?.roles?.includes("SalesRep") ?? false;
+  const currentUserId = user?.userId;
+  const canManageAssignments =
+    user?.roles?.some((role) => role === "Admin" || role === "SalesManager") ??
+    false;
+
+  // Guard against non-array state (e.g. fetchMyOpportunities returning { items: [] })
+  const opportunitiesList = Array.isArray(opportunities)
+    ? opportunities
+    : ((opportunities as { items?: OpportunityDto[] })?.items ?? []);
+
+  const filteredOpportunities = stageFilter
+    ? opportunitiesList.filter((o) => o.stage === stageFilter)
+    : opportunitiesList;
+
+  const canUpdateOpportunity = (opportunity: OpportunityDto): boolean => {
+    if (!isSalesRepUser) return true;
+    return opportunity.ownerId === currentUserId;
+  };
+
   useEffect(() => {
-    fetchOpportunities();
+    if (isSalesRepUser) {
+      fetchMyOpportunities();
+    } else {
+      fetchOpportunities();
+    }
     fetchClients();
     fetchContacts();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handleAddOpportunity = () => {
-    setEditingOpportunity(null);
-    form.resetFields();
-    setIsModalVisible(true);
-  };
-  const handleEditOpportunity = (opp: OpportunityDto) => {
-    setEditingOpportunity(opp);
-    form.setFieldsValue({
-      ...opp,
-      expectedCloseDate: opp.expectedCloseDate
-        ? dayjs(opp.expectedCloseDate)
-        : null,
-    });
-    setIsModalVisible(true);
-  };
-  const handleDeleteOpportunity = async (id: string) => {
-    await deleteOpportunity(id);
-    fetchOpportunities();
-  };
-  const handleModalOk = async () => {
-    try {
-      const values = await form.validateFields();
-      console.log(values);
-      const data = {
-        ...values,
-        expectedCloseDate: values.expectedCloseDate?.toISOString(),
-      };
-      if (editingOpportunity) {
-        await updateOpportunity(editingOpportunity.id, data);
-      } else {
-        console.log(data);
-        await createOpportunity(data as CreateOpportunityDto);
-      }
-      setIsModalVisible(false);
+  const refreshOpportunities = () => {
+    if (isSalesRepUser) {
+      fetchMyOpportunities();
+    } else {
       fetchOpportunities();
-    } catch (error) {
-      console.error("Validation failed:", error);
     }
   };
 
-  const handleStageChange = async (id: string, stage: OpportunityStage) => {
-    await updateStage(id, { stage, notes: null, lossReason: null });
-    fetchOpportunities();
+  const handleAddOpportunity = () => {
+    setEditingOpportunity(null);
+    setIsModalVisible(true);
+  };
+
+  const handleEditOpportunity = (opp: OpportunityDto) => {
+    if (!canUpdateOpportunity(opp)) {
+      message.warning("You can only update opportunities assigned to you.");
+      return;
+    }
+    setEditingOpportunity(opp);
+    setIsModalVisible(true);
+  };
+
+  const handleDeleteOpportunity = async (id: string) => {
+    await deleteOpportunity(id);
+    refreshOpportunities();
+  };
+
+  const handleStageChange = async (
+    opportunity: OpportunityDto,
+    stage: OpportunityStage,
+  ) => {
+    if (!canUpdateOpportunity(opportunity)) {
+      message.warning("You can only update opportunities assigned to you.");
+      return;
+    }
+    await updateStage(opportunity.id, { stage, notes: null, lossReason: null });
+    refreshOpportunities();
   };
 
   const handleOpenAssignModal = (opportunity: OpportunityDto) => {
@@ -150,16 +162,13 @@ const OpportunitiesPage = () => {
   };
 
   const handleAssignOpportunity = async () => {
-    if (!assigningOpportunity) {
-      return;
-    }
-
+    if (!assigningOpportunity) return;
     const values = await assignForm.validateFields();
     await assignOpportunity(assigningOpportunity.id, { userId: values.userId });
     setIsAssignModalVisible(false);
     setAssigningOpportunity(null);
     assignForm.resetFields();
-    fetchOpportunities();
+    refreshOpportunities();
   };
 
   const getStageMenuItems = (opp: OpportunityDto) =>
@@ -168,7 +177,7 @@ const OpportunitiesPage = () => {
       .map((stage) => ({
         key: stage,
         label: stageLabels[stage as OpportunityStage],
-        onClick: () => handleStageChange(opp.id, stage as OpportunityStage),
+        onClick: () => handleStageChange(opp, stage as OpportunityStage),
       }));
 
   const columns = [
@@ -178,13 +187,18 @@ const OpportunitiesPage = () => {
       key: "title",
       render: (text: string) => text || "N/A",
     },
-    { title: "Client", dataIndex: "clientName", key: "clientName" },
+    {
+      title: "Client",
+      dataIndex: "clientName",
+      key: "clientName",
+      render: (text: string) => text || "N/A",
+    },
     {
       title: "Value",
       dataIndex: "estimatedValue",
       key: "estimatedValue",
       render: (val: number, record: OpportunityDto) =>
-        `${record.currency || "$"} ${val?.toLocaleString() || 0}`,
+        `${record.currency || "R"} ${val?.toLocaleString() || 0}`,
     },
     {
       title: "Probability",
@@ -212,50 +226,71 @@ const OpportunitiesPage = () => {
       title: "Expected Close",
       dataIndex: "expectedCloseDate",
       key: "expectedCloseDate",
-      render: (date: string) =>
-        date ? dayjs(date).format("YYYY-MM-DD") : "N/A",
+      render: (date: string) => date || "N/A",
     },
     {
-      title: "Stage",
+      title: "Move Stage",
       key: "stageChange",
-      render: (_: unknown, record: OpportunityDto) => (
-        <Dropdown
-          menu={{ items: getStageMenuItems(record) }}
-          trigger={["click"]}
-        >
-          <Button size="small">
-            Move <RightOutlined />
-          </Button>
-        </Dropdown>
-      ),
+      render: (_: unknown, record: OpportunityDto) =>
+        canUpdateOpportunity(record) ? (
+          <Dropdown
+            menu={{ items: getStageMenuItems(record) }}
+            trigger={["click"]}
+          >
+            <Button size="small">
+              Move <RightOutlined />
+            </Button>
+          </Dropdown>
+        ) : (
+          <Tag>Restricted</Tag>
+        ),
     },
     {
       title: "Actions",
       key: "actions",
       render: (_: unknown, record: OpportunityDto) => (
         <Space>
-          <Button
-            type="link"
-            icon={<EditOutlined />}
-            onClick={() => handleEditOpportunity(record)}
-          />
-          <Button
-            type="link"
-            icon={<TeamOutlined />}
-            onClick={() => handleOpenAssignModal(record)}
-          />
-          <Popconfirm
-            title="Delete this opportunity?"
-            onConfirm={() => handleDeleteOpportunity(record.id)}
-            okText="Yes"
-            cancelText="No"
-          >
-            <Button type="link" danger icon={<DeleteOutlined />} />
-          </Popconfirm>
+          {canUpdateOpportunity(record) && (
+            <Tooltip title="Edit">
+              <Button
+                type="link"
+                icon={<EditOutlined />}
+                onClick={() => handleEditOpportunity(record)}
+              />
+            </Tooltip>
+          )}
+          {canManageAssignments && (
+            <Tooltip title="Assign owner">
+              <Button
+                type="link"
+                icon={<TeamOutlined />}
+                onClick={() => handleOpenAssignModal(record)}
+              />
+            </Tooltip>
+          )}
+          {!isSalesRepUser && (
+            <Popconfirm
+              title="Delete this opportunity?"
+              onConfirm={() => handleDeleteOpportunity(record.id)}
+              okText="Yes"
+              cancelText="No"
+            >
+              <Tooltip title="Delete">
+                <Button type="link" danger icon={<DeleteOutlined />} />
+              </Tooltip>
+            </Popconfirm>
+          )}
         </Space>
       ),
     },
   ];
+
+  const stageFilterOptions = Object.entries(stageLabels).map(
+    ([key, label]) => ({
+      value: Number(key),
+      label,
+    }),
+  );
 
   return (
     <div style={{ padding: "24px" }}>
@@ -273,40 +308,41 @@ const OpportunitiesPage = () => {
               placeholder="Filter by Stage"
               style={{ width: 150 }}
               allowClear
+              options={stageFilterOptions}
               onChange={setStageFilter}
-            >
-              {Object.entries(stageLabels).map(([key, label]) => (
-                <Option key={key} value={Number(key)}>
-                  {label}
-                </Option>
-              ))}
-            </Select>
-            <Button
-              type="primary"
-              icon={<PlusOutlined />}
-              onClick={handleAddOpportunity}
-            >
-              Add Opportunity
-            </Button>
+            />
+            {!isSalesRepUser && (
+              <Button
+                type="primary"
+                icon={<PlusOutlined />}
+                onClick={handleAddOpportunity}
+              >
+                Add Opportunity
+              </Button>
+            )}
           </Space>
         </div>
+
         <Table
           columns={columns}
-          dataSource={opportunities}
+          dataSource={filteredOpportunities}
           loading={isPending}
           rowKey="id"
           pagination={{
-            current: pagination.pageNumber,
-            pageSize: pagination.pageSize,
-            total: pagination.totalCount,
+            current: pagination?.pageNumber,
+            pageSize: pagination?.pageSize,
+            total: pagination?.totalCount,
             onChange: (page, pageSize) =>
-              fetchOpportunities({
-                pageNumber: page,
-                pageSize,
-                stage: stageFilter,
-              }),
+              isSalesRepUser
+                ? fetchMyOpportunities()
+                : fetchOpportunities({
+                    pageNumber: page,
+                    pageSize,
+                    stage: stageFilter,
+                  }),
           }}
         />
+
         <OpportunityForm
           visible={isModalVisible}
           onCancel={() => setIsModalVisible(false)}
@@ -316,31 +352,33 @@ const OpportunitiesPage = () => {
           loading={isPending}
         />
 
-        <Modal
-          title="Assign Opportunity Owner"
-          open={isAssignModalVisible}
-          onOk={handleAssignOpportunity}
-          onCancel={() => {
-            setIsAssignModalVisible(false);
-            setAssigningOpportunity(null);
-            assignForm.resetFields();
-          }}
-        >
-          <Form form={assignForm} layout="vertical">
-            <Form.Item
-              name="userId"
-              label="Owner"
-              rules={[{ required: true, message: "Please select an owner" }]}
-            >
-              <UserSelector
-                role="SalesRep"
-                isActive
-                placeholder="Select opportunity owner"
-                allowClear={false}
-              />
-            </Form.Item>
-          </Form>
-        </Modal>
+        {canManageAssignments && (
+          <Modal
+            title="Assign Opportunity Owner"
+            open={isAssignModalVisible}
+            onOk={handleAssignOpportunity}
+            onCancel={() => {
+              setIsAssignModalVisible(false);
+              setAssigningOpportunity(null);
+              assignForm.resetFields();
+            }}
+          >
+            <Form form={assignForm} layout="vertical">
+              <Form.Item
+                name="userId"
+                label="Owner"
+                rules={[{ required: true, message: "Please select an owner" }]}
+              >
+                <UserSelector
+                  role="SalesRep"
+                  isActive
+                  placeholder="Select opportunity owner"
+                  allowClear={false}
+                />
+              </Form.Item>
+            </Form>
+          </Modal>
+        )}
       </Card>
     </div>
   );

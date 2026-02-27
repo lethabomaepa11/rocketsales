@@ -30,6 +30,7 @@ import {
   useActivityState,
   useActivityActions,
 } from "@/providers/activityProvider";
+import { useAuthState } from "@/providers/authProvider";
 import {
   ActivityDto,
   CreateActivityDto,
@@ -88,6 +89,7 @@ const ActivitiesPage = () => {
   const { activities, participants, isPending } = useActivityState();
   const {
     fetchActivities,
+    fetchMyActivities,
     createActivity,
     updateActivity,
     deleteActivity,
@@ -96,6 +98,8 @@ const ActivitiesPage = () => {
     fetchParticipants,
     addParticipant,
   } = useActivityActions();
+  const { user } = useAuthState();
+
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isParticipantModalVisible, setIsParticipantModalVisible] =
     useState(false);
@@ -110,18 +114,47 @@ const ActivitiesPage = () => {
   const [participantForm] = Form.useForm();
   const relatedToType = Form.useWatch("relatedToType", form);
 
-  useEffect(() => {
-    fetchActivities();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  const isSalesRepUser = user?.roles?.includes("SalesRep") ?? false;
+  const currentUserId = user?.userId;
+
+  // Guard against non-array state
+  const activitiesList = Array.isArray(activities)
+    ? activities
+    : ((activities as { items?: ActivityDto[] })?.items ?? []);
+
+  const participantsList = Array.isArray(participants)
+    ? participants
+    : ((participants as { items?: ActivityParticipantDto[] })?.items ?? []);
 
   const filteredActivities =
     activeTab === "all"
-      ? activities
-      : activities.filter((a: ActivityDto) => String(a.status) === activeTab);
+      ? activitiesList
+      : activitiesList.filter(
+          (a: ActivityDto) => String(a.status) === activeTab,
+        );
+
+  useEffect(() => {
+    if (isSalesRepUser) {
+      fetchMyActivities();
+    } else {
+      fetchActivities();
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const refreshActivities = () => {
+    if (isSalesRepUser) {
+      fetchMyActivities();
+    } else {
+      fetchActivities();
+    }
+  };
 
   const handleAddActivity = () => {
     setEditingActivity(null);
     form.resetFields();
+    if (isSalesRepUser) {
+      form.setFieldsValue({ assignedToId: currentUserId });
+    }
     setIsModalVisible(true);
   };
 
@@ -136,30 +169,36 @@ const ActivitiesPage = () => {
 
   const handleDeleteActivity = async (id: string) => {
     await deleteActivity(id);
-    fetchActivities();
+    refreshActivities();
   };
 
   const handleCompleteActivity = async (id: string) => {
     await completeActivity(id);
-    fetchActivities();
+    refreshActivities();
   };
 
   const handleCancelActivity = async (id: string) => {
     await cancelActivity(id);
-    fetchActivities();
+    refreshActivities();
   };
 
   const handleModalOk = async () => {
     try {
       const values = await form.validateFields();
-      const data = { ...values, dueDate: values.dueDate?.toISOString() };
+      const data = {
+        ...values,
+        assignedToId: isSalesRepUser
+          ? (currentUserId ?? values.assignedToId)
+          : values.assignedToId,
+        dueDate: values.dueDate?.toISOString(),
+      };
       if (editingActivity) {
         await updateActivity(editingActivity.id, data as UpdateActivityDto);
       } else {
         await createActivity(data as CreateActivityDto);
       }
       setIsModalVisible(false);
-      fetchActivities();
+      refreshActivities();
     } catch (error) {
       console.error("Validation failed:", error);
     }
@@ -290,12 +329,16 @@ const ActivitiesPage = () => {
       key: "actions",
       render: (_: unknown, record: ActivityDto) => (
         <Space>
-          <Button
-            type="link"
-            icon={<EditOutlined />}
-            onClick={() => handleEditActivity(record)}
-          />
-          {record.status === ActivityStatus.Scheduled && (
+          {!isSalesRepUser && (
+            <Tooltip title="Edit">
+              <Button
+                type="link"
+                icon={<EditOutlined />}
+                onClick={() => handleEditActivity(record)}
+              />
+            </Tooltip>
+          )}
+          {!isSalesRepUser && record.status === ActivityStatus.Scheduled && (
             <Tooltip title="Mark complete">
               <Button
                 type="link"
@@ -304,7 +347,7 @@ const ActivitiesPage = () => {
               />
             </Tooltip>
           )}
-          {record.status === ActivityStatus.Scheduled && (
+          {!isSalesRepUser && record.status === ActivityStatus.Scheduled && (
             <Tooltip title="Cancel">
               <Button
                 type="link"
@@ -314,14 +357,18 @@ const ActivitiesPage = () => {
               />
             </Tooltip>
           )}
-          <Popconfirm
-            title="Delete this activity?"
-            onConfirm={() => handleDeleteActivity(record.id)}
-            okText="Yes"
-            cancelText="No"
-          >
-            <Button type="link" danger icon={<DeleteOutlined />} />
-          </Popconfirm>
+          {!isSalesRepUser && (
+            <Popconfirm
+              title="Delete this activity?"
+              onConfirm={() => handleDeleteActivity(record.id)}
+              okText="Yes"
+              cancelText="No"
+            >
+              <Tooltip title="Delete">
+                <Button type="link" danger icon={<DeleteOutlined />} />
+              </Tooltip>
+            </Popconfirm>
+          )}
         </Space>
       ),
     },
@@ -415,11 +462,18 @@ const ActivitiesPage = () => {
               <Input />
             </Form.Item>
             <Form.Item name="assignedToId" label="Assigned To">
-              <UserSelector
-                role="SalesRep"
-                isActive
-                placeholder="Select assignee"
-              />
+              {isSalesRepUser ? (
+                <Input
+                  value={`${user?.firstName || ""} ${user?.lastName || ""}`.trim()}
+                  disabled
+                />
+              ) : (
+                <UserSelector
+                  role="SalesRep"
+                  isActive
+                  placeholder="Select assignee"
+                />
+              )}
             </Form.Item>
             <Form.Item name="relatedToType" label="Related To Type">
               <Select
@@ -467,38 +521,40 @@ const ActivitiesPage = () => {
           footer={null}
           width={560}
         >
-          <Form
-            form={participantForm}
-            layout="vertical"
-            style={{ marginBottom: 16 }}
-          >
-            <Form.Item name="userId" label="User">
-              <UserSelector />
-            </Form.Item>
-            <Form.Item name="contactId" label="Contact ID">
-              <Input placeholder="Enter contact ID" />
-            </Form.Item>
-            <Form.Item name="isRequired" label="Required">
-              <Select
-                options={[
-                  { value: true, label: "Yes" },
-                  { value: false, label: "No" },
-                ]}
-              />
-            </Form.Item>
-            <Form.Item>
-              <Button
-                type="primary"
-                icon={<PlusOutlined />}
-                onClick={handleAddParticipant}
-              >
-                Add Participant
-              </Button>
-            </Form.Item>
-          </Form>
+          {!isSalesRepUser && (
+            <Form
+              form={participantForm}
+              layout="vertical"
+              style={{ marginBottom: 16 }}
+            >
+              <Form.Item name="userId" label="User">
+                <UserSelector />
+              </Form.Item>
+              <Form.Item name="contactId" label="Contact ID">
+                <Input placeholder="Enter contact ID" />
+              </Form.Item>
+              <Form.Item name="isRequired" label="Required">
+                <Select
+                  options={[
+                    { value: true, label: "Yes" },
+                    { value: false, label: "No" },
+                  ]}
+                />
+              </Form.Item>
+              <Form.Item>
+                <Button
+                  type="primary"
+                  icon={<PlusOutlined />}
+                  onClick={handleAddParticipant}
+                >
+                  Add Participant
+                </Button>
+              </Form.Item>
+            </Form>
+          )}
 
           <Table
-            dataSource={participants}
+            dataSource={participantsList}
             columns={[
               {
                 title: "Name",
