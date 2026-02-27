@@ -16,6 +16,7 @@ import {
   Dropdown,
   message,
   Tooltip,
+  Radio,
 } from "antd";
 import {
   PlusOutlined,
@@ -23,6 +24,8 @@ import {
   DeleteOutlined,
   RightOutlined,
   TeamOutlined,
+  TableOutlined,
+  ProjectOutlined,
 } from "@ant-design/icons";
 import {
   useOpportunityState,
@@ -35,6 +38,7 @@ import {
 } from "@/providers/contactProvider";
 import { useAuthState } from "@/providers/authProvider";
 import OpportunityForm from "@/components/dashboards/opportunities/OpportunityForm";
+import { KanbanPipeline } from "@/components/dashboards/opportunities/KanbanPipeline";
 import UserSelector from "@/components/common/UserSelector";
 import {
   OpportunityDto,
@@ -52,6 +56,7 @@ const stageColors: Record<OpportunityStage, string> = {
   [OpportunityStage.ClosedWon]: "green",
   [OpportunityStage.ClosedLost]: "red",
 };
+
 const stageLabels: Record<OpportunityStage, string> = {
   [OpportunityStage.Lead]: "Lead",
   [OpportunityStage.Qualified]: "Qualified",
@@ -60,6 +65,8 @@ const stageLabels: Record<OpportunityStage, string> = {
   [OpportunityStage.ClosedWon]: "Closed Won",
   [OpportunityStage.ClosedLost]: "Closed Lost",
 };
+
+type ViewMode = "table" | "kanban";
 
 const OpportunitiesPage = () => {
   const { styles } = useStyles();
@@ -87,6 +94,7 @@ const OpportunitiesPage = () => {
   const [isAssignModalVisible, setIsAssignModalVisible] = useState(false);
   const [assigningOpportunity, setAssigningOpportunity] =
     useState<OpportunityDto | null>(null);
+  const [viewMode, setViewMode] = useState<ViewMode>("table");
 
   const isSalesRepUser = user?.roles?.includes("SalesRep") ?? false;
   const currentUserId = user?.userId;
@@ -154,6 +162,14 @@ const OpportunitiesPage = () => {
       return;
     }
     await updateStage(opportunity.id, { stage, notes: null, lossReason: null });
+    refreshOpportunities();
+  };
+
+  const handleKanbanStageChange = async (
+    id: string,
+    stage: OpportunityStage,
+  ) => {
+    await updateStage(id, { stage, notes: null, lossReason: null });
     refreshOpportunities();
   };
 
@@ -300,13 +316,30 @@ const OpportunitiesPage = () => {
         <div className={styles.headerRow}>
           <Title level={3}>Opportunities</Title>
           <Space>
-            <Select
-              placeholder="Filter by Stage"
-              className={styles.stageFilterSelect}
-              allowClear
-              options={stageFilterOptions}
-              onChange={setStageFilter}
-            />
+            <Radio.Group
+              value={viewMode}
+              onChange={(e) => setViewMode(e.target.value)}
+              optionType="button"
+              buttonStyle="solid"
+            >
+              <Radio.Button value="table">
+                <TableOutlined /> Table
+              </Radio.Button>
+              <Radio.Button value="kanban">
+                <ProjectOutlined /> Pipeline
+              </Radio.Button>
+            </Radio.Group>
+
+            {viewMode === "table" && (
+              <Select
+                placeholder="Filter by Stage"
+                className={styles.stageFilterSelect}
+                allowClear
+                options={stageFilterOptions}
+                onChange={setStageFilter}
+              />
+            )}
+
             {!isSalesRepUser && (
               <Button
                 type="primary"
@@ -319,25 +352,37 @@ const OpportunitiesPage = () => {
           </Space>
         </div>
 
-        <Table
-          columns={columns}
-          dataSource={filteredOpportunities}
-          loading={isPending}
-          rowKey="id"
-          pagination={{
-            current: pagination?.pageNumber,
-            pageSize: pagination?.pageSize,
-            total: pagination?.totalCount,
-            onChange: (page, pageSize) =>
-              isSalesRepUser
-                ? fetchMyOpportunities()
-                : fetchOpportunities({
-                    pageNumber: page,
-                    pageSize,
-                    stage: stageFilter,
-                  }),
-          }}
-        />
+        {viewMode === "table" ? (
+          <Table
+            columns={columns}
+            dataSource={filteredOpportunities}
+            loading={isPending}
+            rowKey="id"
+            pagination={{
+              current: pagination?.pageNumber,
+              pageSize: pagination?.pageSize,
+              total: pagination?.totalCount,
+              onChange: (page, pageSize) =>
+                isSalesRepUser
+                  ? fetchMyOpportunities()
+                  : fetchOpportunities({
+                      pageNumber: page,
+                      pageSize,
+                      stage: stageFilter,
+                    }),
+            }}
+          />
+        ) : (
+          <KanbanPipeline
+            opportunities={filteredOpportunities}
+            stageColors={stageColors}
+            stageLabels={stageLabels}
+            onStageChange={handleKanbanStageChange}
+            onEditOpportunity={handleEditOpportunity}
+            canUpdateOpportunity={canUpdateOpportunity}
+            loading={isPending}
+          />
+        )}
 
         <OpportunityForm
           visible={isModalVisible}
