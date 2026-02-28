@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
-import { useParams } from "next/navigation";
+import { useEffect, useMemo, useState, useRef } from "react";
+import { useParams, useSearchParams } from "next/navigation";
 import { Card, Tabs, Typography, Spin, Button } from "antd";
 import { ArrowLeftOutlined } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
@@ -36,11 +36,14 @@ import { useStyles } from "@/components/dashboards/client/style/page.style";
 import { OpportunityDto } from "@/providers/opportunityProvider/types";
 import { ProposalDto } from "@/providers/proposalProvider/types";
 import { ContractDto } from "@/providers/contractProvider/types";
+import { useCreateEntityPrompts } from "@/hooks/useCreateEntityPrompts";
+import { ClientDto } from "@/providers/clientProvider/types";
 
 const { Title } = Typography;
 
 const ClientPage = () => {
   const { clientId } = useParams();
+  const searchParams = useSearchParams();
   const router = useRouter();
   const { styles } = useStyles();
   const { selectedClient, isPending } = useClientState();
@@ -58,6 +61,14 @@ const ClientPage = () => {
   const { contracts, isPending: contractsPending } = useContractState();
   const { fetchContracts } = useContractActions();
 
+  // Check for addContact query param
+  const shouldAddContact = searchParams.get("addContact") === "true";
+  const { promptCreateOpportunity } = useCreateEntityPrompts();
+
+  // Ref to control contacts table
+  const contactsTableRef = useRef<{ openAddModal: () => void }>(null);
+  const [activeTab, setActiveTab] = useState("about");
+
   useEffect(() => {
     if (clientId) {
       fetchClientById(clientId as string);
@@ -68,6 +79,25 @@ const ClientPage = () => {
       fetchContracts({ clientId: clientId as string });
     }
   }, []);
+
+  // Handle addContact param - switch to contacts tab and open modal
+  useEffect(() => {
+    if (shouldAddContact && selectedClient && contacts.length >= 0) {
+      // Use state updater function to avoid cascading render warnings
+      setActiveTab((prev) => {
+        if (prev !== "contacts") {
+          // Schedule the modal open after state update
+          setTimeout(() => {
+            if (contactsTableRef.current) {
+              contactsTableRef.current.openAddModal();
+            }
+          }, 100);
+          return "contacts";
+        }
+        return prev;
+      });
+    }
+  }, [shouldAddContact, selectedClient, contacts.length]);
 
   const handleBack = () => {
     router.push("/clients");
@@ -101,6 +131,13 @@ const ClientPage = () => {
     });
   }, [pricingRequests]);
 
+  // Handle contact created - prompt for opportunity
+  const handleContactCreated = (contactId: string) => {
+    if (selectedClient) {
+      promptCreateOpportunity(selectedClient as ClientDto, contactId);
+    }
+  };
+
   if (isPending || !selectedClient) {
     return (
       <div className={styles.loadingContainer}>
@@ -120,9 +157,11 @@ const ClientPage = () => {
       label: `Contacts (${contacts.length})`,
       children: (
         <ContactsTable
+          ref={contactsTableRef}
           contacts={contacts}
           clientId={clientId as string}
           loading={contactsPending}
+          onContactCreated={handleContactCreated}
         />
       ),
     },
@@ -189,7 +228,8 @@ const ClientPage = () => {
       </div>
       <Card className={styles.card}>
         <Tabs
-          defaultActiveKey="about"
+          activeKey={activeTab}
+          onChange={setActiveTab}
           items={tabItems}
           className={styles.tabs}
         />

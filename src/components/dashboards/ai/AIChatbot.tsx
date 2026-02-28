@@ -14,7 +14,7 @@ import { useClientActions } from "@/providers/clientProvider";
 import { ChatMessage } from "./ChatMessage";
 import { ChatInput } from "./ChatInput";
 import { ClientFormModal } from "@/components/common/ClientFormModal";
-import { useCreateOpportunityPrompt } from "@/hooks/useCreateOpportunityPrompt";
+import { useCreateEntityPrompts } from "@/hooks/useCreateEntityPrompts";
 import { useStyles } from "./style/AIChatbot.style";
 import { IAgentTool } from "@/providers/aiProvider/types";
 import { ClientDto } from "@/providers/clientProvider/types";
@@ -46,7 +46,7 @@ export const AIChatbot: React.FC = () => {
     navigateTo,
   } = useAIActions();
   const { fetchClients } = useClientActions();
-  const { promptCreateOpportunity } = useCreateOpportunityPrompt();
+  const { promptAfterClientCreate } = useCreateEntityPrompts();
   const { styles, cx } = useStyles();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [isAgentic, setIsAgentic] = useState(false);
@@ -128,8 +128,8 @@ export const AIChatbot: React.FC = () => {
   // Handle modal success
   const handleModalSuccess = (createdClient: ClientDto) => {
     closeModal();
-    // Ask user if they want to create an opportunity for this client
-    promptCreateOpportunity(createdClient);
+    // Ask user if they want to create a contact first, then opportunity
+    promptAfterClientCreate(createdClient);
   };
 
   // Handle responsive layout

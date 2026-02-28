@@ -1,5 +1,4 @@
 "use client";
-
 import { IOpportunityStateContext } from "./context";
 import * as OpportunityActions from "./actions";
 
@@ -10,20 +9,31 @@ export const OpportunityReducer = (
   switch (action.type) {
     case OpportunityActions.FETCH_OPPORTUNITIES_PENDING:
       return { ...state, isPending: true, isSuccess: false, isError: false };
-    case OpportunityActions.FETCH_OPPORTUNITIES_SUCCESS:
+
+    case OpportunityActions.FETCH_OPPORTUNITIES_SUCCESS: {
+      const payload = action.payload as { items?: unknown[] } | unknown[];
+      const isArray = Array.isArray(payload);
+      const items = isArray
+        ? (payload as unknown[])
+        : ((payload as { items?: unknown[] })?.items ?? []);
+
       return {
         ...state,
         isPending: false,
         isSuccess: true,
         isError: false,
         opportunities: (
-          action.payload as IOpportunityStateContext["opportunities"]
-        )?.filter((opp) => opp.isActive !== false),
+          items as IOpportunityStateContext["opportunities"]
+        ).filter((opp) => opp.isActive !== false),
       };
+    }
+
     case OpportunityActions.FETCH_OPPORTUNITIES_ERROR:
       return { ...state, isPending: false, isSuccess: false, isError: true };
+
     case OpportunityActions.FETCH_OPPORTUNITY_BY_ID_PENDING:
       return { ...state, isPending: true, isSuccess: false, isError: false };
+
     case OpportunityActions.FETCH_OPPORTUNITY_BY_ID_SUCCESS:
       return {
         ...state,
@@ -33,10 +43,13 @@ export const OpportunityReducer = (
         selectedOpportunity:
           action.payload as IOpportunityStateContext["selectedOpportunity"],
       };
+
     case OpportunityActions.FETCH_OPPORTUNITY_BY_ID_ERROR:
       return { ...state, isPending: false, isSuccess: false, isError: true };
+
     case OpportunityActions.CREATE_OPPORTUNITY_PENDING:
       return { ...state, isPending: true, isSuccess: false, isError: false };
+
     case OpportunityActions.CREATE_OPPORTUNITY_SUCCESS:
       return {
         ...state,
@@ -48,10 +61,13 @@ export const OpportunityReducer = (
           ...state.opportunities,
         ] as IOpportunityStateContext["opportunities"],
       };
+
     case OpportunityActions.CREATE_OPPORTUNITY_ERROR:
       return { ...state, isPending: false, isSuccess: false, isError: true };
+
     case OpportunityActions.UPDATE_OPPORTUNITY_PENDING:
       return { ...state, isPending: true, isSuccess: false, isError: false };
+
     case OpportunityActions.UPDATE_OPPORTUNITY_SUCCESS:
       return {
         ...state,
@@ -64,10 +80,13 @@ export const OpportunityReducer = (
             : o,
         ) as IOpportunityStateContext["opportunities"],
       };
+
     case OpportunityActions.UPDATE_OPPORTUNITY_ERROR:
       return { ...state, isPending: false, isSuccess: false, isError: true };
+
     case OpportunityActions.DELETE_OPPORTUNITY_PENDING:
       return { ...state, isPending: true, isSuccess: false, isError: false };
+
     case OpportunityActions.DELETE_OPPORTUNITY_SUCCESS:
       return {
         ...state,
@@ -78,14 +97,17 @@ export const OpportunityReducer = (
           (o) => o.id !== action.payload,
         ) as IOpportunityStateContext["opportunities"],
       };
+
     case OpportunityActions.DELETE_OPPORTUNITY_ERROR:
       return { ...state, isPending: false, isSuccess: false, isError: true };
+
     case OpportunityActions.SET_SELECTED_OPPORTUNITY:
       return {
         ...state,
         selectedOpportunity:
           action.payload as IOpportunityStateContext["selectedOpportunity"],
       };
+
     default:
       return state;
   }

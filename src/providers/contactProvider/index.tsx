@@ -89,12 +89,14 @@ export const ContactProvider = ({
           title: "Success",
           description: "Contact created successfully",
         });
+        return response.data;
       } catch (error) {
         dispatch(ContactActions.createContactError());
         notification.error({
           title: "Error",
           description: "Failed to create contact",
         });
+        throw error;
       }
     },
     [instance, notification],

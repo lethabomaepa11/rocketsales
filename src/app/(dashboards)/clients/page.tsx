@@ -26,7 +26,7 @@ import { ClientDto, ClientType } from "@/providers/clientProvider/types";
 import { useRouter } from "next/navigation";
 import { useStyles } from "./style/page.style";
 import { ClientFormModal } from "@/components/common/ClientFormModal";
-import { useCreateOpportunityPrompt } from "@/hooks/useCreateOpportunityPrompt";
+import { useCreateEntityPrompts } from "@/hooks/useCreateEntityPrompts";
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -36,7 +36,7 @@ const ClientsPage = () => {
   const { clients, isPending, pagination } = useClientState();
   const router = useRouter();
   const { fetchClients, updateClient, deleteClient } = useClientActions();
-  const { promptCreateOpportunity } = useCreateOpportunityPrompt();
+  const { promptAfterClientCreate } = useCreateEntityPrompts();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingClient, setEditingClient] = useState<ClientDto | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -91,8 +91,8 @@ const ClientsPage = () => {
     setIsModalVisible(false);
     form.resetFields();
     fetchClients();
-    // Ask user if they want to create an opportunity for this client
-    promptCreateOpportunity(createdClient);
+    // Ask user if they want to create a contact first, then opportunity
+    promptAfterClientCreate(createdClient);
   };
 
   const handleModalClose = () => {
