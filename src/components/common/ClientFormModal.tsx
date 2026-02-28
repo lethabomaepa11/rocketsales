@@ -1,15 +1,19 @@
 "use client";
 
 import React, { useEffect } from "react";
-import { Modal, Form, Input, Select, message } from "antd";
+import { Modal, Form, Input, Select } from "antd";
 import { useClientActions } from "@/providers/clientProvider";
-import { CreateClientDto, ClientType } from "@/providers/clientProvider/types";
+import {
+  CreateClientDto,
+  ClientType,
+  ClientDto,
+} from "@/providers/clientProvider/types";
 
 interface ClientFormModalProps {
   visible: boolean;
   initialData?: Partial<CreateClientDto>;
   onClose: () => void;
-  onSuccess: (client: unknown) => void;
+  onSuccess: (client: ClientDto) => void;
 }
 
 const { Option } = Select;
@@ -37,8 +41,8 @@ export const ClientFormModal: React.FC<ClientFormModalProps> = ({
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
-      await createClient(values as CreateClientDto);
-      onSuccess(values);
+      const createdClient = await createClient(values as CreateClientDto);
+      onSuccess(createdClient);
       form.resetFields();
     } catch (error) {
       console.error("Failed to create client:", error);

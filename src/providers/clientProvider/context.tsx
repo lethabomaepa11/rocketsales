@@ -28,7 +28,7 @@ export interface IClientActionContext {
   fetchClients: (params?: ClientQueryParams) => void;
   fetchClientById: (id: string) => void;
   fetchClientStats: (id: string) => void;
-  createClient: (client: CreateClientDto) => void;
+  createClient: (client: CreateClientDto) => Promise<ClientDto>;
   updateClient: (id: string, client: UpdateClientDto) => void;
   deleteClient: (id: string) => void;
   setSelectedClient: (client: ClientDto | null) => void;

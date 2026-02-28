@@ -1,22 +1,22 @@
-# TODO: Filter out inactive items (isActive = false)
+# Task: Ask user if they want to create an opportunity after client creation
 
-## Task
-Remove items with isActive set to false from the application, treating them as deleted.
+## Plan
+1. [x] Modify client provider to return created client from createClient function
+2. [x] Update ClientFormModal to pass created client to onSuccess callback
+3. [x] Update AIChatbot to prompt for opportunity creation after client creation
+4. [x] Update clients page to prompt for opportunity creation after client creation
+5. [x] Refactored to reduce redundancy - created shared components
 
-## Implementation Plan
+## Refactoring Done
+- Created shared `ClientFormModal` in `src/components/common/ClientFormModal.tsx`
+- Created shared hook `useCreateOpportunityPrompt` in `src/hooks/useCreateOpportunityPrompt.ts`
+- Both Clients page and AI Chatbot now use the same components
+- Removed duplicate ClientFormModal from AI folder
 
-### Step 1: Client Provider
-- [x] src/providers/clientProvider/reducer.tsx
-  - Filter out inactive clients in `FETCH_CLIENTS_SUCCESS` ✅
-
-### Step 2: Opportunity Provider
-- [x] src/providers/opportunityProvider/reducer.tsx
-  - Filter out inactive opportunities in `FETCH_OPPORTUNITIES_SUCCESS` ✅
-
-### Step 3: Contact Provider
-- [x] src/providers/contactProvider/types.ts
-  - Add `isActive?: boolean` to `ContactQueryParams` ✅
-- [x] src/providers/contactProvider/reducer.tsx
-  - Filter out inactive contacts in `FETCH_CONTACTS_SUCCESS` ✅
-
-## Status: Completed ✅
+## Files Changed
+1. `src/providers/clientProvider/index.tsx` - Modified createClient to return created client
+2. `src/providers/clientProvider/context.tsx` - Updated createClient signature
+3. `src/components/common/ClientFormModal.tsx` - New shared component
+4. `src/hooks/useCreateOpportunityPrompt.ts` - New shared hook
+5. `src/app/(dashboards)/clients/page.tsx` - Uses shared components
+6. `src/components/dashboards/ai/AIChatbot.tsx` - Uses shared components
