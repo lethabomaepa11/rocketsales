@@ -10,6 +10,10 @@ export const INITIAL_STATE: IAIState = {
   isLoading: false,
   error: null,
   streamingMessage: null,
+  isModalOpen: false,
+  modalType: null,
+  modalData: null,
+  pendingToolCall: null,
 };
 
 export const AIStateContext = createContext<IAIState | undefined>(undefined);

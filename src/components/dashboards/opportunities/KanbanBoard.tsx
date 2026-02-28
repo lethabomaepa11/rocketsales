@@ -155,9 +155,8 @@ export const KanbanBoard = ({
       const activeId = active.id as string;
       const overId = over.id as string;
 
-      const activeOpportunity = localOpportunities.find(
-        (o) => o.id === activeId,
-      );
+      // Find the opportunity - use opportunities (prop) for current data
+      const activeOpportunity = opportunities.find((o) => o.id === activeId);
       if (!activeOpportunity) return;
 
       // Check permissions
@@ -178,21 +177,15 @@ export const KanbanBoard = ({
           message.success(
             `Moved to ${stageLabels[overStage as OpportunityStage]}`,
           );
-        } catch {
+        } catch (error) {
+          console.error("Stage change error:", error);
           // Revert on error
           setLocalOpportunities(opportunities);
           message.error("Failed to update stage");
         }
       }
     },
-    [
-      localOpportunities,
-      opportunities,
-      stages,
-      stageLabels,
-      onStageChange,
-      canUpdateOpportunity,
-    ],
+    [opportunities, stages, stageLabels, onStageChange, canUpdateOpportunity],
   );
 
   const dropAnimation: DropAnimation = {

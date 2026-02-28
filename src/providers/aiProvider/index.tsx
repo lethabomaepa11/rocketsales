@@ -3,6 +3,7 @@
 import { useContext, useReducer, useCallback, useRef, useState } from "react";
 import { App } from "antd";
 import { v4 as uuidv4 } from "uuid";
+import { useRouter } from "next/navigation";
 import {
   createSession as createSessionAction,
   deleteSession as deleteSessionAction,
@@ -16,6 +17,9 @@ import {
   openChat as openChatAction,
   closeChat as closeChatAction,
   updateSessionTitle,
+  openModal as openModalAction,
+  closeModal as closeModalAction,
+  setPendingToolCall as setPendingToolCallAction,
 } from "./actions";
 import { AIStateContext, AIActionContext, INITIAL_STATE } from "./context";
 import { AIReducer } from "./reducer";
@@ -25,6 +29,7 @@ import {
   ISendMessagePayload,
   ICreateSessionPayload,
   IAgentTool,
+  ModalType,
 } from "./types";
 
 // Simple UUID generator if uuid package is not available
@@ -88,6 +93,40 @@ export const AIProvider = ({ children }: { children: React.ReactNode }) => {
   const unregisterTool = useCallback((toolName: string) => {
     toolsRef.current.delete(toolName);
   }, []);
+
+  const router = useRouter();
+
+  const openModal = useCallback(
+    (type: ModalType, data?: Record<string, unknown>) => {
+      dispatch(openModalAction({ type: type || "confirmAction", data }));
+    },
+    [],
+  );
+
+  const closeModal = useCallback(() => {
+    dispatch(closeModalAction());
+    dispatch(setPendingToolCallAction(null));
+  }, []);
+
+  const setPendingToolCall = useCallback(
+    (
+      toolCall: {
+        toolCallId: string;
+        toolName: string;
+        args: Record<string, unknown>;
+      } | null,
+    ) => {
+      dispatch(setPendingToolCallAction(toolCall));
+    },
+    [],
+  );
+
+  const navigateTo = useCallback(
+    (path: string) => {
+      router.push(path);
+    },
+    [router],
+  );
 
   const executeTool = useCallback(
     async (toolName: string, args: Record<string, unknown>) => {
@@ -299,6 +338,10 @@ export const AIProvider = ({ children }: { children: React.ReactNode }) => {
           setAgenticMode,
           registerTool,
           unregisterTool,
+          openModal,
+          closeModal,
+          setPendingToolCall,
+          navigateTo,
         }}
       >
         {children}

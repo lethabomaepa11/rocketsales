@@ -110,6 +110,28 @@ export const AIReducer = (state: IAIState, action: AIAction): IAIState => {
       // Tools are handled at the component level
       return state;
 
+    case "OPEN_MODAL":
+      return {
+        ...state,
+        isModalOpen: true,
+        modalType: action.payload.type as "createClient" | "confirmAction",
+        modalData: action.payload.data || null,
+      };
+
+    case "CLOSE_MODAL":
+      return {
+        ...state,
+        isModalOpen: false,
+        modalType: null,
+        modalData: null,
+      };
+
+    case "SET_PENDING_TOOL_CALL":
+      return {
+        ...state,
+        pendingToolCall: action.payload,
+      };
+
     default:
       return state;
   }

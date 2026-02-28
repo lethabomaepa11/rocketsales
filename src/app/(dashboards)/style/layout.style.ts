@@ -67,7 +67,7 @@ export const useStyles = createStyles(({ token }) => ({
     marginLeft: 0,
   },
   mainLayoutWithChatbot: {
-    marginRight: 360,
+    marginRight: 0,
   },
   mainLayoutWithChatbotCollapsed: {
     marginRight: 0,
@@ -101,16 +101,21 @@ export const useStyles = createStyles(({ token }) => ({
     minHeight: 280,
     backgroundColor: token.colorBgLayout,
     color: token.colorText,
-    transition: "margin-right 0.3s ease",
+    transition: "margin-right 0.3s ease, width 0.3s ease",
     "@media (max-width: 991px)": {
       padding: "16px",
     },
   },
   contentWithChatbot: {
-    marginRight: 360,
+    marginRight: 0,
+    width: "calc(100% - 360px)",
+    maxWidth: "calc(100% - 360px)",
+    overflowX: "auto",
+    overflowY: "auto",
   },
   contentWithChatbotClosed: {
     marginRight: 0,
+    width: "100%",
+    maxWidth: "100%",
   },
-
 }));

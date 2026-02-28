@@ -169,8 +169,13 @@ const OpportunitiesPage = () => {
     id: string,
     stage: OpportunityStage,
   ) => {
-    await updateStage(id, { stage, notes: null, lossReason: null });
-    refreshOpportunities();
+    try {
+      await updateStage(id, { stage, notes: null, lossReason: null });
+      refreshOpportunities();
+    } catch (error) {
+      console.error("Failed to update stage:", error);
+      message.error("Failed to update stage");
+    }
   };
 
   const handleOpenAssignModal = (opportunity: OpportunityDto) => {

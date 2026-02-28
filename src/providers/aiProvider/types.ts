@@ -26,6 +26,8 @@ export interface IChatSession {
   updatedAt: Date;
 }
 
+export type ModalType = 'createClient' | 'confirmAction' | null;
+
 export interface IAIState {
   sessions: IChatSession[];
   currentSessionId: string | null;
@@ -33,6 +35,14 @@ export interface IAIState {
   isLoading: boolean;
   error: string | null;
   streamingMessage: string | null;
+  isModalOpen: boolean;
+  modalType: ModalType;
+  modalData: Record<string, unknown> | null;
+  pendingToolCall: {
+    toolCallId: string;
+    toolName: string;
+    args: Record<string, unknown>;
+  } | null;
 }
 
 export interface IAgentTool {
@@ -69,4 +79,8 @@ export interface IAIActionContext {
   setAgenticMode: (enabled: boolean) => void;
   registerTool: (tool: IAgentTool) => void;
   unregisterTool: (toolName: string) => void;
+  openModal: (type: ModalType, data?: Record<string, unknown>) => void;
+  closeModal: () => void;
+  setPendingToolCall: (toolCall: { toolCallId: string; toolName: string; args: Record<string, unknown> } | null) => void;
+  navigateTo: (path: string) => void;
 }

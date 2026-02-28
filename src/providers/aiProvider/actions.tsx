@@ -77,6 +77,29 @@ export const unregisterTool = (toolName: string) => ({
   payload: toolName,
 });
 
+export const openModal = (payload: {
+  type: string;
+  data?: Record<string, unknown>;
+}) => ({
+  type: "OPEN_MODAL" as const,
+  payload,
+});
+
+export const closeModal = () => ({
+  type: "CLOSE_MODAL" as const,
+});
+
+export const setPendingToolCall = (
+  payload: {
+    toolCallId: string;
+    toolName: string;
+    args: Record<string, unknown>;
+  } | null,
+) => ({
+  type: "SET_PENDING_TOOL_CALL" as const,
+  payload,
+});
+
 export type AIAction =
   | ReturnType<typeof createSession>
   | ReturnType<typeof deleteSession>
@@ -92,4 +115,7 @@ export type AIAction =
   | ReturnType<typeof updateSessionTitle>
   | ReturnType<typeof setAgenticMode>
   | ReturnType<typeof registerTool>
-  | ReturnType<typeof unregisterTool>;
+  | ReturnType<typeof unregisterTool>
+  | ReturnType<typeof openModal>
+  | ReturnType<typeof closeModal>
+  | ReturnType<typeof setPendingToolCall>;

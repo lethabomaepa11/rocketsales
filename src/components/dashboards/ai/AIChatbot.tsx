@@ -10,9 +10,12 @@ import {
   ThunderboltOutlined,
 } from "@ant-design/icons";
 import { useAIState, useAIActions } from "@/providers/aiProvider";
+import { useClientActions } from "@/providers/clientProvider";
 import { ChatMessage } from "./ChatMessage";
 import { ChatInput } from "./ChatInput";
+import { ClientFormModal } from "./ClientFormModal";
 import { useStyles } from "./style/AIChatbot.style";
+import { IAgentTool } from "@/providers/aiProvider/types";
 
 export const AIChatbot: React.FC = () => {
   const {
@@ -22,6 +25,9 @@ export const AIChatbot: React.FC = () => {
     isLoading,
     error,
     streamingMessage,
+    isModalOpen,
+    modalType,
+    modalData,
   } = useAIState();
   const {
     sendMessage,
@@ -32,7 +38,12 @@ export const AIChatbot: React.FC = () => {
     openChat,
     clearError,
     setAgenticMode,
+    registerTool,
+    openModal,
+    closeModal,
+    navigateTo,
   } = useAIActions();
+  const { fetchClients } = useClientActions();
   const { styles, cx } = useStyles();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [isAgentic, setIsAgentic] = useState(false);
@@ -40,6 +51,81 @@ export const AIChatbot: React.FC = () => {
 
   const currentSession = sessions.find((s) => s.id === currentSessionId);
   const messages = currentSession?.messages || [];
+
+  // Register AI tools on mount
+  useEffect(() => {
+    const tools: IAgentTool[] = [
+      {
+        name: "createClient",
+        description:
+          "Create a new client in the system. Use this when the user wants to add a new client.",
+        parameters: {
+          type: "object",
+          properties: {
+            name: { type: "string", description: "Client name" },
+            industry: { type: "string", description: "Industry" },
+            companySize: { type: "string", description: "Company size" },
+            website: { type: "string", description: "Website URL" },
+            billingAddress: { type: "string", description: "Billing address" },
+            taxNumber: { type: "string", description: "Tax number" },
+            clientType: {
+              type: "number",
+              description: "Client type: 1=Prospect, 2=Customer, 3=Partner",
+            },
+          },
+          required: ["name"],
+        },
+        execute: async (args: Record<string, unknown>) => {
+          openModal("createClient", args);
+          return {
+            status: "pending",
+            message: "Please fill in the client details in the form",
+          };
+        },
+      },
+      {
+        name: "fetchClients",
+        description: "Fetch list of clients from the system",
+        parameters: {
+          type: "object",
+          properties: {
+            searchTerm: { type: "string", description: "Search term" },
+          },
+        },
+        execute: async (args: Record<string, unknown>) => {
+          await fetchClients(args as { searchTerm?: string });
+          return { status: "success", message: "Clients fetched successfully" };
+        },
+      },
+      {
+        name: "navigate",
+        description: "Navigate to a specific page in the application",
+        parameters: {
+          type: "object",
+          properties: {
+            path: {
+              type: "string",
+              description:
+                "Path to navigate to. Examples: /dashboard, /clients, /opportunities, /contacts, /contracts, /proposals",
+            },
+          },
+          required: ["path"],
+        },
+        execute: async (args: Record<string, unknown>) => {
+          const path = args.path as string;
+          navigateTo(path);
+          return { status: "success", message: `Navigating to ${path}` };
+        },
+      },
+    ];
+
+    tools.forEach((tool) => registerTool(tool));
+  }, [registerTool, openModal, navigateTo, fetchClients]);
+
+  // Handle modal success
+  const handleModalSuccess = (data: unknown) => {
+    closeModal();
+  };
 
   // Handle responsive layout
   useEffect(() => {
@@ -212,6 +298,14 @@ export const AIChatbot: React.FC = () => {
           size="large"
         />
       </Tooltip>
+
+      {/* Client Form Modal */}
+      <ClientFormModal
+        visible={isModalOpen && modalType === "createClient"}
+        initialData={modalData as Record<string, unknown>}
+        onClose={closeModal}
+        onSuccess={handleModalSuccess}
+      />
     </>
   );
 };
