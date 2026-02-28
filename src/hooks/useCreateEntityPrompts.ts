@@ -101,10 +101,42 @@ export const useCreateEntityPrompts = () => {
     });
   };
 
+  const promptCreateProposal = (opportunity: {
+    id: string;
+    title: string | null;
+    clientId: string;
+    clientName: string | null;
+    estimatedValue: number;
+    currency: string | null;
+  }) => {
+    const oppName = opportunity.title || "this opportunity";
+    const clientName = opportunity.clientName || "the client";
+
+    Modal.confirm({
+      title: "Create Proposal?",
+      content: `Would you like to create a proposal for "${oppName}" (${clientName})?`,
+      okText: "Yes, create proposal",
+      cancelText: "Not now",
+      onOk: () => {
+        // Navigate to proposals page with pre-filled opportunity data
+        const params = new URLSearchParams({
+          new: "true",
+          opportunityId: opportunity.id,
+          clientId: opportunity.clientId,
+          clientName: opportunity.clientName || "",
+          value: opportunity.estimatedValue?.toString() || "0",
+          currency: opportunity.currency || "R",
+        });
+        router.push(`/proposals?${params.toString()}`);
+      },
+    });
+  };
+
   return {
     promptCreateContact,
     promptCreateOpportunity,
     promptAfterClientCreate,
     promptCreateContract,
+    promptCreateProposal,
   };
 };

@@ -86,7 +86,8 @@ const OpportunitiesPage = () => {
   const { user } = useAuthState();
   const { fetchClients } = useClientActions();
   const { fetchContacts } = useContactActions();
-  const { promptCreateContract } = useCreateEntityPrompts();
+  const { promptCreateContract, promptCreateProposal } =
+    useCreateEntityPrompts();
 
   // Get pre-fill data from query params
   const prefillClientId = searchParams.get("clientId");
@@ -193,6 +194,10 @@ const OpportunitiesPage = () => {
     if (stage === OpportunityStage.ClosedWon) {
       promptCreateContract(opportunity);
     }
+    // Prompt for proposal creation when opportunity is qualified
+    if (stage === OpportunityStage.Qualified) {
+      promptCreateProposal(opportunity);
+    }
   };
 
   const handleKanbanStageChange = async (
@@ -208,6 +213,10 @@ const OpportunitiesPage = () => {
       // Prompt for contract creation when opportunity is closed won
       if (stage === OpportunityStage.ClosedWon && opportunity) {
         promptCreateContract(opportunity);
+      }
+      // Prompt for proposal creation when opportunity is qualified
+      if (stage === OpportunityStage.Qualified && opportunity) {
+        promptCreateProposal(opportunity);
       }
     } catch (error) {
       console.error("Failed to update stage:", error);
