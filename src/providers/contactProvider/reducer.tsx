@@ -16,7 +16,9 @@ export const ContactReducer = (
         isPending: false,
         isSuccess: true,
         isError: false,
-        contacts: action.payload as IContactStateContext["contacts"],
+        contacts: (action.payload as IContactStateContext["contacts"])?.filter(
+          (contact) => contact.isActive !== false,
+        ),
       };
     case ContactActions.FETCH_CONTACTS_ERROR:
       return { ...state, isPending: false, isSuccess: false, isError: true };

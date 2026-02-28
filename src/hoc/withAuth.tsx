@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Spin } from "antd";
 import { useStyles } from "./style/withAuth.style";
+import { logoutUser } from "@/providers/authProvider/actions";
 
 interface WithAuthOptions {
   allowedRoles?: string[];
@@ -22,12 +23,20 @@ export function withAuth<P extends object>(
     const router = useRouter();
     const { styles } = useStyles();
 
+    // Check token expiry on mount and whenever user changes
     useEffect(() => {
-      // Only redirect after initial auth check is complete
       if (!isLoading) {
         if (!user) {
           router.push(redirectTo);
           return;
+        }
+
+        if (typeof window !== "undefined") {
+          if (user?.expiresAt && Date.now() >= Date.parse(user.expiresAt)) {
+            logoutUser();
+            router.push(redirectTo);
+            return;
+          }
         }
 
         if (allowedRoles && allowedRoles.length > 0) {
@@ -39,9 +48,22 @@ export function withAuth<P extends object>(
           }
         }
       }
-    }, [isLoading, user, allowedRoles, redirectTo, router]);
+    }, [isLoading, user, router]);
 
-    // Show loading spinner while initial auth check is in progress
+    // Continuously check token expiry every 60 seconds while page is open
+    useEffect(() => {
+      if (!user?.expiresAt) return;
+
+      const interval = setInterval(() => {
+        if (Date.now() >= Date.parse(user.expiresAt)) {
+          logoutUser();
+          router.push(redirectTo);
+        }
+      }, 60_000);
+
+      return () => clearInterval(interval);
+    }, [user, router]);
+
     if (isLoading) {
       return (
         <div className={styles.loadingContainer}>
@@ -50,7 +72,6 @@ export function withAuth<P extends object>(
       );
     }
 
-    // If not loading and no user, the useEffect will handle redirect
     if (!user) {
       return (
         <div className={styles.loadingContainer}>
@@ -69,7 +90,10 @@ export function withAuth<P extends object>(
     return <WrappedComponent {...props} />;
   };
 
-  WithAuthComponent.displayName = `withAuth(${WrappedComponent.displayName || WrappedComponent.name || "Component"})`;
+  WithAuthComponent.displayName = `withAuth(${
+    WrappedComponent.displayName || WrappedComponent.name || "Component"
+  })`;
+
   return WithAuthComponent;
 }
 

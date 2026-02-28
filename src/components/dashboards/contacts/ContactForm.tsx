@@ -1,13 +1,17 @@
 import { Modal, Form, Input, Select, Switch } from "antd";
 import { ClientDto } from "@/providers/clientProvider/types";
-import { ContactDto } from "@/providers/contactProvider/types";
+import {
+  ContactDto,
+  CreateContactDto,
+  UpdateContactDto,
+} from "@/providers/contactProvider/types";
 
 interface ContactFormProps {
   visible: boolean;
   editingContact: ContactDto | null;
   clients: ClientDto[];
   onCancel: () => void;
-  onOk: (values: any) => void;
+  onOk: (values: CreateContactDto | UpdateContactDto) => void;
 }
 
 const ContactForm: React.FC<ContactFormProps> = ({

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   Form,
   Input,
@@ -69,12 +69,15 @@ const OpportunityForm: React.FC<OpportunityFormProps> = ({
     }
   }, [initialValues, form, contacts]);
 
-  const handleClientChange = (clientId: string) => {
-    // Filter contacts based on selected client
-    const clientContacts = contacts.filter((c) => c.clientId === clientId);
-    setFilteredContacts(clientContacts);
-    form.setFieldsValue({ contactId: undefined }); // Clear contact selection
-  };
+  const handleClientChange = useCallback(
+    (clientId: string) => {
+      // Filter contacts based on selected client
+      const clientContacts = contacts.filter((c) => c.clientId === clientId);
+      setFilteredContacts(clientContacts);
+      form.setFieldsValue({ contactId: undefined }); // Clear contact selection
+    },
+    [contacts, form],
+  );
 
   const handleSubmit = async () => {
     try {

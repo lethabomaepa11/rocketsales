@@ -37,6 +37,10 @@ import {
   UpdateContractDto,
   ContractStatus,
 } from "@/providers/contractProvider/types";
+import {
+  OpportunityStage,
+  OpportunityDto,
+} from "@/providers/opportunityProvider/types";
 import ContractFormModal from "@/components/dashboards/contracts/ContractFormModal";
 import ContractRenewalModal from "@/components/dashboards/contracts/ContractRenewalModal";
 import dayjs from "dayjs";
@@ -102,6 +106,19 @@ const ContractsPage = () => {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const contractsList = toArray<ContractDto>(contracts);
+
+  // Get opportunity IDs that already have contracts
+  const opportunityIdsWithContracts = new Set(
+    contractsList.filter((c) => c.opportunityId).map((c) => c.opportunityId),
+  );
+
+  // Filter opportunities to only show "won" opportunities (ClosedWon stage) that don't have contracts
+  const opportunitiesList = toArray<OpportunityDto>(opportunities);
+  const wonOpportunities = opportunitiesList.filter(
+    (opp) =>
+      opp.stage === OpportunityStage.ClosedWon &&
+      !opportunityIdsWithContracts.has(opp.id),
+  );
 
   const handleTabChange = (key: string) => {
     setActiveTab(key);
@@ -294,7 +311,7 @@ const ContractsPage = () => {
         open={isFormOpen}
         editingContract={editingContract}
         clients={clients}
-        opportunities={opportunities}
+        opportunities={wonOpportunities}
         ownerId={user?.userId ?? ""}
         onSubmit={handleFormSubmit}
         onCancel={() => setIsFormOpen(false)}

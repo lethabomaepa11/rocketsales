@@ -1,20 +1,36 @@
 "use client";
 import { createStyles } from "antd-style";
 
-export const useStyles = createStyles(() => ({
+export const useStyles = createStyles(({ token }) => ({
   container: {
     display: "flex",
     flexDirection: "column",
     height: "100%",
+    backgroundColor: token.colorBgContainer,
   },
   menu: {
     flex: 1,
-    background: "transparent",
+    backgroundColor: token.colorBgContainer,
     border: "none",
+    "& .ant-menu-item": {
+      color: token.colorText,
+      "&:hover": {
+        color: token.colorPrimary,
+        backgroundColor: token.colorBgTextHover,
+      },
+      "&.ant-menu-item-selected": {
+        backgroundColor: token.colorPrimaryBg,
+        color: token.colorPrimary,
+      },
+    },
+    "& .ant-menu-item-icon": {
+      color: "inherit",
+    },
   },
   profileSection: {
-    borderTop: "1px solid rgba(5, 5, 5, 0.06)",
+    borderTop: `1px solid ${token.colorBorderSecondary}`,
     padding: "12px 8px",
+    backgroundColor: token.colorBgContainer,
   },
   profileTrigger: {
     width: "100%",
@@ -22,13 +38,13 @@ export const useStyles = createStyles(() => ({
     alignItems: "center",
     gap: 10,
     border: "none",
-    background: "transparent",
+    backgroundColor: "transparent",
     padding: "8px 10px",
-    borderRadius: 8,
+    borderRadius: token.borderRadius,
     cursor: "pointer",
     transition: "background-color 0.2s ease",
     "&:hover": {
-      background: "rgba(5, 5, 5, 0.04)",
+      backgroundColor: token.colorBgTextHover,
     },
   },
   profileTriggerCollapsed: {
@@ -49,6 +65,7 @@ export const useStyles = createStyles(() => ({
     whiteSpace: "nowrap",
     overflow: "hidden",
     textOverflow: "ellipsis",
+    color: token.colorText,
   },
   profileEmail: {
     fontSize: 12,
@@ -56,9 +73,25 @@ export const useStyles = createStyles(() => ({
     whiteSpace: "nowrap",
     overflow: "hidden",
     textOverflow: "ellipsis",
+    color: token.colorTextSecondary,
   },
   profileChevron: {
     fontSize: 10,
     opacity: 0.7,
+    color: token.colorTextSecondary,
+  },
+  themeToggle: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    padding: '8px 0',
+    marginBottom: 8,
+    borderRadius: token.borderRadius,
+    backgroundColor: token.colorBgElevated,
+  },
+  themeIcon: {
+    fontSize: 14,
+    color: token.colorTextSecondary,
   },
 }));

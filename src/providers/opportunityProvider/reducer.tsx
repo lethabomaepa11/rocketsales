@@ -16,8 +16,9 @@ export const OpportunityReducer = (
         isPending: false,
         isSuccess: true,
         isError: false,
-        opportunities:
-          action.payload as IOpportunityStateContext["opportunities"],
+        opportunities: (
+          action.payload as IOpportunityStateContext["opportunities"]
+        )?.filter((opp) => opp.isActive !== false),
       };
     case OpportunityActions.FETCH_OPPORTUNITIES_ERROR:
       return { ...state, isPending: false, isSuccess: false, isError: true };
