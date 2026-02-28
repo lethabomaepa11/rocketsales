@@ -67,9 +67,44 @@ export const useCreateEntityPrompts = () => {
     // where they can add contact, then they'll be prompted for opportunity
   };
 
+  const promptCreateContract = (opportunity: {
+    id: string;
+    title: string | null;
+    clientId: string;
+    clientName: string | null;
+    estimatedValue: number;
+    currency: string | null;
+  }) => {
+    const oppName = opportunity.title || "this opportunity";
+    const clientName = opportunity.clientName || "the client";
+    const value = opportunity.currency
+      ? `${opportunity.currency} ${opportunity.estimatedValue?.toLocaleString() || 0}`
+      : `R ${opportunity.estimatedValue?.toLocaleString() || 0}`;
+
+    Modal.confirm({
+      title: "Create Contract?",
+      content: `Would you like to create a contract for "${oppName}" (${clientName}) worth ${value}?`,
+      okText: "Yes, create contract",
+      cancelText: "Not now",
+      onOk: () => {
+        // Navigate to contracts page with pre-filled opportunity data
+        const params = new URLSearchParams({
+          new: "true",
+          opportunityId: opportunity.id,
+          clientId: opportunity.clientId,
+          clientName: opportunity.clientName || "",
+          value: opportunity.estimatedValue?.toString() || "0",
+          currency: opportunity.currency || "R",
+        });
+        router.push(`/contracts?${params.toString()}`);
+      },
+    });
+  };
+
   return {
     promptCreateContact,
     promptCreateOpportunity,
     promptAfterClientCreate,
+    promptCreateContract,
   };
 };
