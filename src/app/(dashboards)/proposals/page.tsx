@@ -45,6 +45,7 @@ import { useStyles } from "./style/page.style";
 import dayjs from "dayjs";
 import { useSearchParams } from "next/navigation";
 import { OpportunityStage } from "@/providers/opportunityProvider/types";
+import { useCreateEntityPrompts } from "@/hooks/useCreateEntityPrompts";
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
@@ -77,6 +78,7 @@ const ProposalsPage = () => {
   } = useProposalActions();
   const { opportunities } = useOpportunityState();
   const { fetchOpportunities, updateStage } = useOpportunityActions();
+  const { promptCreateContract } = useCreateEntityPrompts();
 
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isRejectModalVisible, setIsRejectModalVisible] = useState(false);
@@ -273,6 +275,21 @@ const ProposalsPage = () => {
                   onClick={async () => {
                     await approveProposal(record.id);
                     fetchProposals();
+
+                    // Find the opportunity and prompt for contract
+                    const opportunity = opportunities.find(
+                      (o) => o.id === record.opportunityId,
+                    );
+                    if (opportunity) {
+                      promptCreateContract({
+                        id: opportunity.id,
+                        title: opportunity.title,
+                        clientId: opportunity.clientId,
+                        clientName: opportunity.clientName,
+                        estimatedValue: opportunity.estimatedValue,
+                        currency: opportunity.currency,
+                      });
+                    }
                   }}
                 />
               </Tooltip>
