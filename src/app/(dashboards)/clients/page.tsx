@@ -9,7 +9,6 @@ import {
   Input,
   Select,
   Card,
-  Modal,
   Form,
   Typography,
   Popconfirm,
@@ -23,13 +22,11 @@ import {
   UserOutlined,
 } from "@ant-design/icons";
 import { useClientState, useClientActions } from "@/providers/clientProvider";
-import {
-  ClientDto,
-  ClientType,
-  CreateClientDto,
-} from "@/providers/clientProvider/types";
+import { ClientDto, ClientType } from "@/providers/clientProvider/types";
 import { useRouter } from "next/navigation";
 import { useStyles } from "./style/page.style";
+import { ClientFormModal } from "@/components/common/ClientFormModal";
+import { useCreateEntityPrompts } from "@/hooks/useCreateEntityPrompts";
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -38,8 +35,8 @@ const ClientsPage = () => {
   const { styles } = useStyles();
   const { clients, isPending, pagination } = useClientState();
   const router = useRouter();
-  const { fetchClients, createClient, updateClient, deleteClient } =
-    useClientActions();
+  const { fetchClients, updateClient, deleteClient } = useClientActions();
+  const { promptAfterClientCreate } = useCreateEntityPrompts();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingClient, setEditingClient] = useState<ClientDto | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -81,17 +78,27 @@ const ClientsPage = () => {
   const handleModalOk = async () => {
     try {
       const values = await form.validateFields();
-      if (editingClient) {
-        await updateClient(editingClient.id, values);
-      } else {
-        await createClient(values as CreateClientDto);
-      }
+      await updateClient(editingClient!.id, values);
       setIsModalVisible(false);
       form.resetFields();
       fetchClients();
     } catch (error) {
       console.error("Validation failed:", error);
     }
+  };
+
+  const handleClientFormSuccess = (createdClient: ClientDto) => {
+    setIsModalVisible(false);
+    form.resetFields();
+    fetchClients();
+    // Ask user if they want to create a contact first, then opportunity
+    promptAfterClientCreate(createdClient);
+  };
+
+  const handleModalClose = () => {
+    setIsModalVisible(false);
+    setEditingClient(null);
+    form.resetFields();
   };
 
   const getClientTypeTag = (type: ClientType) => {
@@ -230,49 +237,75 @@ const ClientsPage = () => {
           }}
         />
 
-        <Modal
-          title={editingClient ? "Edit Client" : "Add Client"}
-          open={isModalVisible}
-          onOk={handleModalOk}
-          onCancel={() => setIsModalVisible(false)}
-          width={600}
-        >
-          <Form form={form} layout="vertical">
-            <Form.Item
-              name="name"
-              label="Name"
-              rules={[{ required: true, message: "Please enter client name" }]}
-            >
-              <Input />
-            </Form.Item>
-            <Form.Item name="industry" label="Industry">
-              <Input />
-            </Form.Item>
-            <Form.Item name="companySize" label="Company Size">
-              <Input />
-            </Form.Item>
-            <Form.Item name="website" label="Website">
-              <Input />
-            </Form.Item>
-            <Form.Item name="billingAddress" label="Billing Address">
-              <Input.TextArea rows={3} />
-            </Form.Item>
-            <Form.Item name="taxNumber" label="Tax Number">
-              <Input />
-            </Form.Item>
-            <Form.Item
-              name="clientType"
-              label="Client Type"
-              rules={[{ required: true }]}
-            >
-              <Select>
-                <Option value={ClientType.Prospect}>Prospect</Option>
-                <Option value={ClientType.Customer}>Customer</Option>
-                <Option value={ClientType.Partner}>Partner</Option>
-              </Select>
-            </Form.Item>
-          </Form>
-        </Modal>
+        {/* Edit Client Modal */}
+        {isModalVisible && editingClient && (
+          <div className="ant-modal-root">
+            <div className="ant-modal-wrap">
+              <div className="ant-modal">
+                <div className="ant-modal-content">
+                  <div className="ant-modal-header">
+                    <div className="ant-modal-title">Edit Client</div>
+                  </div>
+                  <div className="ant-modal-body">
+                    <Form form={form} layout="vertical">
+                      <Form.Item
+                        name="name"
+                        label="Name"
+                        rules={[
+                          {
+                            required: true,
+                            message: "Please enter client name",
+                          },
+                        ]}
+                      >
+                        <Input />
+                      </Form.Item>
+                      <Form.Item name="industry" label="Industry">
+                        <Input />
+                      </Form.Item>
+                      <Form.Item name="companySize" label="Company Size">
+                        <Input />
+                      </Form.Item>
+                      <Form.Item name="website" label="Website">
+                        <Input />
+                      </Form.Item>
+                      <Form.Item name="billingAddress" label="Billing Address">
+                        <Input.TextArea rows={3} />
+                      </Form.Item>
+                      <Form.Item name="taxNumber" label="Tax Number">
+                        <Input />
+                      </Form.Item>
+                      <Form.Item
+                        name="clientType"
+                        label="Client Type"
+                        rules={[{ required: true }]}
+                      >
+                        <Select>
+                          <Option value={ClientType.Prospect}>Prospect</Option>
+                          <Option value={ClientType.Customer}>Customer</Option>
+                          <Option value={ClientType.Partner}>Partner</Option>
+                        </Select>
+                      </Form.Item>
+                    </Form>
+                  </div>
+                  <div className="ant-modal-footer">
+                    <Button onClick={handleModalClose}>Cancel</Button>
+                    <Button type="primary" onClick={handleModalOk}>
+                      Save
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Shared Client Form Modal for Create */}
+        <ClientFormModal
+          visible={isModalVisible && !editingClient}
+          onClose={handleModalClose}
+          onSuccess={handleClientFormSuccess}
+        />
       </Card>
     </div>
   );

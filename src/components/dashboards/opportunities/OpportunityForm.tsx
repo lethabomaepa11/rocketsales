@@ -28,6 +28,7 @@ interface OpportunityFormProps {
   visible: boolean;
   onCancel: () => void;
   initialValues?: OpportunityDto;
+  prefillValues?: Partial<OpportunityDto>;
   clients: ClientDto[];
   contacts: ContactDto[];
   loading?: boolean;
@@ -37,6 +38,7 @@ const OpportunityForm: React.FC<OpportunityFormProps> = ({
   visible,
   onCancel,
   initialValues,
+  prefillValues,
   clients,
   contacts,
   loading = false,
@@ -48,18 +50,21 @@ const OpportunityForm: React.FC<OpportunityFormProps> = ({
   const { createOpportunity, updateOpportunity, fetchOpportunities } =
     useOpportunityActions();
 
+  // Determine the actual values to use (prefill takes precedence when creating new)
+  const formInitialValues = prefillValues || initialValues;
+
   useEffect(() => {
-    if (initialValues) {
+    if (formInitialValues) {
       form.setFieldsValue({
-        ...initialValues,
-        expectedCloseDate: initialValues.expectedCloseDate
-          ? dayjs(initialValues.expectedCloseDate)
+        ...formInitialValues,
+        expectedCloseDate: formInitialValues.expectedCloseDate
+          ? dayjs(formInitialValues.expectedCloseDate)
           : null,
       });
       // Filter contacts based on selected client
-      if (initialValues.clientId) {
+      if (formInitialValues.clientId) {
         const clientContacts = contacts.filter(
-          (c) => c.clientId === initialValues.clientId,
+          (c) => c.clientId === formInitialValues.clientId,
         );
         setFilteredContacts(clientContacts);
       }
@@ -67,7 +72,7 @@ const OpportunityForm: React.FC<OpportunityFormProps> = ({
       form.resetFields();
       setFilteredContacts(contacts);
     }
-  }, [initialValues, form, contacts]);
+  }, [formInitialValues, form, contacts]);
 
   const handleClientChange = useCallback(
     (clientId: string) => {
@@ -116,7 +121,7 @@ const OpportunityForm: React.FC<OpportunityFormProps> = ({
       width={600}
       confirmLoading={loading}
     >
-      <Form form={form} layout="vertical" initialValues={initialValues}>
+      <Form form={form} layout="vertical" initialValues={formInitialValues}>
         <Form.Item
           name="clientId"
           label="Client"

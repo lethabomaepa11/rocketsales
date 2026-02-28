@@ -79,12 +79,14 @@ export const ClientProvider = ({ children }: { children: React.ReactNode }) => {
           title: "Success",
           description: "Client created successfully",
         });
+        return response.data;
       } catch (error) {
         dispatch(ClientActions.createClientError());
         notification.error({
           title: "Error",
           description: "Failed to create client",
         });
+        throw error;
       }
     },
     [instance, notification],

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
   Table,
   Button,
@@ -45,6 +45,7 @@ import {
   OpportunityStage,
 } from "@/providers/opportunityProvider/types";
 import { useStyles } from "./style/page.style";
+import { useSearchParams } from "next/navigation";
 
 const { Title } = Typography;
 
@@ -71,6 +72,7 @@ type ViewMode = "table" | "kanban";
 const OpportunitiesPage = () => {
   const { styles } = useStyles();
   const { opportunities, isPending, pagination } = useOpportunityState();
+  const searchParams = useSearchParams();
   const {
     fetchOpportunities,
     fetchMyOpportunities,
@@ -84,7 +86,16 @@ const OpportunitiesPage = () => {
   const { fetchClients } = useClientActions();
   const { fetchContacts } = useContactActions();
 
-  const [isModalVisible, setIsModalVisible] = useState(false);
+  // Get pre-fill data from query params
+  const prefillClientId = searchParams.get("clientId");
+  const prefillClientName = searchParams.get("clientName");
+  const prefillContactId = searchParams.get("contactId");
+  const isNewFromClient = searchParams.get("new") === "true";
+
+  // Initialize modal visibility based on URL params
+  const [isModalVisible, setIsModalVisible] = useState(
+    isNewFromClient && !!prefillClientId,
+  );
   const [editingOpportunity, setEditingOpportunity] =
     useState<OpportunityDto | null>(null);
   const [stageFilter, setStageFilter] = useState<
@@ -95,6 +106,18 @@ const OpportunitiesPage = () => {
   const [assigningOpportunity, setAssigningOpportunity] =
     useState<OpportunityDto | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>("table");
+
+  // Pre-filled values for new opportunity from client
+  const prefillValues = useMemo(() => {
+    if (!isNewFromClient || !prefillClientId) return undefined;
+    return {
+      clientId: prefillClientId,
+      contactId: prefillContactId || undefined,
+      title: prefillClientName
+        ? `${prefillClientName} - Opportunity`
+        : undefined,
+    };
+  }, [isNewFromClient, prefillClientId, prefillClientName, prefillContactId]);
 
   const isSalesRepUser = user?.roles?.includes("SalesRep") ?? false;
   const currentUserId = user?.userId;
@@ -315,6 +338,15 @@ const OpportunitiesPage = () => {
     }),
   );
 
+  const handleModalClose = () => {
+    setIsModalVisible(false);
+    setEditingOpportunity(null);
+    // Clear the URL parameters after closing
+    if (isNewFromClient) {
+      window.history.replaceState({}, "", "/opportunities");
+    }
+  };
+
   return (
     <div className={styles.pageContainer}>
       <Card>
@@ -391,8 +423,9 @@ const OpportunitiesPage = () => {
 
         <OpportunityForm
           visible={isModalVisible}
-          onCancel={() => setIsModalVisible(false)}
+          onCancel={handleModalClose}
           initialValues={editingOpportunity || undefined}
+          prefillValues={prefillValues}
           clients={clients}
           contacts={contacts}
           loading={isPending}

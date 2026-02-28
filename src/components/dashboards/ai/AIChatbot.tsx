@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { Button, Switch, Tooltip, Badge } from "antd";
+import { Button, Switch, Tooltip, Modal } from "antd";
 import {
   CloseOutlined,
   PlusOutlined,
@@ -13,9 +13,11 @@ import { useAIState, useAIActions } from "@/providers/aiProvider";
 import { useClientActions } from "@/providers/clientProvider";
 import { ChatMessage } from "./ChatMessage";
 import { ChatInput } from "./ChatInput";
-import { ClientFormModal } from "./ClientFormModal";
+import { ClientFormModal } from "@/components/common/ClientFormModal";
+import { useCreateEntityPrompts } from "@/hooks/useCreateEntityPrompts";
 import { useStyles } from "./style/AIChatbot.style";
 import { IAgentTool } from "@/providers/aiProvider/types";
+import { ClientDto } from "@/providers/clientProvider/types";
 
 export const AIChatbot: React.FC = () => {
   const {
@@ -44,6 +46,7 @@ export const AIChatbot: React.FC = () => {
     navigateTo,
   } = useAIActions();
   const { fetchClients } = useClientActions();
+  const { promptAfterClientCreate } = useCreateEntityPrompts();
   const { styles, cx } = useStyles();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [isAgentic, setIsAgentic] = useState(false);
@@ -123,8 +126,10 @@ export const AIChatbot: React.FC = () => {
   }, [registerTool, openModal, navigateTo, fetchClients]);
 
   // Handle modal success
-  const handleModalSuccess = (data: unknown) => {
+  const handleModalSuccess = (createdClient: ClientDto) => {
     closeModal();
+    // Ask user if they want to create a contact first, then opportunity
+    promptAfterClientCreate(createdClient);
   };
 
   // Handle responsive layout
@@ -299,7 +304,7 @@ export const AIChatbot: React.FC = () => {
         />
       </Tooltip>
 
-      {/* Client Form Modal */}
+      {/* Shared Client Form Modal */}
       <ClientFormModal
         visible={isModalOpen && modalType === "createClient"}
         initialData={modalData as Record<string, unknown>}

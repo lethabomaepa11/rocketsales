@@ -26,7 +26,7 @@ export interface IContactActionContext {
   fetchContacts: (params?: ContactQueryParams) => void;
   fetchContactById: (id: string) => void;
   fetchContactsByClient: (clientId: string) => void;
-  createContact: (contact: CreateContactDto) => void;
+  createContact: (contact: CreateContactDto) => Promise<ContactDto | undefined>;
   updateContact: (id: string, contact: UpdateContactDto) => void;
   deleteContact: (id: string) => void;
   setPrimaryContact: (id: string, clientId: string) => void;
