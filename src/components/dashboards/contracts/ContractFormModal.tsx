@@ -62,8 +62,20 @@ const ContractFormModal = ({
 
   const handleOk = async () => {
     const values = await form.validateFields();
+
+    // Get clientId from opportunity when creating new contract
+    let clientId = values.clientId;
+    if (!editingContract && values.opportunityId) {
+      const selectedOpp = opportunities.find(
+        (o) => o.id === values.opportunityId,
+      );
+      if (selectedOpp?.clientId) {
+        clientId = selectedOpp.clientId;
+      }
+    }
+
     const payload = {
-      clientId: values.clientId,
+      clientId,
       opportunityId: values.opportunityId ?? null,
       proposalId: values.proposalId ?? null,
       title: values.title ?? null,
@@ -79,6 +91,9 @@ const ContractFormModal = ({
     onSubmit(payload as CreateContractDto, !!editingContract);
   };
 
+  // Only show client field when editing an existing contract
+  const showClientField = !!editingContract;
+
   return (
     <Modal
       title={editingContract ? "Edit Contract" : "Create Contract"}
@@ -89,25 +104,39 @@ const ContractFormModal = ({
       width={600}
     >
       <Form form={form} layout="vertical">
-        <Form.Item name="clientId" label="Client" rules={[{ required: true }]}>
-          <Select
-            placeholder="Select a client"
-            showSearch
-            optionFilterProp="children"
+        {showClientField && (
+          <Form.Item
+            name="clientId"
+            label="Client"
+            rules={[{ required: true }]}
           >
-            {clients.map((c) => (
-              <Select.Option key={c.id} value={c.id}>
-                {c.name}
-              </Select.Option>
-            ))}
-          </Select>
-        </Form.Item>
+            <Select
+              placeholder="Select a client"
+              showSearch
+              optionFilterProp="children"
+            >
+              {clients.map((c) => (
+                <Select.Option key={c.id} value={c.id}>
+                  {c.name}
+                </Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
+        )}
         <Form.Item name="opportunityId" label="Opportunity">
           <Select
             placeholder="Select opportunity"
             allowClear
             showSearch
             optionFilterProp="children"
+            onChange={(value) => {
+              if (value) {
+                const selectedOpp = opportunities.find((o) => o.id === value);
+                if (selectedOpp?.clientId) {
+                  form.setFieldValue("clientId", selectedOpp.clientId);
+                }
+              }
+            }}
           >
             {opportunities.map((o) => (
               <Select.Option key={o.id} value={o.id}>

@@ -22,7 +22,9 @@ export const ClientReducer = (
         isPending: false,
         isSuccess: true,
         isError: false,
-        clients: action.payload as IClientStateContext["clients"],
+        clients: (action.payload as IClientStateContext["clients"])?.filter(
+          (client) => client.isActive !== false,
+        ) as IClientStateContext["clients"],
       };
     case ClientActions.FETCH_CLIENTS_ERROR:
       return {

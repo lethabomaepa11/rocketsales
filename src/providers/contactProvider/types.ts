@@ -51,4 +51,5 @@ export interface ContactQueryParams {
   pageSize?: number;
   clientId?: string;
   searchTerm?: string;
+  isActive?: boolean;
 }
