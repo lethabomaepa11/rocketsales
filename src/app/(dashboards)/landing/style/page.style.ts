@@ -5,15 +5,15 @@ import { createStyles } from "antd-style";
 export const useStyles = createStyles(({ token }) => ({
   container: {
     minHeight: "100vh",
-    background: `linear-gradient(135deg, ${token.colorPrimary} 0%, ${token.colorPrimaryBg} 100%)`,
+    background: token.colorBgLayout,
   },
   header: {
-    padding: "24px 48px",
+    padding: "16px 48px",
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    background: "rgba(255, 255, 255, 0.1)",
-    backdropFilter: "blur(10px)",
+    background: token.colorBgContainer,
+    borderBottom: `1px solid ${token.colorBorder}`,
   },
   logoContainer: {
     display: "flex",
@@ -21,49 +21,41 @@ export const useStyles = createStyles(({ token }) => ({
     gap: 12,
   },
   logoIcon: {
-    fontSize: 32,
-    color: "#fff",
+    fontSize: 28,
+    color: token.colorPrimary,
   },
   logoText: {
     margin: 0,
-    color: "#fff",
+    color: token.colorText,
   },
   loginButton: {
-    color: "#fff",
-    borderColor: "#fff",
-  },
-  getStartedButton: {
-    background: "#fff",
-    border: "none",
+    height: 40,
   },
   heroSection: {
     padding: "80px 48px",
     textAlign: "center",
+    background: token.colorBgContainer,
+    borderBottom: `1px solid ${token.colorBorder}`,
   },
   heroTitle: {
-    color: "#fff",
-    fontSize: 56,
+    color: token.colorText,
+    fontSize: 42,
     marginBottom: 24,
+    fontWeight: 600,
   },
   heroDescription: {
-    color: "rgba(255,255,255,0.9)",
-    fontSize: 20,
+    color: token.colorTextSecondary,
+    fontSize: 18,
     maxWidth: 700,
     margin: "0 auto 40px",
   },
   heroPrimaryButton: {
-    padding: "8px 32px",
-    height: 56,
-  },
-  heroDemoButton: {
-    color: "#fff",
-    borderColor: "#fff",
-    padding: "8px 32px",
-    height: 56,
+    height: 48,
+    padding: "0 32px",
   },
   featuresSection: {
     padding: "80px 48px",
-    background: token.colorBgContainer,
+    background: token.colorBgLayout,
   },
   featuresContainer: {
     maxWidth: 1200,
@@ -72,6 +64,7 @@ export const useStyles = createStyles(({ token }) => ({
   featuresTitle: {
     textAlign: "center",
     marginBottom: 16,
+    color: token.colorText,
   },
   featuresSubtitle: {
     display: "block",
@@ -83,39 +76,22 @@ export const useStyles = createStyles(({ token }) => ({
     height: "100%",
     textAlign: "center",
     padding: "24px",
-    borderRadius: 16,
-    boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
+    borderRadius: token.borderRadius,
+    background: token.colorBgContainer,
+    border: `1px solid ${token.colorBorder}`,
   },
   featureIcon: {
     marginBottom: 24,
   },
   featureIconSize: {
-    fontSize: 48,
-  },
-  statsSection: {
-    padding: "80px 48px",
-    background: `linear-gradient(135deg, ${token.colorPrimary} 0%, ${token.colorPrimaryBg} 100%)`,
-  },
-  statsContainer: {
-    maxWidth: 1200,
-    margin: "0 auto",
-    textAlign: "center",
-  },
-  statsTitle: {
-    color: "#fff",
-    marginBottom: 48,
-  },
-  statNumber: {
-    color: "#fff",
-    margin: 0,
-  },
-  statLabel: {
-    color: "rgba(255,255,255,0.8)",
+    fontSize: 40,
+    color: token.colorPrimary,
   },
   ctaSection: {
     padding: "80px 48px",
     background: token.colorBgContainer,
     textAlign: "center",
+    borderTop: `1px solid ${token.colorBorder}`,
   },
   ctaContainer: {
     maxWidth: 600,
@@ -124,15 +100,17 @@ export const useStyles = createStyles(({ token }) => ({
   ctaDescription: {
     fontSize: 16,
     marginBottom: 32,
+    color: token.colorTextSecondary,
   },
   ctaButton: {
-    padding: "8px 48px",
-    height: 56,
+    height: 48,
+    padding: "0 40px",
   },
   footer: {
     padding: "24px 48px",
     background: token.colorBgLayout,
     textAlign: "center",
+    borderTop: `1px solid ${token.colorBorder}`,
   },
   footerText: {
     color: token.colorTextSecondary,
