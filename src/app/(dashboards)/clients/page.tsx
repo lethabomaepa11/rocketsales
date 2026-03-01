@@ -91,9 +91,7 @@ const ClientsPage = () => {
       setIsModalVisible(false);
       form.resetFields();
       fetchClients();
-    } catch (error) {
-      console.error("Validation failed:", error);
-    }
+    } catch (error) {}
   };
 
   const handleClientFormSuccess = (createdClient: ClientDto) => {

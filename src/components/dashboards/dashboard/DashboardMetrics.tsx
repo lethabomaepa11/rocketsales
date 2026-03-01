@@ -57,7 +57,6 @@ const DashboardMetrics = ({
 
   return (
     <div className={styles.page}>
-      <div className={styles.heading}>Sales Dashboard</div>
       <div className={styles.subHeading}>
         Performance overview · Updated just now
       </div>

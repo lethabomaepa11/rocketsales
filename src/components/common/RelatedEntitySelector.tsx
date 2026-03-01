@@ -112,7 +112,6 @@ const RelatedEntitySelector: React.FC<RelatedEntitySelectorProps> = ({
 
         setEntities(items);
       } catch (error) {
-        console.error("Failed to fetch entities:", error);
         setEntities([]);
       } finally {
         setLoading(false);

@@ -164,7 +164,6 @@ export const useReportPDF = () => {
       
       notification.success({ message: "PDF report downloaded successfully" });
     } catch (error) {
-      console.error("PDF Generation Error:", error);
       notification.error({ message: "Failed to generate PDF report" });
     } finally {
       setIsGenerating(false);

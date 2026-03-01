@@ -94,6 +94,7 @@ export interface ContractExpiryDto {
   endDate: string;
   daysUntilExpiry: number;
   contractValue: number;
+  currency?: string | null;
 }
 
 export interface IDashboardStateContext {

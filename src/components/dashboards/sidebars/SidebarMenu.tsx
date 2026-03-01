@@ -14,6 +14,7 @@ import {
   DownOutlined,
   SunOutlined,
   MoonOutlined,
+  SettingOutlined,
 } from "@ant-design/icons";
 import {
   isSalesRepRole,
@@ -101,6 +102,15 @@ const SidebarMenu: React.FC<SidebarMenuProps> = ({
     },
   ];
 
+  // Add settings for non-sales rep users (managers/admins)
+  const adminMenuItems: MenuProps["items"] = [
+    {
+      key: "/settings",
+      icon: <SettingOutlined />,
+      label: "Settings",
+    },
+  ];
+
   const allowedSalesRepRoutes = new Set<string>(
     SALES_REP_ALLOWED_DASHBOARD_ROUTES,
   );
@@ -110,7 +120,7 @@ const SidebarMenu: React.FC<SidebarMenuProps> = ({
         const key = item?.key;
         return typeof key === "string" && allowedSalesRepRoutes.has(key);
       })
-    : menuItems;
+    : [...menuItems, ...adminMenuItems];
 
   const profileMenuItems: MenuProps["items"] = [
     {

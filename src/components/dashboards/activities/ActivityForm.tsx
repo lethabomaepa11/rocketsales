@@ -13,6 +13,7 @@ import {
   Upload,
   Typography,
   Divider,
+  message,
 } from "antd";
 import { UploadOutlined, CalendarOutlined } from "@ant-design/icons";
 import { useActivityActions } from "@/providers/activityProvider";
@@ -202,7 +203,7 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
         onSuccess();
       }
     } catch (error) {
-      console.error("Failed to create activity:", error);
+      message.error("Failed to create activity:");
     } finally {
       setIsSubmitting(false);
     }

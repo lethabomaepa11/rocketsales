@@ -86,7 +86,6 @@ const ProposalsTable: React.FC<ProposalsTableProps> = ({
       form.resetFields();
       fetchProposals({ clientId });
     } catch (error) {
-      console.error("Failed to create proposal:", error);
       message.error("Failed to create proposal");
     } finally {
       setIsSubmitting(false);

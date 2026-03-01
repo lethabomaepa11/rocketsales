@@ -2,10 +2,10 @@
 
 import { createStyles } from "antd-style";
 
-export const useStyles = createStyles(() => ({
+export const useStyles = createStyles(({token}) => ({
   page: {
     fontFamily: "'DM Sans', 'Segoe UI', sans-serif",
-    background: "#f5f5f0",
+    background: token.colorBgContainer,
     minHeight: "100vh",
     padding: "32px",
   },

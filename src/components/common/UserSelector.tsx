@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Select, Spin } from "antd";
+import { message, Select, Spin } from "antd";
 import { UserOutlined } from "@ant-design/icons";
 import { getAxiosInstance } from "@/utils/axiosInstance";
 import { TenantUserDto, UserRole } from "@/types/user";
@@ -90,7 +90,7 @@ const UserSelector: React.FC<UserSelectorProps> = ({
       const mappedUsers = items.map(mapUserToOption);
       setUsers(mappedUsers);
     } catch (error) {
-      console.error("Failed to fetch users:", error);
+      message.error("Failed to fetch users:");
     } finally {
       setLoading(false);
     }

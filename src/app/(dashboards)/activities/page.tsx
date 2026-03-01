@@ -201,9 +201,7 @@ const ActivitiesPage = () => {
       }
       setIsModalVisible(false);
       refreshActivities();
-    } catch (error) {
-      console.error("Validation failed:", error);
-    }
+    } catch (error) {}
   };
 
   const handleViewParticipants = (activityId: string) => {
@@ -219,9 +217,7 @@ const ActivitiesPage = () => {
       await addParticipant(selectedActivityId, values);
       participantForm.resetFields();
       fetchParticipants(selectedActivityId);
-    } catch (error) {
-      console.error("Validation failed:", error);
-    }
+    } catch (error) {}
   };
 
   const columns = [

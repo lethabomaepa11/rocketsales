@@ -208,7 +208,6 @@ ${businessContext ? `\n\n${businessContext}\n` : ""}`,
       toolCalls: [],
     });
   } catch (error) {
-    console.error("Chat API Error:", error);
     return NextResponse.json(
       {
         error:

@@ -89,7 +89,6 @@ const ContactsTable = forwardRef<ContactsTableRef, ContactsTableProps>(
           onContactCreated(createdContact.id);
         }
       } catch (error) {
-        console.error("Failed to create contact:", error);
         message.error("Failed to create contact");
       } finally {
         setIsSubmitting(false);

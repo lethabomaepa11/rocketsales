@@ -17,6 +17,7 @@ import {
   DeleteOutlined,
   PlusOutlined,
   EyeOutlined,
+  FileTextOutlined,
 } from "@ant-design/icons";
 import {
   PricingRequestDto,
@@ -81,6 +82,23 @@ const PricingRequestsTable: React.FC<PricingRequestsTableProps> = ({
     router.push(`/pricing-requests?id=${id}`);
   };
 
+  const handleGenerateProposal = async (pricingRequest: PricingRequestDto) => {
+    try {
+      // Navigate to proposals page with pre-fill data
+      const params = new URLSearchParams({
+        new: "true",
+        opportunityId: pricingRequest.opportunityId,
+        pricingRequestId: pricingRequest.id,
+        title: pricingRequest.title ? `Proposal: ${pricingRequest.title}` : "",
+        description: pricingRequest.description || "",
+      });
+
+      router.push(`/proposals?${params.toString()}`);
+    } catch (error) {
+      message.error("Failed to generate proposal");
+    }
+  };
+
   const handleAddPricingRequest = () => {
     form.resetFields();
     setIsModalVisible(true);
@@ -100,7 +118,6 @@ const PricingRequestsTable: React.FC<PricingRequestsTableProps> = ({
       form.resetFields();
       fetchPricingRequests();
     } catch (error) {
-      console.error("Failed to create pricing request:", error);
       message.error("Failed to create pricing request");
     } finally {
       setIsSubmitting(false);
@@ -177,6 +194,16 @@ const PricingRequestsTable: React.FC<PricingRequestsTableProps> = ({
       key: "actions",
       render: (_: unknown, record: PricingRequestDto) => (
         <Space>
+          {record.status === PricingRequestStatus.Completed && (
+            <Button
+              type="link"
+              icon={<FileTextOutlined />}
+              onClick={() => handleGenerateProposal(record)}
+              className={styles.actionButton}
+            >
+              Generate Proposal
+            </Button>
+          )}
           <Button
             type="link"
             icon={<EyeOutlined />}

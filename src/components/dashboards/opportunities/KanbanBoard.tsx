@@ -178,7 +178,6 @@ export const KanbanBoard = ({
             `Moved to ${stageLabels[overStage as OpportunityStage]}`,
           );
         } catch (error) {
-          console.error("Stage change error:", error);
           // Revert on error
           setLocalOpportunities(opportunities);
           message.error("Failed to update stage");

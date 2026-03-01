@@ -52,6 +52,8 @@ import { RelatedToType } from "@/providers/noteProvider/types";
 import { useStyles } from "./style/page.style";
 import { useSearchParams } from "next/navigation";
 import { useCreateEntityPrompts } from "@/hooks/useCreateEntityPrompts";
+import { useActivityActions } from "@/providers/activityProvider";
+import { createStageTriggeredActivities } from "@/utils/createStageTriggeredActivities";
 
 const { Title } = Typography;
 
@@ -93,6 +95,7 @@ const OpportunitiesPage = () => {
   const { fetchContacts } = useContactActions();
   const { promptCreateContract, promptCreateProposal } =
     useCreateEntityPrompts();
+  const { createActivity } = useActivityActions();
 
   // Get pre-fill data from query params
   const prefillClientId = searchParams.get("clientId");
@@ -206,6 +209,15 @@ const OpportunitiesPage = () => {
     if (stage === OpportunityStage.Qualified) {
       promptCreateProposal(opportunity);
     }
+
+    // Create stage-triggered activities
+    const activitiesToCreate = createStageTriggeredActivities(
+      opportunity,
+      stage,
+    );
+    for (const activity of activitiesToCreate) {
+      await createActivity(activity);
+    }
   };
 
   const handleKanbanStageChange = async (
@@ -226,8 +238,18 @@ const OpportunitiesPage = () => {
       if (stage === OpportunityStage.Qualified && opportunity) {
         promptCreateProposal(opportunity);
       }
+
+      // Create stage-triggered activities
+      if (opportunity) {
+        const activitiesToCreate = createStageTriggeredActivities(
+          opportunity,
+          stage,
+        );
+        for (const activity of activitiesToCreate) {
+          await createActivity(activity);
+        }
+      }
     } catch (error) {
-      console.error("Failed to update stage:", error);
       message.error("Failed to update stage");
     }
   };
