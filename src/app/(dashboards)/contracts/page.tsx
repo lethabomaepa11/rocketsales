@@ -11,6 +11,7 @@ import {
   Popconfirm,
   Tabs,
   Tooltip,
+  Drawer,
 } from "antd";
 import {
   PlusOutlined,
@@ -20,6 +21,7 @@ import {
   CloseOutlined,
   SyncOutlined,
   WarningOutlined,
+  EyeOutlined,
 } from "@ant-design/icons";
 import {
   useContractState,
@@ -46,6 +48,8 @@ import ContractRenewalModal from "@/components/dashboards/contracts/ContractRene
 import dayjs from "dayjs";
 import { useStyles } from "./style/page.style";
 import { useSearchParams } from "next/navigation";
+import EntityDetailsTabs from "@/components/dashboards/common/EntityDetailsTabs";
+import { RelatedToType } from "@/providers/noteProvider/types";
 
 const { Title } = Typography;
 
@@ -113,6 +117,12 @@ const ContractsPage = () => {
     null,
   );
   const [activeTab, setActiveTab] = useState("all");
+
+  // Drawer state for viewing contract details
+  const [detailsDrawerOpen, setDetailsDrawerOpen] = useState(false);
+  const [selectedContract, setSelectedContract] = useState<ContractDto | null>(
+    null,
+  );
 
   useEffect(() => {
     fetchContracts();
@@ -193,6 +203,11 @@ const ContractsPage = () => {
     }
   };
 
+  const handleViewDetails = (contract: ContractDto) => {
+    setSelectedContract(contract);
+    setDetailsDrawerOpen(true);
+  };
+
   const columns = [
     {
       title: "Contract #",
@@ -241,6 +256,13 @@ const ContractsPage = () => {
       key: "actions",
       render: (_: unknown, record: ContractDto) => (
         <Space>
+          <Tooltip title="View Details">
+            <Button
+              type="link"
+              icon={<EyeOutlined />}
+              onClick={() => handleViewDetails(record)}
+            />
+          </Tooltip>
           {(record.status === ContractStatus.Draft ||
             record.status === ContractStatus.Active) && (
             <Tooltip title="Edit">
@@ -369,6 +391,25 @@ const ContractsPage = () => {
         onClose={() => setRenewalContract(null)}
         onRefresh={() => renewalContract && fetchRenewals(renewalContract.id)}
       />
+
+      {/* Details Drawer */}
+      <Drawer
+        title={selectedContract?.title || "Contract Details"}
+        open={detailsDrawerOpen}
+        onClose={() => {
+          setDetailsDrawerOpen(false);
+          setSelectedContract(null);
+        }}
+        width={600}
+      >
+        {selectedContract && (
+          <EntityDetailsTabs
+            relatedToType={RelatedToType.Contract}
+            relatedToId={selectedContract.id}
+            relatedToTitle={selectedContract.title || undefined}
+          />
+        )}
+      </Drawer>
     </div>
   );
 };

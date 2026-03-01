@@ -23,6 +23,7 @@ import {
 import { useNoteState, useNoteActions } from "@/providers/noteProvider";
 import { NoteDto, RelatedToType } from "@/providers/noteProvider/types";
 import { useStyles } from "./style/EntityNotesList.style";
+import { AIGenerateButton } from "@/components/common/AIGenerateButton";
 import dayjs from "dayjs";
 
 const { Text, Paragraph } = Typography;
@@ -118,6 +119,13 @@ const EntityNotesList: React.FC<EntityNotesListProps> = ({
           >
             <Input.TextArea rows={3} placeholder="Write a note..." />
           </Form.Item>
+          <div style={{ marginTop: -8, marginBottom: 16 }}>
+            <AIGenerateButton
+              fieldType="notes"
+              onGenerate={(text) => form.setFieldValue("content", text)}
+              context={`Note for ${relatedToType}: ${relatedToId}`}
+            />
+          </div>
           <Form.Item
             name="isPrivate"
             valuePropName="checked"

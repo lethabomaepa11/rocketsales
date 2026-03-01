@@ -16,6 +16,7 @@ import {
   Popconfirm,
   Tabs,
   Tooltip,
+  Drawer,
 } from "antd";
 import {
   PlusOutlined,
@@ -24,6 +25,7 @@ import {
   SendOutlined,
   CheckOutlined,
   CloseOutlined,
+  EyeOutlined,
 } from "@ant-design/icons";
 import {
   useProposalState,
@@ -46,6 +48,8 @@ import dayjs from "dayjs";
 import { useSearchParams } from "next/navigation";
 import { OpportunityStage } from "@/providers/opportunityProvider/types";
 import { useCreateEntityPrompts } from "@/hooks/useCreateEntityPrompts";
+import EntityDetailsTabs from "@/components/dashboards/common/EntityDetailsTabs";
+import { RelatedToType } from "@/providers/noteProvider/types";
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
@@ -91,6 +95,12 @@ const ProposalsPage = () => {
   const [form] = Form.useForm();
   const [rejectForm] = Form.useForm();
 
+  // Drawer state for viewing proposal details
+  const [detailsDrawerOpen, setDetailsDrawerOpen] = useState(false);
+  const [selectedProposal, setSelectedProposal] = useState<ProposalDto | null>(
+    null,
+  );
+
   // Get pre-fill data from query params
   const prefillOpportunityId = searchParams.get("opportunityId");
   const prefillClientId = searchParams.get("clientId");
@@ -117,7 +127,7 @@ const ProposalsPage = () => {
           : undefined,
       });
     }
-  }, [isNewFromOpportunity, prefillOpportunityId, prefillClientName]);
+  }, [isNewFromOpportunity, prefillOpportunityId, prefillClientName, form]);
 
   useEffect(() => {
     fetchProposals();
@@ -144,6 +154,11 @@ const ProposalsPage = () => {
     });
     setLineItems([]);
     setIsModalVisible(true);
+  };
+
+  const handleViewDetails = (proposal: ProposalDto) => {
+    setSelectedProposal(proposal);
+    setDetailsDrawerOpen(true);
   };
 
   const handleModalOk = async () => {
@@ -245,6 +260,13 @@ const ProposalsPage = () => {
       key: "actions",
       render: (_: unknown, record: ProposalDto) => (
         <Space>
+          <Tooltip title="View Details">
+            <Button
+              type="link"
+              icon={<EyeOutlined />}
+              onClick={() => handleViewDetails(record)}
+            />
+          </Tooltip>
           {record.status === ProposalStatus.Draft && (
             <Tooltip title="Edit">
               <Button
@@ -439,6 +461,22 @@ const ProposalsPage = () => {
           </Form.Item>
         </Form>
       </Modal>
+
+      {/* Details Drawer */}
+      <Drawer
+        title={selectedProposal?.title || "Proposal Details"}
+        open={detailsDrawerOpen}
+        onClose={() => setDetailsDrawerOpen(false)}
+        width={600}
+      >
+        {selectedProposal && (
+          <EntityDetailsTabs
+            relatedToType={RelatedToType.Proposal}
+            relatedToId={selectedProposal.id}
+            relatedToTitle={selectedProposal.title || undefined}
+          />
+        )}
+      </Drawer>
     </div>
   );
 };

@@ -17,6 +17,7 @@ import {
   message,
   Tooltip,
   Radio,
+  Drawer,
 } from "antd";
 import {
   PlusOutlined,
@@ -26,6 +27,8 @@ import {
   TeamOutlined,
   TableOutlined,
   ProjectOutlined,
+  EyeOutlined,
+  FileTextOutlined,
 } from "@ant-design/icons";
 import {
   useOpportunityState,
@@ -40,10 +43,12 @@ import { useAuthState } from "@/providers/authProvider";
 import OpportunityForm from "@/components/dashboards/opportunities/OpportunityForm";
 import { KanbanPipeline } from "@/components/dashboards/opportunities/KanbanPipeline";
 import UserSelector from "@/components/common/UserSelector";
+import EntityDetailsTabs from "@/components/dashboards/common/EntityDetailsTabs";
 import {
   OpportunityDto,
   OpportunityStage,
 } from "@/providers/opportunityProvider/types";
+import { RelatedToType } from "@/providers/noteProvider/types";
 import { useStyles } from "./style/page.style";
 import { useSearchParams } from "next/navigation";
 import { useCreateEntityPrompts } from "@/hooks/useCreateEntityPrompts";
@@ -109,8 +114,11 @@ const OpportunitiesPage = () => {
   const [assigningOpportunity, setAssigningOpportunity] =
     useState<OpportunityDto | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>("table");
+  const [detailsDrawerOpen, setDetailsDrawerOpen] = useState(false);
+  const [selectedOpportunity, setSelectedOpportunity] =
+    useState<OpportunityDto | null>(null);
 
-  // Pre-filled values for new opportunity from client
+  // Pre-filled values
   const prefillValues = useMemo(() => {
     if (!isNewFromClient || !prefillClientId) return undefined;
     return {
@@ -292,12 +300,6 @@ const OpportunitiesPage = () => {
       render: (ownerName: string | null) => ownerName || "Unassigned",
     },
     {
-      title: "Expected Close",
-      dataIndex: "expectedCloseDate",
-      key: "expectedCloseDate",
-      render: (date: string) => date || "N/A",
-    },
-    {
       title: "Move Stage",
       key: "stageChange",
       render: (_: unknown, record: OpportunityDto) =>
@@ -319,6 +321,16 @@ const OpportunitiesPage = () => {
       key: "actions",
       render: (_: unknown, record: OpportunityDto) => (
         <Space>
+          <Tooltip title="View Details">
+            <Button
+              type="link"
+              icon={<EyeOutlined />}
+              onClick={() => {
+                setSelectedOpportunity(record);
+                setDetailsDrawerOpen(true);
+              }}
+            />
+          </Tooltip>
           {canUpdateOpportunity(record) && (
             <Tooltip title="Edit">
               <Button
@@ -481,6 +493,26 @@ const OpportunitiesPage = () => {
             </Form>
           </Modal>
         )}
+
+        {/* Details Drawer */}
+        <Drawer
+          title={selectedOpportunity?.title || "Opportunity Details"}
+          placement="right"
+          width={600}
+          open={detailsDrawerOpen}
+          onClose={() => {
+            setDetailsDrawerOpen(false);
+            setSelectedOpportunity(null);
+          }}
+        >
+          {selectedOpportunity && (
+            <EntityDetailsTabs
+              relatedToType={RelatedToType.Opportunity}
+              relatedToId={selectedOpportunity.id}
+              relatedToTitle={selectedOpportunity.title || undefined}
+            />
+          )}
+        </Drawer>
       </Card>
     </div>
   );

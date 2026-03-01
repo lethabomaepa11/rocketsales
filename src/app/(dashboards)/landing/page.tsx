@@ -8,7 +8,7 @@ import {
   TeamOutlined,
   DollarOutlined,
   FileTextOutlined,
-  ArrowRightOutlined,
+  LockOutlined,
 } from "@ant-design/icons";
 import { useAuthState } from "@/providers/authProvider";
 import { useStyles } from "./style/page.style";
@@ -31,19 +31,19 @@ const LandingPage = () => {
       icon: <TeamOutlined className={styles.featureIconSize} />,
       title: "Client Management",
       description:
-        "Manage your clients and contacts efficiently with our comprehensive CRM tools.",
+        "Centralized client and contact management for your organization. Keep track of all customer interactions in one place.",
     },
     {
       icon: <DollarOutlined className={styles.featureIconSize} />,
       title: "Sales Pipeline",
       description:
-        "Track opportunities and monitor your sales pipeline with real-time analytics.",
+        "Visual pipeline management to track opportunities from lead to close. Monitor deal progress and team performance.",
     },
     {
       icon: <FileTextOutlined className={styles.featureIconSize} />,
       title: "Proposals & Contracts",
       description:
-        "Create professional proposals and manage contracts seamlessly.",
+        "Generate professional proposals and manage contracts efficiently. Streamline your sales documentation process.",
     },
   ];
 
@@ -59,18 +59,12 @@ const LandingPage = () => {
         </div>
         <Space>
           <Button
-            ghost
+            type="primary"
             className={styles.loginButton}
+            icon={<LockOutlined />}
             onClick={() => router.push("/login")}
           >
-            Login
-          </Button>
-          <Button
-            type="primary"
-            className={styles.getStartedButton}
-            onClick={() => router.push("/register")}
-          >
-            Get Started
+            Login to System
           </Button>
         </Space>
       </div>
@@ -78,28 +72,22 @@ const LandingPage = () => {
       {/* Hero Section */}
       <div className={styles.heroSection}>
         <Title level={1} className={styles.heroTitle}>
-          Supercharge Your Sales Pipeline
+          Sales Management Platform
         </Title>
         <Paragraph className={styles.heroDescription}>
-          RocketSales helps you manage clients, track opportunities, and close
-          deals faster with powerful CRM tools designed for modern sales teams.
+          A comprehensive internal system for managing client relationships,
+          tracking sales opportunities, and streamlining your organization's
+          sales processes.
         </Paragraph>
         <Space size="large">
           <Button
             type="primary"
             size="large"
             className={styles.heroPrimaryButton}
-            onClick={() => router.push("/register")}
-          >
-            Start Free Trial <ArrowRightOutlined />
-          </Button>
-          <Button
-            size="large"
-            ghost
-            className={styles.heroDemoButton}
+            icon={<LockOutlined />}
             onClick={() => router.push("/login")}
           >
-            View Demo
+            Access System
           </Button>
         </Space>
       </div>
@@ -108,15 +96,15 @@ const LandingPage = () => {
       <div className={styles.featuresSection}>
         <div className={styles.featuresContainer}>
           <Title level={2} className={styles.featuresTitle}>
-            Everything You Need to Sell More
+            Platform Features
           </Title>
           <Text type="secondary" className={styles.featuresSubtitle}>
-            Powerful features to help your team succeed
+            Tools designed to support your sales team
           </Text>
           <Row gutter={[32, 32]}>
             {features.map((feature, index) => (
               <Col xs={24} md={8} key={index}>
-                <Card hoverable className={styles.featureCard}>
+                <Card className={styles.featureCard}>
                   <div className={styles.featureIcon}>{feature.icon}</div>
                   <Title level={4}>{feature.title}</Title>
                   <Text type="secondary">{feature.description}</Text>
@@ -127,65 +115,29 @@ const LandingPage = () => {
         </div>
       </div>
 
-      {/* Stats Section */}
-      <div className={styles.statsSection}>
-        <div className={styles.statsContainer}>
-          <Title level={2} className={styles.statsTitle}>
-            Trusted by Sales Teams Worldwide
-          </Title>
-          <Row gutter={[48, 32]} justify="center">
-            <Col xs={12} md={6}>
-              <Title level={2} className={styles.statNumber}>
-                500+
-              </Title>
-              <Text className={styles.statLabel}>Active Users</Text>
-            </Col>
-            <Col xs={12} md={6}>
-              <Title level={2} className={styles.statNumber}>
-                $50M+
-              </Title>
-              <Text className={styles.statLabel}>Deals Closed</Text>
-            </Col>
-            <Col xs={12} md={6}>
-              <Title level={2} className={styles.statNumber}>
-                98%
-              </Title>
-              <Text className={styles.statLabel}>Customer Satisfaction</Text>
-            </Col>
-            <Col xs={12} md={6}>
-              <Title level={2} className={styles.statNumber}>
-                24/7
-              </Title>
-              <Text className={styles.statLabel}>Support</Text>
-            </Col>
-          </Row>
-        </div>
-      </div>
-
       {/* CTA Section */}
       <div className={styles.ctaSection}>
         <div className={styles.ctaContainer}>
-          <Title level={2}>Ready to Get Started?</Title>
+          <Title level={2}>Authorized Access Only</Title>
           <Paragraph className={styles.ctaDescription}>
-            Join thousands of sales professionals who trust RocketSales to grow
-            their business.
+            This is an internal system. Please log in with your company
+            credentials to access the platform.
           </Paragraph>
           <Button
             type="primary"
             size="large"
             className={styles.ctaButton}
-            onClick={() => router.push("/register")}
+            icon={<LockOutlined />}
+            onClick={() => router.push("/login")}
           >
-            Create Free Account
+            Login to System
           </Button>
         </div>
       </div>
 
       {/* Footer */}
       <div className={styles.footer}>
-        <Text className={styles.footerText}>
-          © 2024 RocketSales. All rights reserved.
-        </Text>
+        <Text className={styles.footerText}>© 2026 RocketSales.</Text>
       </div>
     </div>
   );

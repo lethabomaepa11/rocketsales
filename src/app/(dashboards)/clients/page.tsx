@@ -12,6 +12,8 @@ import {
   Form,
   Typography,
   Popconfirm,
+  Drawer,
+  Tooltip,
 } from "antd";
 import {
   PlusOutlined,
@@ -27,6 +29,8 @@ import { useRouter } from "next/navigation";
 import { useStyles } from "./style/page.style";
 import { ClientFormModal } from "@/components/common/ClientFormModal";
 import { useCreateEntityPrompts } from "@/hooks/useCreateEntityPrompts";
+import EntityDetailsTabs from "@/components/dashboards/common/EntityDetailsTabs";
+import { RelatedToType } from "@/providers/noteProvider/types";
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -41,6 +45,10 @@ const ClientsPage = () => {
   const [editingClient, setEditingClient] = useState<ClientDto | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [form] = Form.useForm();
+
+  // Drawer state for viewing client details
+  const [detailsDrawerOpen, setDetailsDrawerOpen] = useState(false);
+  const [selectedClient, setSelectedClient] = useState<ClientDto | null>(null);
 
   useEffect(() => {
     fetchClients();
@@ -63,7 +71,8 @@ const ClientsPage = () => {
   };
 
   const handleViewClient = (client: ClientDto) => {
-    router.push(`/clients/${client.id}`);
+    setSelectedClient(client);
+    setDetailsDrawerOpen(true);
   };
 
   const handleViewContacts = (clientId: string) => {
@@ -165,18 +174,20 @@ const ClientsPage = () => {
       key: "actions",
       render: (_: unknown, record: ClientDto) => (
         <Space>
-          <Button
-            type="link"
-            icon={<UserOutlined />}
-            onClick={() => handleViewContacts(record.id)}
-          >
-            View Contacts
-          </Button>
-          <Button
-            type="link"
-            icon={<EyeOutlined />}
-            onClick={() => handleViewClient(record)}
-          />
+          <Tooltip title="View Contacts">
+            <Button
+              type="link"
+              icon={<UserOutlined />}
+              onClick={() => handleViewContacts(record.id)}
+            />
+          </Tooltip>
+          <Tooltip title="View Details">
+            <Button
+              type="link"
+              icon={<EyeOutlined />}
+              onClick={() => router.push(`/clients/${record.id}`)}
+            />
+          </Tooltip>
           <Button
             type="link"
             icon={<EditOutlined />}
@@ -306,6 +317,25 @@ const ClientsPage = () => {
           onClose={handleModalClose}
           onSuccess={handleClientFormSuccess}
         />
+
+        {/* Details Drawer */}
+        <Drawer
+          title={selectedClient?.name || "Client Details"}
+          open={detailsDrawerOpen}
+          onClose={() => {
+            setDetailsDrawerOpen(false);
+            setSelectedClient(null);
+          }}
+          width={600}
+        >
+          {selectedClient && (
+            <EntityDetailsTabs
+              relatedToType={RelatedToType.Client}
+              relatedToId={selectedClient.id}
+              relatedToTitle={selectedClient.name || undefined}
+            />
+          )}
+        </Drawer>
       </Card>
     </div>
   );

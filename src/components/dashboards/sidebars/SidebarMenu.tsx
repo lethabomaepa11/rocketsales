@@ -8,7 +8,6 @@ import {
   TagOutlined,
   FileDoneOutlined,
   FileTextOutlined,
-  CalendarOutlined,
   BarChartOutlined,
   UserOutlined,
   LogoutOutlined,
@@ -94,11 +93,6 @@ const SidebarMenu: React.FC<SidebarMenuProps> = ({
       key: "/contracts",
       icon: <FileDoneOutlined />,
       label: "Contracts",
-    },
-    {
-      key: "/activities",
-      icon: <CalendarOutlined />,
-      label: "Activities",
     },
     {
       key: "/reports",

@@ -8,7 +8,6 @@ import {
   Spin,
   Alert,
   Typography,
-  Divider,
   Button,
   Table,
   Tag,
@@ -21,6 +20,12 @@ import {
 import { useDashboardState } from "@/providers/dashboardProvider";
 import DashboardMetrics from "@/components/dashboards/dashboard/DashboardMetrics";
 import InviteUserModal from "@/components/common/InviteUserModal";
+import {
+  RevenueTrendChart,
+  PipelineFunnelChart,
+  SalesPerformanceChart,
+  ActivityChart,
+} from "@/components/dashboards/charts";
 import { UserAddOutlined } from "@ant-design/icons";
 import { useStyles } from "./style/page.style";
 import { useRouter } from "next/navigation";
@@ -53,7 +58,6 @@ const DashboardPage = () => {
   const [showExpiringAlert, setShowExpiringAlert] = useState(false);
 
   useEffect(() => {
-    // Fetch all dashboard data on component mount
     fetchOverview();
     fetchPipelineMetrics();
     fetchActivitiesSummary();
@@ -61,7 +65,6 @@ const DashboardPage = () => {
     fetchExpiringContracts();
   }, []);
 
-  // Show alert when there are expiring contracts
   useEffect(() => {
     if (contractsExpiring && contractsExpiring.length > 0) {
       setShowExpiringAlert(true);
@@ -220,66 +223,42 @@ const DashboardPage = () => {
           activitiesSummary={activitiesSummary}
         />
 
-        <Row gutter={[16, 16]}>
-          {/* Pipeline Overview */}
-          <Col xs={24} lg={12}>
-            <Card title="Pipeline Overview" hoverable>
-              <div className={styles.summaryCardContent}>
-                <p>Opportunities: {overview?.opportunities?.totalCount ?? 0}</p>
-                <p>
-                  Pipeline Value: {overview?.opportunities?.pipelineValue ?? 0}{" "}
-                  ZAR
-                </p>
-                <p>Win Rate: {overview?.opportunities?.winRate ?? 0}%</p>
-              </div>
-            </Card>
-          </Col>
+        {/* Revenue Trend Chart */}
+        <div style={{ marginTop: 16 }}>
+          <RevenueTrendChart
+            monthlyTrend={overview?.revenue?.monthlyTrend}
+            loading={loading}
+            title="Revenue Trend Analysis"
+          />
+        </div>
 
-          {/* Sales Performance */}
-          <Col xs={24} lg={12}>
-            <Card title="Sales Performance" hoverable>
-              <div className={styles.summaryCardContent}>
-                <p>This Month: {overview?.revenue?.thisMonth ?? 0} ZAR</p>
-                <p>This Quarter: {overview?.revenue?.thisQuarter ?? 0} ZAR</p>
-                <p>This Year: {overview?.revenue?.thisYear ?? 0} ZAR</p>
-              </div>
-            </Card>
-          </Col>
-        </Row>
+        {/* Pipeline Funnel Chart */}
+        <div style={{ marginTop: 16 }}>
+          <PipelineFunnelChart
+            stages={pipelineMetrics?.stages}
+            loading={loading}
+            title="Pipeline Funnel Analysis"
+          />
+        </div>
 
-        <Divider />
+        {/* Sales Performance Chart */}
+        <div style={{ marginTop: 16 }}>
+          <SalesPerformanceChart
+            salesPerformance={salesPerformance}
+            loading={loading}
+            title="Sales Team Performance"
+          />
+        </div>
 
-        <Row gutter={[16, 16]}>
-          {/* Activities Summary */}
-          <Col xs={24} lg={12}>
-            <Card title="Activities Summary" hoverable>
-              <div className={styles.summaryCardContent}>
-                <p>Upcoming: {activitiesSummary?.upcomingActivities ?? 0}</p>
-                <p>Completed: {activitiesSummary?.completedActivities ?? 0}</p>
-                <p>Overdue: {activitiesSummary?.overdueActivities ?? 0}</p>
-              </div>
-            </Card>
-          </Col>
+        {/* Activity Chart */}
+        <div style={{ marginTop: 16 }}>
+          <ActivityChart
+            activitiesSummary={activitiesSummary}
+            loading={loading}
+            title="Activity Overview"
+          />
+        </div>
 
-          {/* Contracts Expiring */}
-          <Col xs={24} lg={12}>
-            <Card title="Contracts Expiring Soon" hoverable>
-              <div className={styles.summaryCardContent}>
-                <p>
-                  Total Active: {overview?.contracts?.totalActiveCount ?? 0}
-                </p>
-                <p>
-                  Expiring This Month:{" "}
-                  {overview?.contracts?.expiringThisMonthCount ?? 0}
-                </p>
-                <p>
-                  Total Value: {overview?.contracts?.totalContractValue ?? 0}{" "}
-                  ZAR
-                </p>
-              </div>
-            </Card>
-          </Col>
-        </Row>
         <InviteUserModal
           open={inviteModalOpen}
           onClose={() => setInviteModalOpen(false)}
