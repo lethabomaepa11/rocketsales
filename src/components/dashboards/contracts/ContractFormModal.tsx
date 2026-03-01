@@ -25,6 +25,13 @@ interface ContractFormModalProps {
   clients: ClientDto[];
   opportunities: OpportunityDto[];
   ownerId: string;
+  prefillValues?: {
+    opportunityId?: string;
+    clientId?: string;
+    title?: string;
+    contractValue?: number;
+    currency?: string;
+  };
   onSubmit: (
     data: CreateContractDto | UpdateContractDto,
     isEdit: boolean,
@@ -38,6 +45,7 @@ const ContractFormModal = ({
   clients,
   opportunities,
   ownerId,
+  prefillValues,
   onSubmit,
   onCancel,
 }: ContractFormModalProps) => {
@@ -55,6 +63,9 @@ const ContractFormModal = ({
           ? dayjs(editingContract.endDate)
           : null,
       });
+    } else if (prefillValues) {
+      // Set pre-fill values when creating from opportunity
+      form.setFieldsValue(prefillValues);
     } else {
       form.resetFields();
     }

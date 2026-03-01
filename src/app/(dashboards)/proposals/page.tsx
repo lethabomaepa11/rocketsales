@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
   Table,
   Button,
@@ -43,6 +43,9 @@ import {
 import ProposalLineItemsForm from "@/components/dashboards/proposals/ProposalLineItemsForm";
 import { useStyles } from "./style/page.style";
 import dayjs from "dayjs";
+import { useSearchParams } from "next/navigation";
+import { OpportunityStage } from "@/providers/opportunityProvider/types";
+import { useCreateEntityPrompts } from "@/hooks/useCreateEntityPrompts";
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
@@ -63,6 +66,7 @@ const statusLabels: Record<ProposalStatus, string> = {
 const ProposalsPage = () => {
   const { styles } = useStyles();
   const { proposals, isPending } = useProposalState();
+  const searchParams = useSearchParams();
   const {
     fetchProposals,
     createProposal,
@@ -73,7 +77,8 @@ const ProposalsPage = () => {
     rejectProposal,
   } = useProposalActions();
   const { opportunities } = useOpportunityState();
-  const { fetchOpportunities } = useOpportunityActions();
+  const { fetchOpportunities, updateStage } = useOpportunityActions();
+  const { promptCreateContract } = useCreateEntityPrompts();
 
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isRejectModalVisible, setIsRejectModalVisible] = useState(false);
@@ -85,6 +90,34 @@ const ProposalsPage = () => {
   const [lineItems, setLineItems] = useState<CreateProposalLineItemDto[]>([]);
   const [form] = Form.useForm();
   const [rejectForm] = Form.useForm();
+
+  // Get pre-fill data from query params
+  const prefillOpportunityId = searchParams.get("opportunityId");
+  const prefillClientId = searchParams.get("clientId");
+  const prefillClientName = searchParams.get("clientName");
+  const isNewFromOpportunity = searchParams.get("new") === "true";
+
+  // Pre-filled values for new proposal from opportunity
+  const prefillValues = useMemo(() => {
+    if (!isNewFromOpportunity || !prefillOpportunityId) return undefined;
+    return {
+      opportunityId: prefillOpportunityId,
+      title: prefillClientName ? `${prefillClientName} - Proposal` : undefined,
+    };
+  }, [isNewFromOpportunity, prefillOpportunityId, prefillClientName]);
+
+  // Initialize modal visibility based on URL params
+  useEffect(() => {
+    if (isNewFromOpportunity && prefillOpportunityId) {
+      setIsModalVisible(true);
+      form.setFieldsValue({
+        opportunityId: prefillOpportunityId,
+        title: prefillClientName
+          ? `${prefillClientName} - Proposal`
+          : undefined,
+      });
+    }
+  }, [isNewFromOpportunity, prefillOpportunityId, prefillClientName]);
 
   useEffect(() => {
     fetchProposals();
@@ -125,10 +158,25 @@ const ProposalsPage = () => {
       if (editingProposal) {
         await updateProposal(editingProposal.id, data as UpdateProposalDto);
       } else {
-        await createProposal(data as CreateProposalDto);
+        const createdProposal = await createProposal(data as CreateProposalDto);
+
+        // Auto-update opportunity stage to Proposal when proposal is created
+        if (data.opportunityId) {
+          await updateStage(data.opportunityId, {
+            stage: OpportunityStage.Proposal,
+            notes: null,
+            lossReason: null,
+          });
+        }
       }
       setIsModalVisible(false);
       fetchProposals();
+      fetchOpportunities();
+
+      // Clear URL params after successful creation
+      if (isNewFromOpportunity) {
+        window.history.replaceState({}, "", "/proposals");
+      }
     } catch (error) {
       console.error("Validation failed:", error);
     }
@@ -227,6 +275,21 @@ const ProposalsPage = () => {
                   onClick={async () => {
                     await approveProposal(record.id);
                     fetchProposals();
+
+                    // Find the opportunity and prompt for contract
+                    const opportunity = opportunities.find(
+                      (o) => o.id === record.opportunityId,
+                    );
+                    if (opportunity) {
+                      promptCreateContract({
+                        id: opportunity.id,
+                        title: opportunity.title,
+                        clientId: opportunity.clientId,
+                        clientName: opportunity.clientName,
+                        estimatedValue: opportunity.estimatedValue,
+                        currency: opportunity.currency,
+                      });
+                    }
                   }}
                 />
               </Tooltip>

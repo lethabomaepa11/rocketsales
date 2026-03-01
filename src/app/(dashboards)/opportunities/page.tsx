@@ -46,6 +46,7 @@ import {
 } from "@/providers/opportunityProvider/types";
 import { useStyles } from "./style/page.style";
 import { useSearchParams } from "next/navigation";
+import { useCreateEntityPrompts } from "@/hooks/useCreateEntityPrompts";
 
 const { Title } = Typography;
 
@@ -85,6 +86,8 @@ const OpportunitiesPage = () => {
   const { user } = useAuthState();
   const { fetchClients } = useClientActions();
   const { fetchContacts } = useContactActions();
+  const { promptCreateContract, promptCreateProposal } =
+    useCreateEntityPrompts();
 
   // Get pre-fill data from query params
   const prefillClientId = searchParams.get("clientId");
@@ -186,6 +189,15 @@ const OpportunitiesPage = () => {
     }
     await updateStage(opportunity.id, { stage, notes: null, lossReason: null });
     refreshOpportunities();
+
+    // Prompt for contract creation when opportunity is closed won
+    if (stage === OpportunityStage.ClosedWon) {
+      promptCreateContract(opportunity);
+    }
+    // Prompt for proposal creation when opportunity is qualified
+    if (stage === OpportunityStage.Qualified) {
+      promptCreateProposal(opportunity);
+    }
   };
 
   const handleKanbanStageChange = async (
@@ -193,8 +205,19 @@ const OpportunitiesPage = () => {
     stage: OpportunityStage,
   ) => {
     try {
+      // Find the opportunity before updating
+      const opportunity = opportunitiesList.find((o) => o.id === id);
       await updateStage(id, { stage, notes: null, lossReason: null });
       refreshOpportunities();
+
+      // Prompt for contract creation when opportunity is closed won
+      if (stage === OpportunityStage.ClosedWon && opportunity) {
+        promptCreateContract(opportunity);
+      }
+      // Prompt for proposal creation when opportunity is qualified
+      if (stage === OpportunityStage.Qualified && opportunity) {
+        promptCreateProposal(opportunity);
+      }
     } catch (error) {
       console.error("Failed to update stage:", error);
       message.error("Failed to update stage");
