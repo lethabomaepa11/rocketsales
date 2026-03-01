@@ -1,13 +1,21 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { Suspense, useEffect, useMemo } from "react";
 import type { FormProps } from "antd";
-import { Button, Flex, Form, Input, Tabs, Select } from "antd";
+import { Button, Col, Form, Input, Row, Spin, Tag, Typography } from "antd";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useStyles as useAuthStyles } from "../style/authStyles";
-import { useStyles } from "./style/page.style";
 import { useAuthActions, useAuthState } from "@/providers/authProvider";
+import {
+  MailOutlined,
+  LockOutlined,
+  UserOutlined,
+  PhoneOutlined,
+  TeamOutlined,
+} from "@ant-design/icons";
+
+const { Text } = Typography;
 
 type FieldType = {
   firstName?: string;
@@ -17,32 +25,55 @@ type FieldType = {
   password?: string;
   confirmPassword?: string;
   tenantName?: string;
-  tenantId?: string;
-  role?: string;
 };
 
-type ScenarioType = "new-org" | "join-org" | "default";
+interface InviteData {
+  tenantId: string;
+  role: string;
+  email: string;
+}
 
-const ROLE_OPTIONS = [
-  { label: "Sales Representative", value: "SalesRep" },
-  { label: "Sales Manager", value: "SalesManager" },
-  {
-    label: "Business Development Manager",
-    value: "BusinessDevelopmentManager",
-  },
-];
+const ROLE_LABELS: Record<string, string> = {
+  SalesRep: "Sales Representative",
+  SalesManager: "Sales Manager",
+  BusinessDevelopmentManager: "Business Development Manager",
+  Admin: "Administrator",
+};
 
-const RegisterPage = () => {
+const RegisterForm = () => {
   const { styles: authStyles } = useAuthStyles();
-  const { styles } = useStyles();
   const { registerUser } = useAuthActions();
   const { isSuccess } = useAuthState();
   const router = useRouter();
-  const [scenario, setScenario] = useState<ScenarioType>("default");
+  const searchParams = useSearchParams();
   const [form] = Form.useForm<FieldType>();
 
+  // Decode invitation token from URL
+  const inviteData = useMemo<InviteData | null>(() => {
+    const token = searchParams.get("token");
+    if (!token) return null;
+    try {
+      const decoded = atob(token.replace(/-/g, "+").replace(/_/g, "/"));
+      const data = JSON.parse(decoded) as InviteData;
+      if (data.tenantId && data.role && data.email) {
+        return data;
+      }
+    } catch {
+      console.error("Invalid invitation token");
+    }
+    return null;
+  }, [searchParams]);
+
+  const hasInvite = !!inviteData;
+
+  // Set the email field when invite data is available
+  useEffect(() => {
+    if (inviteData?.email) {
+      form.setFieldsValue({ email: inviteData.email });
+    }
+  }, [inviteData, form]);
+
   const onFinish: FormProps<FieldType>["onFinish"] = (values) => {
-    // Build payload based on selected scenario
     const payload: Record<string, string | undefined> = {
       firstName: values.firstName || "",
       lastName: values.lastName || "",
@@ -51,32 +82,22 @@ const RegisterPage = () => {
       phoneNumber: values.phoneNumber,
     };
 
-    // Scenario A: Create new organisation
-    if (scenario === "new-org" && values.tenantName) {
+    if (hasInvite && inviteData) {
+      // Invited user — join the org with the assigned role
+      payload.tenantId = inviteData.tenantId;
+      payload.role = inviteData.role;
+    } else if (values.tenantName) {
+      // New org
       payload.tenantName = values.tenantName;
     }
-    // Scenario B: Join existing organisation
-    else if (scenario === "join-org" && values.tenantId) {
-      payload.tenantId = values.tenantId;
-      if (values.role) {
-        payload.role = values.role;
-      }
-    }
-    // Scenario C: Use default shared tenant (no additional fields needed)
+    // Otherwise: default workspace
 
     registerUser(payload);
-  };
-
-  const onFinishFailed: FormProps<FieldType>["onFinishFailed"] = (
-    errorInfo,
-  ) => {
-    console.log("Failed:", errorInfo);
   };
 
   useEffect(() => {
     if (isSuccess) {
       if (typeof window !== "undefined") {
-        // Force reload to ensure auth state is fully updated across the app
         location.reload();
       }
     }
@@ -84,158 +105,164 @@ const RegisterPage = () => {
 
   return (
     <Form
-      name="basic"
+      name="register"
       layout="vertical"
       onFinish={onFinish}
-      onFinishFailed={onFinishFailed}
       autoComplete="off"
       form={form}
+      size="middle"
+      requiredMark={false}
+      style={{ maxWidth: 480 }}
     >
-      <h1>Join RocketSales</h1>
-      <p>
-        Already have an account?
-        <Link className={authStyles.link} href="/login">
-          Login
-        </Link>
-      </p>
+      <div style={{ marginBottom: 16 }}>
+        <h2 style={{ margin: "0 0 4px" }}>
+          {hasInvite ? "Accept Invitation" : "Join RocketSales"}
+        </h2>
+        <Text type="secondary">
+          Already have an account?{" "}
+          <Link className={authStyles.link} href="/login">
+            Login
+          </Link>
+        </Text>
+      </div>
 
-      {/* Organisation Setup Options */}
-      <Form.Item label="Organisation Setup">
-        <Tabs
-          activeKey={scenario}
-          onChange={(key) => {
-            setScenario(key as ScenarioType);
-            form.resetFields(["tenantName", "tenantId", "role"]);
+      {/* Invitation Banner */}
+      {hasInvite && inviteData && (
+        <div
+          style={{
+            background: "linear-gradient(135deg, #e6f4ff 0%, #f0f5ff 100%)",
+            border: "1px solid #91caff",
+            borderRadius: 8,
+            padding: "12px 16px",
+            marginBottom: 16,
           }}
-          items={[
-            {
-              key: "new-org",
-              label: "Create New Organisation",
-              children: (
-                <Form.Item<FieldType>
-                  label="Organisation Name"
-                  name="tenantName"
-                  rules={[
-                    {
-                      required: scenario === "new-org",
-                      message: "Please input your organisation name!",
-                    },
-                  ]}
-                >
-                  <Input placeholder="e.g., Acme Corp" />
-                </Form.Item>
-              ),
-            },
-            {
-              key: "join-org",
-              label: "Join Existing Organisation",
-              children: (
-                <>
-                  <Form.Item<FieldType>
-                    label="Organisation ID"
-                    name="tenantId"
-                    rules={[
-                      {
-                        required: scenario === "join-org",
-                        message: "Please input the organisation ID!",
-                      },
-                    ]}
-                  >
-                    <Input placeholder="Paste the tenant ID from your admin" />
-                  </Form.Item>
-                  <Form.Item<FieldType> label="Role (optional)" name="role">
-                    <Select
-                      placeholder="Select your role"
-                      options={ROLE_OPTIONS}
-                      allowClear
-                    />
-                  </Form.Item>
-                </>
-              ),
-            },
-            {
-              key: "default",
-              label: "Use Default Workspace",
-              children: (
-                <p className={styles.defaultWorkspaceText}>
-                  You will be added to the shared demo workspace.
-                </p>
-              ),
-            },
-          ]}
-        />
-      </Form.Item>
-
-      {/* Common User Fields */}
-      <Flex>
-        <Form.Item<FieldType>
-          label="First Name"
-          name="firstName"
-          rules={[{ required: true, message: "Please input your first name!" }]}
         >
-          <Input />
-        </Form.Item>
+          <Text strong>
+            <TeamOutlined style={{ marginRight: 6 }} />
+            You&apos;ve been invited to join an organization
+          </Text>
+          <div style={{ marginTop: 4 }}>
+            <Tag color="blue">
+              {ROLE_LABELS[inviteData.role] || inviteData.role}
+            </Tag>
+          </div>
+        </div>
+      )}
 
+      {/* Org name field — only for non-invited users */}
+      {!hasInvite && (
         <Form.Item<FieldType>
-          label="Last Name"
-          name="lastName"
-          rules={[{ required: true, message: "Please input your last name!" }]}
+          label="Organisation Name"
+          name="tenantName"
+          tooltip="Leave blank to use the default shared workspace"
         >
-          <Input />
+          <Input
+            prefix={<TeamOutlined />}
+            placeholder="e.g., Acme Corp (optional)"
+          />
         </Form.Item>
-      </Flex>
+      )}
 
-      <Form.Item<FieldType>
-        label="Email"
-        name="email"
-        rules={[
-          {
-            required: true,
-            message: "Please input your email!",
-            type: "email",
-          },
-        ]}
-      >
-        <Input />
-      </Form.Item>
+      {/* Name Fields */}
+      <Row gutter={12}>
+        <Col span={12}>
+          <Form.Item<FieldType>
+            label="First Name"
+            name="firstName"
+            rules={[{ required: true, message: "Required" }]}
+          >
+            <Input prefix={<UserOutlined />} placeholder="First name" />
+          </Form.Item>
+        </Col>
+        <Col span={12}>
+          <Form.Item<FieldType>
+            label="Last Name"
+            name="lastName"
+            rules={[{ required: true, message: "Required" }]}
+          >
+            <Input prefix={<UserOutlined />} placeholder="Last name" />
+          </Form.Item>
+        </Col>
+      </Row>
 
-      <Form.Item<FieldType> label="Phone Number" name="phoneNumber">
-        <Input />
-      </Form.Item>
+      {/* Email & Phone */}
+      <Row gutter={12}>
+        <Col span={12}>
+          <Form.Item<FieldType>
+            label="Email"
+            name="email"
+            rules={[
+              { required: true, message: "Required" },
+              { type: "email", message: "Invalid email" },
+            ]}
+          >
+            <Input
+              prefix={<MailOutlined />}
+              placeholder="you@email.com"
+              disabled={hasInvite}
+            />
+          </Form.Item>
+        </Col>
+        <Col span={12}>
+          <Form.Item<FieldType> label="Phone" name="phoneNumber">
+            <Input prefix={<PhoneOutlined />} placeholder="Optional" />
+          </Form.Item>
+        </Col>
+      </Row>
 
-      <Form.Item<FieldType>
-        label="Password"
-        name="password"
-        rules={[{ required: true, message: "Please input your password!" }]}
-      >
-        <Input.Password />
-      </Form.Item>
+      {/* Password Fields */}
+      <Row gutter={12}>
+        <Col span={12}>
+          <Form.Item<FieldType>
+            label="Password"
+            name="password"
+            rules={[{ required: true, message: "Required" }]}
+          >
+            <Input.Password prefix={<LockOutlined />} placeholder="Password" />
+          </Form.Item>
+        </Col>
+        <Col span={12}>
+          <Form.Item<FieldType>
+            label="Confirm Password"
+            name="confirmPassword"
+            dependencies={["password"]}
+            rules={[
+              { required: true, message: "Required" },
+              ({ getFieldValue }) => ({
+                validator(_, value) {
+                  if (!value || getFieldValue("password") === value) {
+                    return Promise.resolve();
+                  }
+                  return Promise.reject(new Error("Passwords don't match"));
+                },
+              }),
+            ]}
+          >
+            <Input.Password prefix={<LockOutlined />} placeholder="Confirm" />
+          </Form.Item>
+        </Col>
+      </Row>
 
-      <Form.Item<FieldType>
-        label="Confirm Password"
-        name="confirmPassword"
-        dependencies={["password"]}
-        rules={[
-          { required: true, message: "Please confirm your password!" },
-          ({ getFieldValue }) => ({
-            validator(_, value) {
-              if (!value || getFieldValue("password") === value) {
-                return Promise.resolve();
-              }
-              return Promise.reject(new Error("Passwords do not match!"));
-            },
-          }),
-        ]}
-      >
-        <Input.Password />
-      </Form.Item>
-
-      <Form.Item label={null}>
+      <Form.Item style={{ marginBottom: 0, marginTop: 8 }}>
         <Button className={authStyles.button} type="primary" htmlType="submit">
-          Sign up
+          {hasInvite ? "Accept & Sign Up" : "Sign Up"}
         </Button>
       </Form.Item>
     </Form>
+  );
+};
+
+const RegisterPage = () => {
+  return (
+    <Suspense
+      fallback={
+        <div style={{ textAlign: "center", padding: 40 }}>
+          <Spin />
+        </div>
+      }
+    >
+      <RegisterForm />
+    </Suspense>
   );
 };
 

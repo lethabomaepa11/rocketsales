@@ -12,6 +12,7 @@ import {
   Typography,
   Select,
   Spin,
+  Button,
 } from "antd";
 import {
   BarChartOutlined,
@@ -22,12 +23,14 @@ import {
   TeamOutlined,
   FileTextOutlined,
   CheckCircleOutlined,
+  DownloadOutlined,
 } from "@ant-design/icons";
 import {
   useDashboardState,
   useDashboardActions,
 } from "@/providers/dashboardProvider";
 import { useReportState, useReportActions } from "@/providers/reportProvider";
+import { useReportPDF } from "@/hooks/useReportPDF";
 import { useStyles } from "./style/page.style";
 import dayjs from "dayjs";
 
@@ -50,6 +53,7 @@ const ReportsPage = () => {
     useDashboardActions();
   const { opportunityReport, salesByPeriod, isPending } = useReportState();
   const { fetchOpportunityReport, fetchSalesByPeriod } = useReportActions();
+  const { generateReportPDF, isGenerating } = useReportPDF();
 
   const [dateRange, setDateRange] = useState<[dayjs.Dayjs, dayjs.Dayjs] | null>(
     null,
@@ -142,7 +146,23 @@ const ReportsPage = () => {
 
   return (
     <div className={styles.pageContainer}>
-      <Title level={3}>Reports &amp; Analytics</Title>
+      <Row justify="space-between" align="middle" style={{ marginBottom: 24 }}>
+        <Col>
+          <Title level={3} style={{ margin: 0 }}>
+            Reports &amp; Analytics
+          </Title>
+        </Col>
+        <Col>
+          <Button
+            type="primary"
+            icon={<DownloadOutlined />}
+            onClick={generateReportPDF}
+            loading={isGenerating}
+          >
+            Download PDF
+          </Button>
+        </Col>
+      </Row>
 
       {/* Top KPIs */}
       <Row gutter={16} className={styles.topKpiRow}>

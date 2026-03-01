@@ -18,6 +18,7 @@ import { ClientDto } from "@/providers/clientProvider/types";
 import { OpportunityDto } from "@/providers/opportunityProvider/types";
 import dayjs from "dayjs";
 import { useStyles } from "./style/ContractFormModal.style";
+import { AIGenerateButton } from "@/components/common/AIGenerateButton";
 
 interface ContractFormModalProps {
   open: boolean;
@@ -192,6 +193,17 @@ const ContractFormModal = ({
         <Form.Item name="terms" label="Terms">
           <Input.TextArea rows={3} />
         </Form.Item>
+        <div style={{ marginTop: -16, marginBottom: 24 }}>
+          <AIGenerateButton
+            fieldType="terms"
+            onGenerate={(text) => form.setFieldValue("terms", text)}
+            context={
+              prefillValues?.title
+                ? `Contract: ${prefillValues.title}`
+                : undefined
+            }
+          />
+        </div>
       </Form>
     </Modal>
   );

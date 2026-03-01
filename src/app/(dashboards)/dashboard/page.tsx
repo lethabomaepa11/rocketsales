@@ -20,6 +20,8 @@ import {
 } from "@/providers/dashboardProvider";
 import { useDashboardState } from "@/providers/dashboardProvider";
 import DashboardMetrics from "@/components/dashboards/dashboard/DashboardMetrics";
+import InviteUserModal from "@/components/common/InviteUserModal";
+import { UserAddOutlined } from "@ant-design/icons";
 import { useStyles } from "./style/page.style";
 import { useRouter } from "next/navigation";
 import dayjs from "dayjs";
@@ -29,6 +31,7 @@ const { Title, Text } = Typography;
 const DashboardPage = () => {
   const { styles } = useStyles();
   const router = useRouter();
+  const [inviteModalOpen, setInviteModalOpen] = useState(false);
   const {
     overview,
     pipelineMetrics,
@@ -145,9 +148,25 @@ const DashboardPage = () => {
   return (
     <DashboardProvider>
       <div className={styles.pageContainer}>
-        <Title level={2} className={styles.pageTitle}>
-          Sales Dashboard
-        </Title>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: 16,
+          }}
+        >
+          <Title level={2} className={styles.pageTitle} style={{ margin: 0 }}>
+            Sales Dashboard
+          </Title>
+          <Button
+            type="primary"
+            icon={<UserAddOutlined />}
+            onClick={() => setInviteModalOpen(true)}
+          >
+            Invite Team Member
+          </Button>
+        </div>
 
         {/* Expiring Contracts Alert */}
         {showExpiringAlert &&
@@ -261,6 +280,10 @@ const DashboardPage = () => {
             </Card>
           </Col>
         </Row>
+        <InviteUserModal
+          open={inviteModalOpen}
+          onClose={() => setInviteModalOpen(false)}
+        />
       </div>
     </DashboardProvider>
   );

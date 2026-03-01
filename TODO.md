@@ -1,24 +1,25 @@
-# Task: Ask user if they want to create an opportunity after client creation
+# TODO - AI Text Generation for Descriptions and Text Inputs
 
-## Plan
-1. [x] Modify client provider to return created client from createClient function
-2. [x] Update ClientFormModal to pass created client to onSuccess callback
-3. [x] Update AIChatbot to prompt for opportunity creation after client creation
-4. [x] Update clients page to prompt for opportunity creation after client creation
+## Plan:
+- [x] Create API endpoint for AI text generation
+- [x] Create useAITextGeneration hook
+- [x] Create AIGenerateButton component
+- [x] Add AI generation to form components
 
-## Additional Features Implemented
-- [x] Ask user if they want to create a contact after client creation
-- [x] After contact is created, prompt for opportunity creation
-- [x] Opportunity form is pre-filled with client name as title
-- [x] Pass contact ID to opportunity when available
+## Steps Completed:
+1. [x] Create `/api/ai/generate-text/route.ts` - API endpoint for text generation
+2. [x] Create `src/hooks/useAITextGeneration.ts` - Hook for AI text generation
+3. [x] Create `src/components/common/AIGenerateButton.tsx` - Button component for AI generation
+4. [x] Update ContractFormModal.tsx - Add AI to terms field
+5. [x] Update OpportunityForm.tsx - Add AI to description field
+6. [x] Update EntityNotesList.tsx - Add AI to notes
 
-## Files Modified
-1. src/providers/clientProvider/index.tsx - Modified to return created client
-2. src/providers/contactProvider/context.tsx - Updated createContact return type
-3. src/components/common/ClientFormModal.tsx - Updated to pass created client to onSuccess
-4. src/components/dashboards/ai/AIChatbot.tsx - Added useCreateEntityPrompts hook
-5. src/app/(dashboards)/clients/page.tsx - Added prompt for opportunity after client creation
-6. src/app/(dashboards)/clients/[clientId]/page.tsx - Handle addContact param and prompt for opportunity
-7. src/components/dashboards/client/ContactsTable.tsx - Added ref for modal control and onContactCreated callback
-8. src/app/(dashboards)/opportunities/page.tsx - Added contactId query param support for prefilling
-9. src/hooks/useCreateEntityPrompts.ts - New hook for client → contact → opportunity flow
+## Summary:
+- Created API endpoint at `/api/ai/generate-text` using Groq LLM
+- Created reusable hook `useAITextGeneration` for AI text generation
+- Created `AIGenerateButton` component that can be added to any form field
+- Added AI generation to:
+  - Contract terms field
+  - Opportunity description field
+  - Notes content field
+- Additional components (EntityDocumentsList, proposals) can be updated similarly using the reusable AIGenerateButton component

@@ -184,7 +184,7 @@ export const AIProvider = ({ children }: { children: React.ReactNode }) => {
               }))
             : [];
 
-        // Call API
+        // Call API - include real business data context
         const response = await fetch("/api/chat", {
           method: "POST",
           headers: {
@@ -200,6 +200,7 @@ export const AIProvider = ({ children }: { children: React.ReactNode }) => {
             ],
             tools: toolsPayload,
             useAgenticWorkflow: useAgenticWorkflow || isAgenticMode,
+            includeContext: true,
           }),
         });
 

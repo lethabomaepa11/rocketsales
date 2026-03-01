@@ -21,6 +21,7 @@ import dayjs from "dayjs";
 import { ClientDto } from "@/providers/clientProvider/types";
 import { ContactDto } from "@/providers/contactProvider/types";
 import { useStyles } from "./style/OpportunityForm.style";
+import { AIGenerateButton } from "@/components/common/AIGenerateButton";
 
 const { Option } = Select;
 
@@ -208,6 +209,17 @@ const OpportunityForm: React.FC<OpportunityFormProps> = ({
         <Form.Item name="description" label="Description">
           <Input.TextArea rows={3} placeholder="Enter description" />
         </Form.Item>
+        <div style={{ marginTop: -16, marginBottom: 24 }}>
+          <AIGenerateButton
+            fieldType="description"
+            onGenerate={(text) => form.setFieldValue("description", text)}
+            context={
+              formInitialValues?.title
+                ? `Opportunity: ${formInitialValues.title}`
+                : undefined
+            }
+          />
+        </div>
       </Form>
     </Modal>
   );
