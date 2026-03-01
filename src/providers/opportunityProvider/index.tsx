@@ -258,7 +258,7 @@ export const OpportunityProvider = ({
     async (id: string, data: UpdateStageDto) => {
       const hasAccess = await ensureSalesRepCanModifyOpportunity(id);
       if (!hasAccess) {
-        return;
+        throw new Error("Access denied");
       }
 
       dispatch(OpportunityActions.updateStagePending());
@@ -269,12 +269,13 @@ export const OpportunityProvider = ({
           title: "Success",
           description: "Stage updated",
         });
-      } catch {
+      } catch (error) {
         dispatch(OpportunityActions.updateStageError());
         notification.error({
           title: "Error",
           description: "Failed to update stage",
         });
+        throw error;
       }
     },
     [ensureSalesRepCanModifyOpportunity, instance, notification],

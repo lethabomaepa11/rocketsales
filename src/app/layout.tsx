@@ -15,6 +15,7 @@ import { NoteProvider } from "@/providers/noteProvider";
 import { DocumentProvider } from "@/providers/documentProvider";
 import { DashboardProvider } from "@/providers/dashboardProvider";
 import { ReportProvider } from "@/providers/reportProvider";
+import { AIProvider } from "@/providers/aiProvider";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -56,7 +57,9 @@ export default function RootLayout({
                               <NoteProvider>
                                 <DocumentProvider>
                                   <DashboardProvider>
-                                    <ReportProvider>{children}</ReportProvider>
+                                    <ReportProvider>
+                                      <AIProvider>{children}</AIProvider>
+                                    </ReportProvider>
                                   </DashboardProvider>
                                 </DocumentProvider>
                               </NoteProvider>

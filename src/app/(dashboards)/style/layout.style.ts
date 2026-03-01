@@ -66,6 +66,19 @@ export const useStyles = createStyles(({ token }) => ({
   mainLayoutMobile: {
     marginLeft: 0,
   },
+  mainLayoutWithChatbot: {
+    marginRight: 0,
+  },
+  mainLayoutWithChatbotCollapsed: {
+    marginRight: 0,
+  },
+  mainLayoutWithChatbotExpanded: {
+    marginRight: 360,
+  },
+  mainLayoutWithChatbotMobile: {
+    marginRight: 0,
+  },
+
   mobileTopBar: {
     backgroundColor: token.colorBgContainer,
     padding: "8px 12px",
@@ -88,8 +101,21 @@ export const useStyles = createStyles(({ token }) => ({
     minHeight: 280,
     backgroundColor: token.colorBgLayout,
     color: token.colorText,
+    transition: "margin-right 0.3s ease, width 0.3s ease",
     "@media (max-width: 991px)": {
       padding: "16px",
     },
+  },
+  contentWithChatbot: {
+    marginRight: 0,
+    width: "calc(100% - 360px)",
+    maxWidth: "calc(100% - 360px)",
+    overflowX: "auto",
+    overflowY: "auto",
+  },
+  contentWithChatbotClosed: {
+    marginRight: 0,
+    width: "100%",
+    maxWidth: "100%",
   },
 }));

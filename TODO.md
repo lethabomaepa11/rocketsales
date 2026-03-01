@@ -1,82 +1,24 @@
-# Client Detail Page Implementation
+# Task: Ask user if they want to create an opportunity after client creation
 
-## Task
-Create a client detail page at `/clients/[clientId]` with tabs for:
-- About (Client information)
-- Contacts
-- Opportunities
-- Pricing Requests
-- Proposals
-- Contracts
+## Plan
+1. [x] Modify client provider to return created client from createClient function
+2. [x] Update ClientFormModal to pass created client to onSuccess callback
+3. [x] Update AIChatbot to prompt for opportunity creation after client creation
+4. [x] Update clients page to prompt for opportunity creation after client creation
 
-## Implementation Steps
+## Additional Features Implemented
+- [x] Ask user if they want to create a contact after client creation
+- [x] After contact is created, prompt for opportunity creation
+- [x] Opportunity form is pre-filled with client name as title
+- [x] Pass contact ID to opportunity when available
 
-### Phase 1: Directory Structure
-- [x] Create `src/app/(dashboards)/clients/[clientId]/` directory
-- [x] Create `src/components/dashboards/client/` directory
-- [x] Create `src/components/dashboards/client/style/` directory
-
-### Phase 2: Main Page
-- [x] Create `src/app/(dashboards)/clients/[clientId]/page.tsx`
-  - Use Next.js dynamic route with `clientId` parameter
-  - Integrate with ClientProvider to fetch client data
-  - Implement tabbed interface using Ant Design Tabs
-  - Pass clientId to all child components
-
-### Phase 3: Components
-- [x] Create `src/components/dashboards/client/ClientDetails.tsx`
-  - Display client information (name, industry, company size, etc.)
-  - Show client stats (contacts count, opportunities count, contracts count)
-  - Edit functionality for client details
-
-- [x] Create `src/components/dashboards/client/ContactsTable.tsx`
-  - Display contacts for the client
-  - Add contact button with modal form
-  - Edit and delete functionality
-
-- [x] Create `src/components/dashboards/client/OpportunitiesTable.tsx`
-  - Display opportunities for the client
-  - Add opportunity button with modal form
-  - Stage badges and value formatting
-
-- [x] Create `src/components/dashboards/client/PricingRequestsTable.tsx`
-  - Display pricing requests for the client
-  - Add pricing request button with modal form
-  - Status and priority badges
-
-- [x] Create `src/components/dashboards/client/ProposalsTable.tsx`
-  - Display proposals for the client
-  - Add proposal button with modal form
-  - Amount formatting and status badges
-
-- [x] Create `src/components/dashboards/client/ContractsTable.tsx`
-  - Display contracts for the client
-  - Add contract button with modal form
-  - Contract value and date formatting
-
-### Phase 4: Styles
-- [x] Create `src/components/dashboards/client/style/page.style.ts`
-  - Styles for the main page layout
-- [x] Create `src/components/dashboards/client/style/ClientDetails.style.ts`
-  - Styles for client details component
-
-### Phase 5: Testing & Verification
-- [x] Run TypeScript compilation check
-- [x] Verify all imports are correct
-- [x] Ensure all provider hooks are properly used
-
-## Files Created
-1. `src/app/(dashboards)/clients/[clientId]/page.tsx` - Main page with tabs
-2. `src/components/dashboards/client/ClientDetails.tsx` - Client info display
-3. `src/components/dashboards/client/ContactsTable.tsx` - Contacts table with add functionality
-4. `src/components/dashboards/client/OpportunitiesTable.tsx` - Opportunities table with add functionality
-5. `src/components/dashboards/client/PricingRequestsTable.tsx` - Pricing requests table with add functionality
-6. `src/components/dashboards/client/ProposalsTable.tsx` - Proposals table with add functionality
-7. `src/components/dashboards/client/ContractsTable.tsx` - Contracts table with add functionality
-8. `src/components/dashboards/client/style/page.style.ts` - Page styles
-9. `src/components/dashboards/client/style/ClientDetails.style.ts` - Component styles
-
-## Build Status
-- ✓ Compiled successfully
-- ✓ TypeScript check passed
-- ✓ All components functional with working "Add" buttons
+## Files Modified
+1. src/providers/clientProvider/index.tsx - Modified to return created client
+2. src/providers/contactProvider/context.tsx - Updated createContact return type
+3. src/components/common/ClientFormModal.tsx - Updated to pass created client to onSuccess
+4. src/components/dashboards/ai/AIChatbot.tsx - Added useCreateEntityPrompts hook
+5. src/app/(dashboards)/clients/page.tsx - Added prompt for opportunity after client creation
+6. src/app/(dashboards)/clients/[clientId]/page.tsx - Handle addContact param and prompt for opportunity
+7. src/components/dashboards/client/ContactsTable.tsx - Added ref for modal control and onContactCreated callback
+8. src/app/(dashboards)/opportunities/page.tsx - Added contactId query param support for prefilling
+9. src/hooks/useCreateEntityPrompts.ts - New hook for client → contact → opportunity flow

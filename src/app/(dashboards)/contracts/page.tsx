@@ -37,10 +37,15 @@ import {
   UpdateContractDto,
   ContractStatus,
 } from "@/providers/contractProvider/types";
+import {
+  OpportunityStage,
+  OpportunityDto,
+} from "@/providers/opportunityProvider/types";
 import ContractFormModal from "@/components/dashboards/contracts/ContractFormModal";
 import ContractRenewalModal from "@/components/dashboards/contracts/ContractRenewalModal";
 import dayjs from "dayjs";
 import { useStyles } from "./style/page.style";
+import { useSearchParams } from "next/navigation";
 
 const { Title } = Typography;
 
@@ -85,8 +90,22 @@ const ContractsPage = () => {
   const { opportunities } = useOpportunityState();
   const { fetchOpportunities } = useOpportunityActions();
   const { user } = useAuthState();
+  const searchParams = useSearchParams();
 
-  const [isFormOpen, setIsFormOpen] = useState(false);
+  // Get pre-fill data from query params
+  const prefillOpportunityId = searchParams.get("opportunityId");
+  const isNewFromOpportunity = searchParams.get("new") === "true";
+  const renewContractId = searchParams.get("renew");
+
+  // Get pre-fill values for the form
+  const prefillValues =
+    isNewFromOpportunity && prefillOpportunityId
+      ? { opportunityId: prefillOpportunityId }
+      : undefined;
+
+  const [isFormOpen, setIsFormOpen] = useState(
+    isNewFromOpportunity && !!prefillOpportunityId,
+  );
   const [editingContract, setEditingContract] = useState<ContractDto | null>(
     null,
   );
@@ -102,6 +121,36 @@ const ContractsPage = () => {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const contractsList = toArray<ContractDto>(contracts);
+
+  // Handle renew query parameter - open renewal modal for specific contract
+  useEffect(() => {
+    if (renewContractId && contractsList.length > 0) {
+      const contractToRenew = contractsList.find(
+        (c) => c.id === renewContractId,
+      );
+      if (contractToRenew) {
+        fetchRenewals(contractToRenew.id);
+        // Use setTimeout to avoid setState in useEffect and clear the URL param
+        setTimeout(() => {
+          setRenewalContract(contractToRenew);
+          window.history.replaceState({}, "", "/contracts");
+        }, 0);
+      }
+    }
+  }, [renewContractId, contractsList, fetchRenewals]);
+
+  // Get opportunity IDs that already have contracts
+  const opportunityIdsWithContracts = new Set(
+    contractsList.filter((c) => c.opportunityId).map((c) => c.opportunityId),
+  );
+
+  // Filter opportunities to only show "won" opportunities (ClosedWon stage) that don't have contracts
+  const opportunitiesList = toArray<OpportunityDto>(opportunities);
+  const wonOpportunities = opportunitiesList.filter(
+    (opp) =>
+      opp.stage === OpportunityStage.ClosedWon &&
+      !opportunityIdsWithContracts.has(opp.id),
+  );
 
   const handleTabChange = (key: string) => {
     setActiveTab(key);
@@ -124,12 +173,24 @@ const ContractsPage = () => {
       await updateContract(editingContract.id, data as UpdateContractDto);
     else await createContract(data as CreateContractDto);
     setIsFormOpen(false);
+    // Clear URL params after successful submission
+    if (isNewFromOpportunity) {
+      window.history.pushState({}, "", "/contracts");
+    }
     fetchContracts();
   };
 
   const handleOpenRenewals = (contract: ContractDto) => {
     setRenewalContract(contract);
     fetchRenewals(contract.id);
+  };
+
+  const handleFormCancel = () => {
+    setIsFormOpen(false);
+    // Clear URL params after closing
+    if (isNewFromOpportunity) {
+      window.history.pushState({}, "", "/contracts");
+    }
   };
 
   const columns = [
@@ -294,10 +355,11 @@ const ContractsPage = () => {
         open={isFormOpen}
         editingContract={editingContract}
         clients={clients}
-        opportunities={opportunities}
+        opportunities={wonOpportunities}
         ownerId={user?.userId ?? ""}
+        prefillValues={prefillValues}
         onSubmit={handleFormSubmit}
-        onCancel={() => setIsFormOpen(false)}
+        onCancel={handleFormCancel}
       />
 
       <ContractRenewalModal

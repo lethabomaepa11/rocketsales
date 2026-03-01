@@ -1,0 +1,258 @@
+"use client";
+
+import { createStyles } from "antd-style";
+
+export const useStyles = createStyles(({ token, css }) => ({
+  chatbotContainer: {
+    position: "fixed",
+    top: 0,
+    right: 0,
+    height: "100vh",
+    backgroundColor: token.colorBgContainer,
+    borderLeft: `1px solid ${token.colorBorderSecondary}`,
+    display: "flex",
+    flexDirection: "column",
+    transition: "all 0.3s ease",
+    zIndex: 25,
+    boxShadow: token.boxShadowSecondary,
+  },
+  chatbotOpen: {
+    width: 360,
+  },
+  chatbotClosed: {
+    width: 0,
+    overflow: "hidden",
+    borderLeft: "none",
+  },
+  chatbotMobile: {
+    width: "100%",
+    zIndex: 40,
+  },
+  header: {
+    padding: "16px",
+    borderBottom: `1px solid ${token.colorBorderSecondary}`,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: token.colorBgContainer,
+  },
+  headerTitle: {
+    fontSize: 16,
+    fontWeight: 600,
+    color: token.colorText,
+    display: "flex",
+    alignItems: "center",
+    gap: 8,
+  },
+  headerActions: {
+    display: "flex",
+    gap: 8,
+  },
+  newChatButton: {
+    color: token.colorTextSecondary,
+    "&:hover": {
+      color: token.colorPrimary,
+    },
+  },
+  closeButton: {
+    color: token.colorTextSecondary,
+    "&:hover": {
+      color: token.colorPrimary,
+    },
+  },
+  messagesContainer: {
+    flex: 1,
+    overflow: "auto",
+    padding: "16px",
+    display: "flex",
+    flexDirection: "column",
+    gap: 12,
+    backgroundColor: token.colorBgLayout,
+  },
+  emptyState: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    height: "100%",
+    color: token.colorTextSecondary,
+    textAlign: "center",
+    padding: "24px",
+  },
+  emptyStateIcon: {
+    fontSize: 48,
+    marginBottom: 16,
+    color: token.colorPrimary,
+  },
+  emptyStateTitle: {
+    fontSize: 18,
+    fontWeight: 600,
+    marginBottom: 8,
+    color: token.colorText,
+  },
+  emptyStateDescription: {
+    fontSize: 14,
+    color: token.colorTextSecondary,
+  },
+  messageWrapper: {
+    display: "flex",
+    width: "100%",
+  },
+  messageUser: {
+    justifyContent: "flex-end",
+  },
+  messageAssistant: {
+    justifyContent: "flex-start",
+  },
+  messageBubble: {
+    maxWidth: "85%",
+    padding: "12px 16px",
+    borderRadius: 12,
+    fontSize: 14,
+    lineHeight: 1.5,
+    wordBreak: "break-word",
+  },
+  messageBubbleUser: {
+    backgroundColor: token.colorPrimary,
+    color: token.colorWhite,
+    borderBottomRightRadius: 4,
+  },
+  messageBubbleAssistant: {
+    backgroundColor: token.colorBgContainer,
+    color: token.colorText,
+    border: `1px solid ${token.colorBorderSecondary}`,
+    borderBottomLeftRadius: 4,
+  },
+  messageHeader: {
+    display: "flex",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 4,
+    fontSize: 12,
+    color: token.colorTextSecondary,
+  },
+  messageAvatar: {
+    width: 24,
+    height: 24,
+    borderRadius: "50%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: 12,
+  },
+  messageAvatarUser: {
+    backgroundColor: token.colorPrimary,
+    color: token.colorWhite,
+  },
+  messageAvatarAssistant: {
+    backgroundColor: token.colorPrimaryBg,
+    color: token.colorPrimary,
+  },
+  messageTime: {
+    fontSize: 11,
+    color: token.colorTextTertiary,
+  },
+  messageContent: {
+    whiteSpace: "pre-wrap",
+  },
+  toolCallBadge: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 4,
+    padding: "2px 8px",
+    backgroundColor: token.colorWarningBg,
+    color: token.colorWarning,
+    borderRadius: 4,
+    fontSize: 11,
+    marginTop: 8,
+  },
+  inputContainer: {
+    padding: "16px",
+    borderTop: `1px solid ${token.colorBorderSecondary}`,
+    backgroundColor: token.colorBgContainer,
+  },
+  inputWrapper: {
+    display: "flex",
+    gap: 8,
+    alignItems: "flex-end",
+  },
+  textArea: {
+    flex: 1,
+    borderRadius: 8,
+    resize: "none",
+    fontSize: 14,
+  },
+  sendButton: {
+    height: 40,
+    width: 40,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  toggleButton: {
+    position: "fixed",
+    right: 24,
+    bottom: 24,
+    width: 56,
+    height: 56,
+    borderRadius: "50%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    boxShadow: token.boxShadow,
+    zIndex: 30,
+    transition: "all 0.3s ease",
+  },
+  toggleButtonHidden: {
+    opacity: 0,
+    pointerEvents: "none",
+  },
+  loadingIndicator: {
+    display: "flex",
+    alignItems: "center",
+    gap: 4,
+    padding: "8px 16px",
+    color: token.colorTextSecondary,
+    fontSize: 12,
+  },
+  loadingDot: {
+    width: 6,
+    height: 6,
+    borderRadius: "50%",
+    backgroundColor: token.colorPrimary,
+    animation: "bounce 1.4s infinite ease-in-out both",
+  },
+  errorMessage: {
+    padding: "12px 16px",
+    backgroundColor: token.colorErrorBg,
+    color: token.colorError,
+    borderRadius: 8,
+    fontSize: 13,
+    margin: "0 16px 16px",
+  },
+  agenticModeToggle: {
+    display: "flex",
+    alignItems: "center",
+    gap: 8,
+    padding: "8px 16px",
+    borderTop: `1px solid ${token.colorBorderSecondary}`,
+    backgroundColor: token.colorBgContainer,
+  },
+  agenticModeLabel: {
+    fontSize: 13,
+    color: token.colorTextSecondary,
+  },
+  sessionSelector: {
+    padding: "8px 16px",
+    borderBottom: `1px solid ${token.colorBorderSecondary}`,
+    backgroundColor: token.colorBgContainer,
+  },
+  "@keyframes bounce": {
+    "0%, 80%, 100%": {
+      transform: "scale(0)",
+    },
+    "40%": {
+      transform: "scale(1)",
+    },
+  },
+}));

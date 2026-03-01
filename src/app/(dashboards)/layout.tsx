@@ -5,6 +5,8 @@ import { Button, Image, Layout, ConfigProvider } from "antd";
 import { MenuOutlined } from "@ant-design/icons";
 import { useRouter, usePathname } from "next/navigation";
 import SidebarMenu from "@/components/dashboards/sidebars/SidebarMenu";
+import { AIChatbot } from "@/components/dashboards/ai/AIChatbot";
+import { useAIState } from "@/providers/aiProvider";
 import { useAuthState, useAuthActions } from "@/providers/authProvider";
 import { withAuth } from "@/hoc/withAuth";
 import { isDashboardRouteAllowed } from "@/utils/tenantUtils";
@@ -25,7 +27,8 @@ const DashboardLayoutContent = ({
   const pathname = usePathname();
   const { user } = useAuthState();
   const { logout } = useAuthActions();
-  const { styles } = useStyles();
+  const { styles, cx } = useStyles();
+  const { isChatOpen } = useAIState();
 
   // Load theme preference on mount from localStorage
   useEffect(() => {
@@ -78,13 +81,24 @@ const DashboardLayoutContent = ({
     isMobile ? styles.siderMobile : styles.siderDesktop
   }`;
 
-  const mainLayoutClassName = `${styles.mainLayout} ${
+  // Calculate main layout class with chatbot consideration
+  const mainLayoutClassName = cx(
+    styles.mainLayout,
     isMobile
       ? styles.mainLayoutMobile
       : collapsed
         ? styles.mainLayoutCollapsed
-        : styles.mainLayoutExpanded
-  }`;
+        : styles.mainLayoutExpanded,
+    !isMobile && isChatOpen && styles.mainLayoutWithChatbot,
+    !isMobile && !isChatOpen && styles.mainLayoutWithChatbotCollapsed,
+  );
+
+  // Calculate content class with chatbot consideration
+  const contentClassName = cx(
+    styles.content,
+    !isMobile && isChatOpen && styles.contentWithChatbot,
+    !isMobile && !isChatOpen && styles.contentWithChatbotClosed,
+  );
 
   return (
     <ConfigProvider theme={isDarkMode ? darkTheme : lightTheme}>
@@ -150,7 +164,7 @@ const DashboardLayoutContent = ({
             </div>
           )}
           <Content
-            className={styles.content}
+            className={contentClassName}
             style={{
               background: isDarkMode ? "#141414" : undefined,
             }}
@@ -158,6 +172,9 @@ const DashboardLayoutContent = ({
             {children}
           </Content>
         </Layout>
+
+        {/* AI Chatbot */}
+        <AIChatbot />
       </Layout>
     </ConfigProvider>
   );

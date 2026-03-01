@@ -23,8 +23,8 @@ export function withAuth<P extends object>(
     const router = useRouter();
     const { styles } = useStyles();
 
+    // Check token expiry on mount and whenever user changes
     useEffect(() => {
-      // Only redirect after initial auth check is complete
       if (!isLoading) {
         if (!user) {
           router.push(redirectTo);
@@ -32,9 +32,10 @@ export function withAuth<P extends object>(
         }
 
         if (typeof window !== "undefined") {
-          //check if the auth token is expired based on the exp claim in the token
           if (user?.expiresAt && Date.now() >= Date.parse(user.expiresAt)) {
             logoutUser();
+            router.push(redirectTo);
+            return;
           }
         }
 
@@ -47,9 +48,22 @@ export function withAuth<P extends object>(
           }
         }
       }
-    }, [isLoading, user, allowedRoles, redirectTo, router]);
+    }, [isLoading, user, router]);
 
-    // Show loading spinner while initial auth check is in progress
+    // Continuously check token expiry every 60 seconds while page is open
+    useEffect(() => {
+      if (!user?.expiresAt) return;
+
+      const interval = setInterval(() => {
+        if (Date.now() >= Date.parse(user.expiresAt || "")) {
+          logoutUser();
+          router.push(redirectTo);
+        }
+      }, 60_000);
+
+      return () => clearInterval(interval);
+    }, [user, router]);
+
     if (isLoading) {
       return (
         <div className={styles.loadingContainer}>
@@ -58,7 +72,6 @@ export function withAuth<P extends object>(
       );
     }
 
-    // If not loading and no user, the useEffect will handle redirect
     if (!user) {
       return (
         <div className={styles.loadingContainer}>
@@ -77,7 +90,10 @@ export function withAuth<P extends object>(
     return <WrappedComponent {...props} />;
   };
 
-  WithAuthComponent.displayName = `withAuth(${WrappedComponent.displayName || WrappedComponent.name || "Component"})`;
+  WithAuthComponent.displayName = `withAuth(${
+    WrappedComponent.displayName || WrappedComponent.name || "Component"
+  })`;
+
   return WithAuthComponent;
 }
 
