@@ -18,6 +18,11 @@ import { useCreateEntityPrompts } from "@/hooks/useCreateEntityPrompts";
 import { useStyles } from "./style/AIChatbot.style";
 import { IAgentTool } from "@/providers/aiProvider/types";
 import { ClientDto } from "@/providers/clientProvider/types";
+import {
+  generatePDF,
+  downloadPDF,
+  PDFDocumentData,
+} from "@/utils/pdfGenerator";
 
 export const AIChatbot: React.FC = () => {
   const {
@@ -118,6 +123,116 @@ export const AIChatbot: React.FC = () => {
           const path = args.path as string;
           navigateTo(path);
           return { status: "success", message: `Navigating to ${path}` };
+        },
+      },
+      {
+        name: "sendEmail",
+        description:
+          "Send an email to a recipient. Use this when the user wants to send an email to a client, contact, or any other recipient.",
+        parameters: {
+          type: "object",
+          properties: {
+            to: {
+              type: "string",
+              description: "The email address of the recipient",
+            },
+            subject: {
+              type: "string",
+              description: "The subject line of the email",
+            },
+            htmlContent: {
+              type: "string",
+              description: "HTML content of the email",
+            },
+            textContent: {
+              type: "string",
+              description: "Plain text content of the email",
+            },
+          },
+          required: ["to", "subject"],
+        },
+        execute: async (args: Record<string, unknown>) => {
+          const { to, subject, htmlContent, textContent } = args;
+          const response = await fetch("/api/ai/send-email", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ to, subject, htmlContent, textContent }),
+          });
+          const data = await response.json();
+          if (!response.ok)
+            throw new Error(data.error || "Failed to send email");
+          return data;
+        },
+      },
+      {
+        name: "generatePDF",
+        description:
+          "Generate a PDF document with specified content. Use this when the user wants to create a PDF report, invoice, or document.",
+        parameters: {
+          type: "object",
+          properties: {
+            title: {
+              type: "string",
+              description: "The title of the PDF document",
+            },
+            subtitle: {
+              type: "string",
+              description: "Optional subtitle for the document",
+            },
+            sections: {
+              type: "array",
+              description: "Array of sections to include in the PDF",
+              items: {
+                type: "object",
+                properties: {
+                  type: {
+                    type: "string",
+                    enum: [
+                      "title",
+                      "heading",
+                      "subheading",
+                      "paragraph",
+                      "list",
+                      "table",
+                      "separator",
+                    ],
+                  },
+                  content: { type: "string" },
+                  items: { type: "array", items: { type: "string" } },
+                  headers: { type: "array", items: { type: "string" } },
+                  rows: {
+                    type: "array",
+                    items: { type: "array", items: { type: "string" } },
+                  },
+                },
+              },
+            },
+          },
+          required: ["title", "sections"],
+        },
+        execute: async (args: Record<string, unknown>) => {
+          const { title, subtitle, sections } = args as {
+            title: string;
+            subtitle?: string;
+            sections: PDFDocumentData["sections"];
+          };
+
+          // Generate PDF client-side
+          const pdfData: PDFDocumentData = {
+            title,
+            subtitle,
+            date: new Date().toLocaleDateString(),
+            sections,
+          };
+
+          const pdfUri = generatePDF(pdfData);
+          const fileName = `${title.replace(/[^a-z0-9]/gi, "_")}_${new Date().toISOString().split("T")[0]}`;
+          downloadPDF(pdfUri, fileName);
+
+          return {
+            success: true,
+            message: `PDF "${title}" has been downloaded to your device`,
+          };
         },
       },
     ];

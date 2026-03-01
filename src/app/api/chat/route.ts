@@ -1,26 +1,142 @@
+// route.ts - full file
+
 import { NextRequest, NextResponse } from "next/server";
 import Groq from "groq-sdk";
+import { getAxiosInstance } from "@/utils/axiosInstance";
 
 const groq = new Groq({
   apiKey: process.env.NEXT_PUBLIC_GROQ_API_KEY,
 });
 
+async function getBusinessDataContext(): Promise<string> {
+  const instance = getAxiosInstance();
+  try {
+    const [clientsRes, opportunitiesRes, contractsRes, proposalsRes, dashboardRes] =
+      await Promise.allSettled([
+        instance.get("/Clients", { params: { pageSize: 10 } }),
+        instance.get("/Opportunities", { params: { pageSize: 10 } }),
+        instance.get("/Contracts", { params: { pageSize: 10 } }),
+        instance.get("/Proposals", { params: { pageSize: 10 } }),
+        instance.get("/Dashboard/overview"),
+      ]);
+
+    const formatCurrency = (value: number) =>
+      value ? `R ${value.toLocaleString("en-ZA")}` : "R 0";
+    let context = "CURRENT BUSINESS DATA:\n\n";
+
+    if (dashboardRes.status === "fulfilled") {
+      const d = dashboardRes.value.data || {};
+      context += `=== DASHBOARD ===\nRevenue: ${formatCurrency(d.revenue?.thisYear || 0)} | Win Rate: ${d.opportunities?.winRate || 0}% | Opps: ${d.opportunities?.totalCount || 0}\n\n`;
+    }
+
+    if (clientsRes.status === "fulfilled") {
+      const clients = clientsRes.value.data?.items || [];
+      context += `=== CLIENTS ===\n`;
+      clients
+        .slice(0, 5)
+        .forEach((c: { name: string; email: string; status: string }) => {
+          context += `- ${c.name || "Unnamed"} | ${c.email || "No email"} | ${c.status || "N/A"}\n`;
+        });
+      context += "\n";
+    }
+
+    if (opportunitiesRes.status === "fulfilled") {
+      const opps = opportunitiesRes.value.data?.items || [];
+      const stageNames = ["", "Lead", "Qualified", "Proposal", "Negotiation", "Won", "Lost"];
+      context += `=== OPPORTUNITIES ===\n`;
+      opps
+        .slice(0, 5)
+        .forEach(
+          (o: {
+            title: string;
+            clientName: string;
+            estimatedValue: number;
+            stage: number;
+          }) => {
+            context += `- ${o.title || "Untitled"} | ${o.clientName || "Client"} | ${formatCurrency(o.estimatedValue || 0)} | ${stageNames[o.stage] || o.stage}\n`;
+          },
+        );
+    }
+
+    return context;
+  } catch {
+    return "Data unavailable";
+  }
+}
+
+type RawMessage = {
+  role: string;
+  content?: string;
+  toolCalls?: unknown[];
+  tool_calls?: unknown[];
+  toolCallId?: string;
+  tool_call_id?: string;
+  name?: string;
+};
+
+function sanitizeMessages(messages: RawMessage[]) {
+  return messages
+    .map((msg) => {
+      // Tool result messages — Groq expects role: "tool" with tool_call_id
+      if (msg.role === "tool") {
+        return {
+          role: "tool" as const,
+          content: msg.content || "",
+          tool_call_id: msg.tool_call_id || msg.toolCallId || "",
+        };
+      }
+
+      // Assistant messages — strip toolCalls/tool_calls, only keep role + content
+      if (msg.role === "assistant") {
+        return {
+          role: "assistant" as const,
+          content: msg.content || "",
+        };
+      }
+
+      // User messages — only keep role + content
+      if (msg.role === "user") {
+        return {
+          role: "user" as const,
+          content: msg.content || "",
+        };
+      }
+
+      // Fallback — pass through with just role and content
+      return {
+        role: msg.role,
+        content: msg.content || "",
+      };
+    })
+    .filter((msg) => {
+      // Drop tool messages with no tool_call_id — Groq will reject them
+      if (msg.role === "tool" && !(msg as { tool_call_id?: string }).tool_call_id) {
+        return false;
+      }
+      return true;
+    });
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { messages, tools, useAgenticWorkflow } = body;
+    const { messages, tools, useAgenticWorkflow, includeContext } = body;
 
     if (!messages || !Array.isArray(messages)) {
       return NextResponse.json(
         { error: "Messages are required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
-    // Prepare the system message for sales context
+    let businessContext = "";
+    if (includeContext) {
+      businessContext = await getBusinessDataContext();
+    }
+
     const systemMessage = {
-      role: "system",
-      content: `You are an AI assistant for a sales management system called RocketSales. 
+      role: "system" as const,
+      content: `You are an AI assistant for a sales management system called RocketSales.
 You help users with:
 - Analyzing sales data and metrics
 - Managing clients, contacts, and opportunities
@@ -29,38 +145,43 @@ You help users with:
 - Providing insights and recommendations
 
 When in agentic mode, you can use available tools to perform actions on behalf of the user.
-Always be helpful, professional, and concise in your responses.`,
+Always be helpful, professional, and concise in your responses.
+
+${businessContext ? `\n\n${businessContext}\n` : ""}`,
     };
 
-    // Prepare messages for the API
-    const apiMessages = [systemMessage, ...messages];
+    const sanitizedMessages = sanitizeMessages(messages as RawMessage[]);
+    const apiMessages = [systemMessage, ...sanitizedMessages];
 
-    // Prepare tools if provided and agentic mode is enabled
     const toolDefinitions =
       useAgenticWorkflow && tools && tools.length > 0
-        ? tools.map((tool: { name: string; description: string; parameters: unknown }) => ({
-            type: "function",
-            function: {
-              name: tool.name,
-              description: tool.description,
-              parameters: tool.parameters,
-            },
-          }))
+        ? tools.map(
+            (tool: {
+              name: string;
+              description: string;
+              parameters: unknown;
+            }) => ({
+              type: "function" as const,
+              function: {
+                name: tool.name,
+                description: tool.description,
+                parameters: tool.parameters,
+              },
+            }),
+          )
         : undefined;
 
-    // Call Groq API
     const chatCompletion = await groq.chat.completions.create({
       messages: apiMessages,
-      model: "llama-3.3-70b-versatile", // Using Llama 3.3 70B for best performance
+      model: "llama-3.3-70b-versatile",
       temperature: 0.7,
       max_tokens: 4096,
       tools: toolDefinitions,
-      tool_choice: useAgenticWorkflow ? "auto" : undefined,
+      tool_choice: useAgenticWorkflow && toolDefinitions ? "auto" : undefined,
     });
 
     const responseMessage = chatCompletion.choices[0]?.message;
 
-    // Handle tool calls if present
     if (responseMessage?.tool_calls && responseMessage.tool_calls.length > 0) {
       const toolCalls = responseMessage.tool_calls.map((toolCall) => ({
         id: toolCall.id,
@@ -74,7 +195,6 @@ Always be helpful, professional, and concise in your responses.`,
       });
     }
 
-    // Regular response
     return NextResponse.json({
       content: responseMessage?.content || "No response generated",
       toolCalls: [],
@@ -88,7 +208,7 @@ Always be helpful, professional, and concise in your responses.`,
             ? error.message
             : "An error occurred while processing your request",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

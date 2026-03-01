@@ -19,7 +19,6 @@ import {
   DeleteOutlined,
   SearchOutlined,
   EyeOutlined,
-  UserOutlined,
 } from "@ant-design/icons";
 import { useClientState, useClientActions } from "@/providers/clientProvider";
 import { ClientDto, ClientType } from "@/providers/clientProvider/types";
@@ -165,13 +164,6 @@ const ClientsPage = () => {
       key: "actions",
       render: (_: unknown, record: ClientDto) => (
         <Space>
-          <Button
-            type="link"
-            icon={<UserOutlined />}
-            onClick={() => handleViewContacts(record.id)}
-          >
-            View Contacts
-          </Button>
           <Button
             type="link"
             icon={<EyeOutlined />}
