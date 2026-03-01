@@ -13,6 +13,7 @@ import {
   Select,
   Spin,
   Button,
+  Tabs,
 } from "antd";
 import {
   BarChartOutlined,
@@ -24,6 +25,8 @@ import {
   FileTextOutlined,
   CheckCircleOutlined,
   DownloadOutlined,
+  PieChartOutlined,
+  LineChartOutlined as LineIcon,
 } from "@ant-design/icons";
 import {
   useDashboardState,
@@ -32,6 +35,12 @@ import {
 import { useReportState, useReportActions } from "@/providers/reportProvider";
 import { useReportPDF } from "@/hooks/useReportPDF";
 import { useStyles } from "./style/page.style";
+import {
+  RevenueTrendChart,
+  PipelineFunnelChart,
+  SalesPerformanceChart,
+  ActivityChart,
+} from "@/components/dashboards/charts";
 import dayjs from "dayjs";
 
 const { Title } = Typography;
@@ -48,9 +57,14 @@ const stageMap: Record<number, { label: string; color: string }> = {
 
 const ReportsPage = () => {
   const { styles } = useStyles();
-  const { overview, salesPerformance, activitiesSummary } = useDashboardState();
-  const { fetchOverview, fetchSalesPerformance, fetchActivitiesSummary } =
-    useDashboardActions();
+  const { overview, salesPerformance, activitiesSummary, pipelineMetrics } =
+    useDashboardState();
+  const {
+    fetchOverview,
+    fetchSalesPerformance,
+    fetchActivitiesSummary,
+    fetchPipelineMetrics,
+  } = useDashboardActions();
   const { opportunityReport, salesByPeriod, isPending } = useReportState();
   const { fetchOpportunityReport, fetchSalesByPeriod } = useReportActions();
   const { generateReportPDF, isGenerating } = useReportPDF();
@@ -59,12 +73,14 @@ const ReportsPage = () => {
     null,
   );
   const [groupBy, setGroupBy] = useState<"month" | "week">("month");
+  const [activeTab, setActiveTab] = useState("overview");
 
   // Initial load
   useEffect(() => {
     fetchOverview();
     fetchSalesPerformance();
     fetchActivitiesSummary();
+    fetchPipelineMetrics();
     fetchOpportunityReport();
     fetchSalesByPeriod({ groupBy: "month" });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -144,6 +160,180 @@ const ReportsPage = () => {
     { title: "Deals", dataIndex: "count", key: "count" },
   ];
 
+  const tabItems = [
+    {
+      key: "overview",
+      label: (
+        <span>
+          <PieChartOutlined /> Overview
+        </span>
+      ),
+      children: (
+        <>
+          {/* Top KPIs */}
+          <Row gutter={16} className={styles.topKpiRow}>
+            <Col xs={24} sm={12} md={6}>
+              <Card>
+                <Statistic
+                  title="Total Revenue (Year)"
+                  value={overview?.revenue?.thisYear || 0}
+                  prefix={<DollarOutlined />}
+                  valueStyle={{ color: "#3f8600" }}
+                />
+              </Card>
+            </Col>
+            <Col xs={24} sm={12} md={6}>
+              <Card>
+                <Statistic
+                  title="Win Rate"
+                  value={overview?.opportunities?.winRate || 0}
+                  suffix="%"
+                  prefix={<TeamOutlined />}
+                />
+              </Card>
+            </Col>
+            <Col xs={24} sm={12} md={6}>
+              <Card>
+                <Statistic
+                  title="Total Opportunities"
+                  value={overview?.opportunities?.totalCount || 0}
+                  prefix={<FileTextOutlined />}
+                />
+              </Card>
+            </Col>
+            <Col xs={24} sm={12} md={6}>
+              <Card>
+                <Statistic
+                  title="Completed Activities"
+                  value={activitiesSummary?.completedActivities || 0}
+                  prefix={<CheckCircleOutlined />}
+                  valueStyle={{ color: "#3f8600" }}
+                />
+              </Card>
+            </Col>
+          </Row>
+
+          {/* Sales Performance */}
+          <Row gutter={16} className={styles.summaryRow}>
+            <Col span={24}>
+              <SalesPerformanceChart
+                salesPerformance={salesPerformance}
+                loading={isPending}
+                title="Sales Team Performance"
+              />
+            </Col>
+          </Row>
+
+          {/* Pipeline Funnel */}
+          <Row gutter={16} className={styles.summaryRow}>
+            <Col span={24}>
+              <PipelineFunnelChart
+                stages={pipelineMetrics?.stages}
+                loading={isPending}
+                title="Pipeline Analysis"
+              />
+            </Col>
+          </Row>
+        </>
+      ),
+    },
+    {
+      key: "revenue",
+      label: (
+        <span>
+          <DollarOutlined /> Revenue
+        </span>
+      ),
+      children: (
+        <>
+          {/* Revenue Trend */}
+          <Row gutter={16} className={styles.summaryRow}>
+            <Col span={24}>
+              <RevenueTrendChart
+                monthlyTrend={overview?.revenue?.monthlyTrend}
+                loading={isPending}
+                title="Revenue Trend Analysis"
+              />
+            </Col>
+          </Row>
+
+          {/* Sales by Period */}
+          <Card
+            title="Sales by Period"
+            className={styles.opportunitiesCard}
+            extra={
+              <Select
+                value={groupBy}
+                onChange={setGroupBy}
+                style={{ width: 120 }}
+                options={[
+                  { label: "Monthly", value: "month" },
+                  { label: "Weekly", value: "week" },
+                ]}
+              />
+            }
+          >
+            <Spin spinning={isPending}>
+              <Table
+                dataSource={salesByPeriod}
+                columns={salesColumns}
+                rowKey="period"
+                size="small"
+                pagination={false}
+              />
+            </Spin>
+          </Card>
+        </>
+      ),
+    },
+    {
+      key: "opportunities",
+      label: (
+        <span>
+          <FileTextOutlined /> Opportunities
+        </span>
+      ),
+      children: (
+        <Card
+          title="Opportunities Report"
+          className={styles.opportunitiesCard}
+          extra={
+            <RangePicker
+              onChange={(dates) =>
+                setDateRange(dates as [dayjs.Dayjs, dayjs.Dayjs] | null)
+              }
+            />
+          }
+        >
+          <Spin spinning={isPending}>
+            <Table
+              dataSource={opportunityReport}
+              columns={oppColumns}
+              rowKey="id"
+              size="small"
+              pagination={{ pageSize: 10 }}
+            />
+          </Spin>
+        </Card>
+      ),
+    },
+    {
+      key: "activities",
+      label: (
+        <span>
+          <LineChartOutlined /> Activities
+        </span>
+      ),
+      children: (
+        <ActivityChart
+          activitiesSummary={activitiesSummary}
+          loading={isPending}
+          title="Activity Overview"
+        />
+      ),
+    },
+  ];
+
   return (
     <div className={styles.pageContainer}>
       <Row justify="space-between" align="middle" style={{ marginBottom: 24 }}>
@@ -164,177 +354,12 @@ const ReportsPage = () => {
         </Col>
       </Row>
 
-      {/* Top KPIs */}
-      <Row gutter={16} className={styles.topKpiRow}>
-        <Col span={6}>
-          <Card>
-            <Statistic
-              title="Total Revenue (Year)"
-              value={overview?.revenue?.thisYear || 0}
-              prefix={<DollarOutlined />}
-              valueStyle={{ color: "#3f8600" }}
-            />
-          </Card>
-        </Col>
-        <Col span={6}>
-          <Card>
-            <Statistic
-              title="Win Rate"
-              value={overview?.opportunities?.winRate || 0}
-              suffix="%"
-              prefix={<TeamOutlined />}
-            />
-          </Card>
-        </Col>
-        <Col span={6}>
-          <Card>
-            <Statistic
-              title="Total Opportunities"
-              value={overview?.opportunities?.totalCount || 0}
-              prefix={<FileTextOutlined />}
-            />
-          </Card>
-        </Col>
-        <Col span={6}>
-          <Card>
-            <Statistic
-              title="Completed Activities"
-              value={activitiesSummary?.completedActivities || 0}
-              prefix={<CheckCircleOutlined />}
-              valueStyle={{ color: "#3f8600" }}
-            />
-          </Card>
-        </Col>
-      </Row>
-
-      {/* Sales Performance + Activities Summary */}
-      <Row gutter={16} className={styles.summaryRow}>
-        <Col span={12}>
-          <Card title="Sales Performance">
-            <Row gutter={[16, 16]}>
-              <Col span={12}>
-                <Statistic
-                  title="Deals Won"
-                  value={salesPerformanceSummary.dealsWon}
-                  prefix={<RiseOutlined />}
-                  valueStyle={{ color: "#3f8600" }}
-                />
-              </Col>
-              <Col span={12}>
-                <Statistic
-                  title="Deals Lost"
-                  value={salesPerformanceSummary.dealsLost}
-                  prefix={<FallOutlined />}
-                  valueStyle={{ color: "#cf1322" }}
-                />
-              </Col>
-              <Col span={12}>
-                <Statistic
-                  title="Avg Conversion Rate"
-                  value={Number(
-                    salesPerformanceSummary.conversionRate.toFixed(1),
-                  )}
-                  suffix="%"
-                />
-              </Col>
-              <Col span={12}>
-                <Statistic
-                  title="Avg Deal Value"
-                  value={Number(
-                    salesPerformanceSummary.averageDealValue.toFixed(0),
-                  )}
-                  prefix={<DollarOutlined />}
-                />
-              </Col>
-            </Row>
-          </Card>
-        </Col>
-        <Col span={12}>
-          <Card title="Activities Summary">
-            <Row gutter={[16, 16]}>
-              <Col span={12}>
-                <Statistic
-                  title="Total"
-                  value={activitiesSummary?.totalActivities || 0}
-                  prefix={<BarChartOutlined />}
-                />
-              </Col>
-              <Col span={12}>
-                <Statistic
-                  title="Upcoming"
-                  value={activitiesSummary?.upcomingActivities || 0}
-                  prefix={<LineChartOutlined />}
-                />
-              </Col>
-              <Col span={12}>
-                <Statistic
-                  title="Overdue"
-                  value={activitiesSummary?.overdueActivities || 0}
-                  prefix={<FallOutlined />}
-                  valueStyle={{ color: "#cf1322" }}
-                />
-              </Col>
-              <Col span={12}>
-                <Statistic
-                  title="Completed"
-                  value={activitiesSummary?.completedActivities || 0}
-                  prefix={<CheckCircleOutlined />}
-                  valueStyle={{ color: "#3f8600" }}
-                />
-              </Col>
-            </Row>
-          </Card>
-        </Col>
-      </Row>
-
-      {/* Opportunities Report */}
-      <Card
-        title="Opportunities Report"
-        className={styles.opportunitiesCard}
-        extra={
-          <RangePicker
-            onChange={(dates) =>
-              setDateRange(dates as [dayjs.Dayjs, dayjs.Dayjs] | null)
-            }
-          />
-        }
-      >
-        <Spin spinning={isPending}>
-          <Table
-            dataSource={opportunityReport}
-            columns={oppColumns}
-            rowKey="id"
-            size="small"
-            pagination={{ pageSize: 10 }}
-          />
-        </Spin>
-      </Card>
-
-      {/* Sales by Period */}
-      <Card
-        title="Sales by Period"
-        extra={
-          <Select
-            value={groupBy}
-            onChange={setGroupBy}
-            className={styles.periodGroupSelect}
-            options={[
-              { label: "Monthly", value: "month" },
-              { label: "Weekly", value: "week" },
-            ]}
-          />
-        }
-      >
-        <Spin spinning={isPending}>
-          <Table
-            dataSource={salesByPeriod}
-            columns={salesColumns}
-            rowKey="period"
-            size="small"
-            pagination={false}
-          />
-        </Spin>
-      </Card>
+      <Tabs
+        activeKey={activeTab}
+        onChange={setActiveTab}
+        items={tabItems}
+        size="large"
+      />
     </div>
   );
 };
