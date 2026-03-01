@@ -1,7 +1,19 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, Row, Col, Spin, Alert, Typography, Divider } from "antd";
+import {
+  Card,
+  Row,
+  Col,
+  Spin,
+  Alert,
+  Typography,
+  Divider,
+  Button,
+  Table,
+  Tag,
+  Space,
+} from "antd";
 import {
   DashboardProvider,
   useDashboardActions,
@@ -9,11 +21,14 @@ import {
 import { useDashboardState } from "@/providers/dashboardProvider";
 import DashboardMetrics from "@/components/dashboards/dashboard/DashboardMetrics";
 import { useStyles } from "./style/page.style";
+import { useRouter } from "next/navigation";
+import dayjs from "dayjs";
 
-const { Title } = Typography;
+const { Title, Text } = Typography;
 
 const DashboardPage = () => {
   const { styles } = useStyles();
+  const router = useRouter();
   const {
     overview,
     pipelineMetrics,
@@ -29,7 +44,10 @@ const DashboardPage = () => {
     fetchPipelineMetrics,
     fetchActivitiesSummary,
     fetchSalesPerformance,
+    fetchExpiringContracts,
   } = useDashboardActions();
+
+  const [showExpiringAlert, setShowExpiringAlert] = useState(false);
 
   useEffect(() => {
     // Fetch all dashboard data on component mount
@@ -37,8 +55,72 @@ const DashboardPage = () => {
     fetchPipelineMetrics();
     fetchActivitiesSummary();
     fetchSalesPerformance();
-    //fetchContractsExpiring();
+    fetchExpiringContracts();
   }, []);
+
+  // Show alert when there are expiring contracts
+  useEffect(() => {
+    if (contractsExpiring && contractsExpiring.length > 0) {
+      setShowExpiringAlert(true);
+    }
+  }, [contractsExpiring]);
+
+  const handleRenewContract = (contractId: string) => {
+    router.push(`/contracts?renew=${contractId}`);
+  };
+
+  const handleViewContracts = () => {
+    router.push("/contracts?filter=expiring");
+  };
+
+  const expiringColumns = [
+    {
+      title: "Contract",
+      dataIndex: "contractNumber",
+      key: "contractNumber",
+      render: (text: string, record: any) => (
+        <Space direction="vertical" size={0}>
+          <Text strong>{text || "N/A"}</Text>
+          <Text type="secondary" style={{ fontSize: 12 }}>
+            {record.clientName}
+          </Text>
+        </Space>
+      ),
+    },
+    {
+      title: "Value",
+      dataIndex: "contractValue",
+      key: "contractValue",
+      render: (value: number, record: any) =>
+        value ? `${record.currency || "R"} ${value.toLocaleString()}` : "-",
+    },
+    {
+      title: "End Date",
+      dataIndex: "endDate",
+      key: "endDate",
+      render: (date: string) =>
+        date ? dayjs(date).format("DD MMM YYYY") : "N/A",
+    },
+    {
+      title: "Days Left",
+      dataIndex: "daysUntilExpiry",
+      key: "daysUntilExpiry",
+      render: (days: number) => (
+        <Tag color={days <= 7 ? "red" : days <= 30 ? "orange" : "default"}>
+          {days} days
+        </Tag>
+      ),
+    },
+    {
+      title: "Actions",
+      key: "actions",
+      render: (_: any, record: any) => (
+        <Button type="link" onClick={() => handleRenewContract(record.id)}>
+          Renew
+        </Button>
+      ),
+    },
+  ];
 
   if (loading) {
     return (
@@ -66,6 +148,52 @@ const DashboardPage = () => {
         <Title level={2} className={styles.pageTitle}>
           Sales Dashboard
         </Title>
+
+        {/* Expiring Contracts Alert */}
+        {showExpiringAlert &&
+          contractsExpiring &&
+          contractsExpiring.length > 0 && (
+            <Card style={{ marginBottom: 16, borderColor: "#ff4d4f" }} bordered>
+              <Alert
+                message={`${contractsExpiring.length} Contract${contractsExpiring.length > 1 ? "s" : ""} Expiring Soon`}
+                description={
+                  <div>
+                    <Text>
+                      You have {contractsExpiring.length} contract
+                      {contractsExpiring.length > 1 ? "s" : ""} expiring within
+                      the next 30 days. Please review and renew them to maintain
+                      customer relationships.
+                    </Text>
+                    <div style={{ marginTop: 12 }}>
+                      <Button
+                        type="primary"
+                        onClick={handleViewContracts}
+                        style={{ marginRight: 8 }}
+                      >
+                        View All Expiring Contracts
+                      </Button>
+                      <Button onClick={() => setShowExpiringAlert(false)}>
+                        Dismiss
+                      </Button>
+                    </div>
+                    {contractsExpiring.length <= 5 && (
+                      <div style={{ marginTop: 16 }}>
+                        <Table
+                          dataSource={contractsExpiring}
+                          columns={expiringColumns}
+                          rowKey="id"
+                          pagination={false}
+                          size="small"
+                        />
+                      </div>
+                    )}
+                  </div>
+                }
+                type="warning"
+                showIcon
+              />
+            </Card>
+          )}
 
         {/* Key Metrics */}
         <DashboardMetrics

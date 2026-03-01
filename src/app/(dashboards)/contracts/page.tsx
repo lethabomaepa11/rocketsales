@@ -95,6 +95,7 @@ const ContractsPage = () => {
   // Get pre-fill data from query params
   const prefillOpportunityId = searchParams.get("opportunityId");
   const isNewFromOpportunity = searchParams.get("new") === "true";
+  const renewContractId = searchParams.get("renew");
 
   // Get pre-fill values for the form
   const prefillValues =
@@ -120,6 +121,23 @@ const ContractsPage = () => {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const contractsList = toArray<ContractDto>(contracts);
+
+  // Handle renew query parameter - open renewal modal for specific contract
+  useEffect(() => {
+    if (renewContractId && contractsList.length > 0) {
+      const contractToRenew = contractsList.find(
+        (c) => c.id === renewContractId,
+      );
+      if (contractToRenew) {
+        fetchRenewals(contractToRenew.id);
+        // Use setTimeout to avoid setState in useEffect and clear the URL param
+        setTimeout(() => {
+          setRenewalContract(contractToRenew);
+          window.history.replaceState({}, "", "/contracts");
+        }, 0);
+      }
+    }
+  }, [renewContractId, contractsList, fetchRenewals]);
 
   // Get opportunity IDs that already have contracts
   const opportunityIdsWithContracts = new Set(

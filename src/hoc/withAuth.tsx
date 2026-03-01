@@ -55,7 +55,7 @@ export function withAuth<P extends object>(
       if (!user?.expiresAt) return;
 
       const interval = setInterval(() => {
-        if (Date.now() >= Date.parse(user.expiresAt)) {
+        if (Date.now() >= Date.parse(user.expiresAt || "")) {
           logoutUser();
           router.push(redirectTo);
         }
