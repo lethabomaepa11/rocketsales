@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     const bodyContent = `
       <p style="color:#555;font-size:16px;line-height:1.6;margin:0 0 8px;">
         ${inviterName ? `<strong>${inviterName}</strong> has invited you` : "You've been invited"} to join 
-        <strong>${organizationName || "an organization"}</strong> on RocketSales as a <strong>${formatRole(role)}</strong>.
+        <strong>an organization</strong> on RocketSales as a <strong>${formatRole(role)}</strong>.
       </p>
       <p style="color:#555;font-size:16px;line-height:1.6;margin:0 0 32px;">
         Click the button below to create your account and get started.

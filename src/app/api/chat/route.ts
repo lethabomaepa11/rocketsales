@@ -102,9 +102,17 @@ function sanitizeMessages(messages: RawMessage[]) {
         };
       }
 
-      // Fallback — pass through with just role and content
+      // System messages
+      if (msg.role === "system") {
+        return {
+          role: "system" as const,
+          content: msg.content || "",
+        };
+      }
+
+      // Fallback — default to user role if unknown to satisfy types
       return {
-        role: msg.role,
+        role: "user" as const,
         content: msg.content || "",
       };
     })
