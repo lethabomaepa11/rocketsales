@@ -31,7 +31,7 @@ export const OpportunityProvider = ({
 }) => {
   const [state, dispatch] = useReducer(OpportunityReducer, INITIAL_STATE);
   const instance = getAxiosInstance();
-  const { notification } = App.useApp();
+  const { notification, message } = App.useApp();
 
   const ensureSalesRepCanModifyOpportunity = useCallback(
     async (id: string): Promise<boolean> => {
@@ -88,13 +88,10 @@ export const OpportunityProvider = ({
         );
       } catch {
         dispatch(OpportunityActions.fetchOpportunitiesError());
-        notification.error({
-          title: "Error",
-          description: "Failed to fetch opportunities",
-        });
+        message.error("Failed to fetch opportunities");
       }
     },
-    [instance, notification],
+    [instance, message],
   );
 
   const fetchOpportunityById = useCallback(
@@ -119,13 +116,10 @@ export const OpportunityProvider = ({
         dispatch(OpportunityActions.fetchOpportunityByIdSuccess(response.data));
       } catch {
         dispatch(OpportunityActions.fetchOpportunityByIdError());
-        notification.error({
-          title: "Error",
-          description: "Failed to fetch opportunity",
-        });
+        message.error("Failed to fetch opportunity");
       }
     },
-    [instance, notification],
+    [instance, message, notification],
   );
 
   const fetchPipeline = useCallback(async () => {
@@ -181,19 +175,13 @@ export const OpportunityProvider = ({
       try {
         const response = await instance.post("/Opportunities", opportunity);
         dispatch(OpportunityActions.createOpportunitySuccess(response.data));
-        notification.success({
-          title: "Success",
-          description: "Opportunity created",
-        });
+        message.success("Opportunity created");
       } catch {
         dispatch(OpportunityActions.createOpportunityError());
-        notification.error({
-          title: "Error",
-          description: "Failed to create opportunity",
-        });
+        message.error("Failed to create opportunity");
       }
     },
-    [instance, notification],
+    [instance, message, notification],
   );
 
   const updateOpportunity = useCallback(
@@ -210,19 +198,13 @@ export const OpportunityProvider = ({
           opportunity,
         );
         dispatch(OpportunityActions.updateOpportunitySuccess(response.data));
-        notification.success({
-          title: "Success",
-          description: "Opportunity updated",
-        });
+        message.success("Opportunity updated");
       } catch {
         dispatch(OpportunityActions.updateOpportunityError());
-        notification.error({
-          title: "Error",
-          description: "Failed to update opportunity",
-        });
+        message.error("Failed to update opportunity");
       }
     },
-    [ensureSalesRepCanModifyOpportunity, instance, notification],
+    [ensureSalesRepCanModifyOpportunity, instance, message],
   );
 
   const deleteOpportunity = useCallback(
@@ -239,19 +221,13 @@ export const OpportunityProvider = ({
       try {
         await instance.delete(`/Opportunities/${id}`);
         dispatch(OpportunityActions.deleteOpportunitySuccess(id));
-        notification.success({
-          title: "Success",
-          description: "Opportunity deleted",
-        });
+        message.success("Opportunity deleted");
       } catch {
         dispatch(OpportunityActions.deleteOpportunityError());
-        notification.error({
-          title: "Error",
-          description: "Failed to delete opportunity",
-        });
+        message.error("Failed to delete opportunity");
       }
     },
-    [instance, notification],
+    [instance, message, notification],
   );
 
   const updateStage = useCallback(
@@ -265,20 +241,14 @@ export const OpportunityProvider = ({
       try {
         const response = await instance.put(`/Opportunities/${id}/stage`, data);
         dispatch(OpportunityActions.updateStageSuccess(response.data));
-        notification.success({
-          title: "Success",
-          description: "Stage updated",
-        });
+        message.success("Stage updated");
       } catch (error) {
         dispatch(OpportunityActions.updateStageError());
-        notification.error({
-          title: "Error",
-          description: "Failed to update stage",
-        });
+        message.error("Failed to update stage");
         throw error;
       }
     },
-    [ensureSalesRepCanModifyOpportunity, instance, notification],
+    [ensureSalesRepCanModifyOpportunity, instance, message],
   );
 
   const assignOpportunity = useCallback(
@@ -299,19 +269,13 @@ export const OpportunityProvider = ({
           data,
         );
         dispatch(OpportunityActions.assignOpportunitySuccess(response.data));
-        notification.success({
-          title: "Success",
-          description: "Opportunity assigned",
-        });
+        message.success("Opportunity assigned");
       } catch {
         dispatch(OpportunityActions.assignOpportunityError());
-        notification.error({
-          title: "Error",
-          description: "Failed to assign opportunity",
-        });
+        message.error("Failed to assign opportunity");
       }
     },
-    [instance, notification],
+    [instance, message, notification],
   );
 
   const setSelectedOpportunity = useCallback(

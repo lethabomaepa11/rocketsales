@@ -11,7 +11,7 @@ import { CreateNoteDto, UpdateNoteDto, NoteQueryParams } from "./types";
 export const NoteProvider = ({ children }: { children: React.ReactNode }) => {
   const [state, dispatch] = useReducer(NoteReducer, INITIAL_STATE);
   const instance = getAxiosInstance();
-  const { notification } = App.useApp();
+  const { message } = App.useApp();
 
   const fetchNotes = useCallback(
     async (params?: NoteQueryParams) => {
@@ -24,13 +24,10 @@ export const NoteProvider = ({ children }: { children: React.ReactNode }) => {
         dispatch(NoteActions.fetchNotesSuccess(data));
       } catch {
         dispatch(NoteActions.fetchNotesError());
-        notification.error({
-          message: "Error",
-          description: "Failed to fetch notes",
-        });
+        message.error("Failed to fetch notes");
       }
     },
-    [instance, notification],
+    [instance, message],
   );
 
   const fetchNoteById = useCallback(
@@ -52,19 +49,13 @@ export const NoteProvider = ({ children }: { children: React.ReactNode }) => {
       try {
         const response = await instance.post("/Notes", note);
         dispatch(NoteActions.createNoteSuccess(response.data));
-        notification.success({
-          message: "Success",
-          description: "Note created",
-        });
+        message.success("Note created");
       } catch {
         dispatch(NoteActions.createNoteError());
-        notification.error({
-          message: "Error",
-          description: "Failed to create note",
-        });
+        message.error("Failed to create note");
       }
     },
-    [instance, notification],
+    [instance, message],
   );
 
   const updateNote = useCallback(
@@ -73,19 +64,13 @@ export const NoteProvider = ({ children }: { children: React.ReactNode }) => {
       try {
         const response = await instance.put(`/Notes/${id}`, note);
         dispatch(NoteActions.updateNoteSuccess(response.data));
-        notification.success({
-          message: "Success",
-          description: "Note updated",
-        });
+        message.success("Note updated");
       } catch {
         dispatch(NoteActions.updateNoteError());
-        notification.error({
-          message: "Error",
-          description: "Failed to update note",
-        });
+        message.error("Failed to update note");
       }
     },
-    [instance, notification],
+    [instance, message],
   );
 
   const deleteNote = useCallback(
@@ -94,19 +79,13 @@ export const NoteProvider = ({ children }: { children: React.ReactNode }) => {
       try {
         await instance.delete(`/Notes/${id}`);
         dispatch(NoteActions.deleteNoteSuccess(id));
-        notification.success({
-          message: "Success",
-          description: "Note deleted",
-        });
+        message.success("Note deleted");
       } catch {
         dispatch(NoteActions.deleteNoteError());
-        notification.error({
-          message: "Error",
-          description: "Failed to delete note",
-        });
+        message.error("Failed to delete note");
       }
     },
-    [instance, notification],
+    [instance, message],
   );
 
   return (

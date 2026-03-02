@@ -210,7 +210,7 @@ export const ActivityChart = ({
                 <Progress
                   percent={completionRate}
                   strokeColor="#52c41a"
-                  trailColor="#f0f0f0"
+                  railColor="#f0f0f0"
                 />
               </div>
               <div style={{ marginBottom: 24 }}>
@@ -234,7 +234,7 @@ export const ActivityChart = ({
                 <Progress
                   percent={overdueRate}
                   strokeColor="#f5222d"
-                  trailColor="#f0f0f0"
+                  railColor="#f0f0f0"
                 />
               </div>
               <div>
@@ -269,7 +269,7 @@ export const ActivityChart = ({
                         ? "#faad14"
                         : "#f5222d"
                   }
-                  trailColor="#f0f0f0"
+                  railColor="#f0f0f0"
                 />
               </div>
             </div>

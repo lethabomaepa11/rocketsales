@@ -24,7 +24,7 @@ export const ContractProvider = ({
 }) => {
   const [state, dispatch] = useReducer(ContractReducer, INITIAL_STATE);
   const instance = getAxiosInstance();
-  const { notification } = App.useApp();
+  const { notification, message } = App.useApp();
 
   const fetchContracts = useCallback(
     async (params?: ContractQueryParams) => {
@@ -36,13 +36,10 @@ export const ContractProvider = ({
         );
       } catch {
         dispatch(ContractActions.fetchContractsError());
-        notification.error({
-          title: "Error",
-          description: "Failed to fetch contracts",
-        });
+        message.error("Failed to fetch contracts");
       }
     },
-    [instance, notification],
+    [instance, message],
   );
 
   const fetchContractById = useCallback(
@@ -74,19 +71,13 @@ export const ContractProvider = ({
       try {
         const response = await instance.post("/Contracts", contract);
         dispatch(ContractActions.createContractSuccess(response.data));
-        notification.success({
-          title: "Success",
-          description: "Contract created",
-        });
+        message.success("Contract created");
       } catch {
         dispatch(ContractActions.createContractError());
-        notification.error({
-          title: "Error",
-          description: "Failed to create contract",
-        });
+        message.error("Failed to create contract");
       }
     },
-    [instance, notification],
+    [instance, message],
   );
 
   const updateContract = useCallback(
@@ -95,19 +86,13 @@ export const ContractProvider = ({
       try {
         const response = await instance.put(`/Contracts/${id}`, contract);
         dispatch(ContractActions.updateContractSuccess(response.data));
-        notification.success({
-          title: "Success",
-          description: "Contract updated",
-        });
+        message.success("Contract updated");
       } catch {
         dispatch(ContractActions.updateContractError());
-        notification.error({
-          title: "Error",
-          description: "Failed to update contract",
-        });
+        message.error("Failed to update contract");
       }
     },
-    [instance, notification],
+    [instance, message],
   );
 
   const deleteContract = useCallback(
@@ -116,19 +101,13 @@ export const ContractProvider = ({
       try {
         await instance.delete(`/Contracts/${id}`);
         dispatch(ContractActions.deleteContractSuccess(id));
-        notification.success({
-          title: "Success",
-          description: "Contract deleted",
-        });
+        message.success("Contract deleted");
       } catch {
         dispatch(ContractActions.deleteContractError());
-        notification.error({
-          title: "Error",
-          description: "Failed to delete contract",
-        });
+        message.error("Failed to delete contract");
       }
     },
-    [instance, notification],
+    [instance, message],
   );
 
   const activateContract = useCallback(
@@ -137,19 +116,13 @@ export const ContractProvider = ({
       try {
         const response = await instance.put(`/Contracts/${id}/activate`);
         dispatch(ContractActions.updateContractSuccess(response.data));
-        notification.success({
-          title: "Success",
-          description: "Contract activated",
-        });
+        message.success("Contract activated");
       } catch {
         dispatch(ContractActions.updateContractError());
-        notification.error({
-          title: "Error",
-          description: "Failed to activate contract",
-        });
+        message.error("Failed to activate contract");
       }
     },
-    [instance, notification],
+    [instance, message],
   );
 
   const cancelContract = useCallback(
@@ -158,19 +131,13 @@ export const ContractProvider = ({
       try {
         const response = await instance.put(`/Contracts/${id}/cancel`);
         dispatch(ContractActions.updateContractSuccess(response.data));
-        notification.success({
-          title: "Success",
-          description: "Contract cancelled",
-        });
+        message.success("Contract cancelled");
       } catch {
         dispatch(ContractActions.updateContractError());
-        notification.error({
-          title: "Error",
-          description: "Failed to cancel contract",
-        });
+        message.error("Failed to cancel contract");
       }
     },
-    [instance, notification],
+    [instance, message],
   );
 
   const fetchRenewals = useCallback(
@@ -196,12 +163,12 @@ export const ContractProvider = ({
           data,
         );
         dispatch(ContractActions.createRenewalSuccess(response.data));
-        notification.success({ message: "Renewal created" });
+        message.success("Renewal created");
       } catch {
-        notification.error({ message: "Failed to create renewal" });
+        message.error("Failed to create renewal");
       }
     },
-    [instance, notification],
+    [instance, message],
   );
 
   const completeRenewal = useCallback(
@@ -211,12 +178,12 @@ export const ContractProvider = ({
           `/Contracts/renewals/${renewalId}/complete`,
         );
         dispatch(ContractActions.createRenewalSuccess(response.data));
-        notification.success({ message: "Renewal completed" });
+        message.success("Renewal completed");
       } catch {
-        notification.error({ message: "Failed to complete renewal" });
+        message.error("Failed to complete renewal");
       }
     },
-    [instance, notification],
+    [instance, message],
   );
 
   return (

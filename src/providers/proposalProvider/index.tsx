@@ -24,7 +24,7 @@ export const ProposalProvider = ({
 }) => {
   const [state, dispatch] = useReducer(ProposalReducer, INITIAL_STATE);
   const instance = getAxiosInstance();
-  const { notification } = App.useApp();
+  const { notification, message } = App.useApp();
 
   const fetchProposals = useCallback(
     async (params?: ProposalQueryParams) => {
@@ -36,13 +36,10 @@ export const ProposalProvider = ({
         );
       } catch {
         dispatch(ProposalActions.fetchProposalsError());
-        notification.error({
-          title: "Error",
-          description: "Failed to fetch proposals",
-        });
+        message.error("Failed to fetch proposals");
       }
     },
-    [instance, notification],
+    [instance, message],
   );
 
   const fetchProposalById = useCallback(
@@ -64,19 +61,13 @@ export const ProposalProvider = ({
       try {
         const response = await instance.post("/Proposals", proposal);
         dispatch(ProposalActions.createProposalSuccess(response.data));
-        notification.success({
-          title: "Success",
-          description: "Proposal created",
-        });
+        message.success("Proposal created");
       } catch {
         dispatch(ProposalActions.createProposalError());
-        notification.error({
-          title: "Error",
-          description: "Failed to create proposal",
-        });
+        message.error("Failed to create proposal");
       }
     },
-    [instance, notification],
+    [instance, message],
   );
 
   const updateProposal = useCallback(
@@ -85,19 +76,13 @@ export const ProposalProvider = ({
       try {
         const response = await instance.put(`/Proposals/${id}`, proposal);
         dispatch(ProposalActions.updateProposalSuccess(response.data));
-        notification.success({
-          title: "Success",
-          description: "Proposal updated",
-        });
+        message.success("Proposal updated");
       } catch {
         dispatch(ProposalActions.updateProposalError());
-        notification.error({
-          title: "Error",
-          description: "Failed to update proposal",
-        });
+        message.error("Failed to update proposal");
       }
     },
-    [instance, notification],
+    [instance, message],
   );
 
   const deleteProposal = useCallback(
@@ -106,19 +91,13 @@ export const ProposalProvider = ({
       try {
         await instance.delete(`/Proposals/${id}`);
         dispatch(ProposalActions.deleteProposalSuccess(id));
-        notification.success({
-          title: "Success",
-          description: "Proposal deleted",
-        });
+        message.success("Proposal deleted");
       } catch {
         dispatch(ProposalActions.deleteProposalError());
-        notification.error({
-          title: "Error",
-          description: "Failed to delete proposal",
-        });
+        message.error("Failed to delete proposal");
       }
     },
-    [instance, notification],
+    [instance, message],
   );
 
   const submitProposal = useCallback(
@@ -127,19 +106,13 @@ export const ProposalProvider = ({
       try {
         const response = await instance.put(`/Proposals/${id}/submit`);
         dispatch(ProposalActions.updateProposalSuccess(response.data));
-        notification.success({
-          title: "Success",
-          description: "Proposal submitted",
-        });
+        message.success("Proposal submitted");
       } catch {
         dispatch(ProposalActions.updateProposalError());
-        notification.error({
-          title: "Error",
-          description: "Failed to submit proposal",
-        });
+        message.error("Failed to submit proposal");
       }
     },
-    [instance, notification],
+    [instance, message],
   );
 
   const approveProposal = useCallback(
@@ -148,19 +121,13 @@ export const ProposalProvider = ({
       try {
         const response = await instance.put(`/Proposals/${id}/approve`);
         dispatch(ProposalActions.updateProposalSuccess(response.data));
-        notification.success({
-          title: "Success",
-          description: "Proposal approved",
-        });
+        message.success("Proposal approved");
       } catch {
         dispatch(ProposalActions.updateProposalError());
-        notification.error({
-          title: "Error",
-          description: "Failed to approve proposal",
-        });
+        message.error("Failed to approve proposal");
       }
     },
-    [instance, notification],
+    [instance, message],
   );
 
   const rejectProposal = useCallback(
@@ -169,19 +136,13 @@ export const ProposalProvider = ({
       try {
         const response = await instance.put(`/Proposals/${id}/reject`);
         dispatch(ProposalActions.updateProposalSuccess(response.data));
-        notification.success({
-          title: "Success",
-          description: "Proposal rejected",
-        });
+        message.success("Proposal rejected");
       } catch {
         dispatch(ProposalActions.updateProposalError());
-        notification.error({
-          title: "Error",
-          description: "Failed to reject proposal",
-        });
+        message.error("Failed to reject proposal");
       }
     },
-    [instance, notification],
+    [instance, message],
   );
 
   const addLineItem = useCallback(
@@ -190,12 +151,12 @@ export const ProposalProvider = ({
         await instance.post(`/Proposals/${proposalId}/line-items`, item);
         const res = await instance.get(`/Proposals/${proposalId}`);
         dispatch(ProposalActions.setSelectedProposal(res.data));
-        notification.success({ message: "Line item added" });
+        message.success("Line item added");
       } catch {
-        notification.error({ message: "Failed to add line item" });
+        message.error("Failed to add line item");
       }
     },
-    [instance, notification],
+    [instance, message],
   );
 
   const updateLineItem = useCallback(
@@ -211,12 +172,12 @@ export const ProposalProvider = ({
         );
         const res = await instance.get(`/Proposals/${proposalId}`);
         dispatch(ProposalActions.setSelectedProposal(res.data));
-        notification.success({ message: "Line item updated" });
+        message.success("Line item updated");
       } catch {
-        notification.error({ message: "Failed to update line item" });
+        message.error("Failed to update line item");
       }
     },
-    [instance, notification],
+    [instance, message],
   );
 
   const deleteLineItem = useCallback(
@@ -227,12 +188,12 @@ export const ProposalProvider = ({
         );
         const res = await instance.get(`/Proposals/${proposalId}`);
         dispatch(ProposalActions.setSelectedProposal(res.data));
-        notification.success({ message: "Line item removed" });
+        message.success("Line item removed");
       } catch {
-        notification.error({ message: "Failed to remove line item" });
+        message.error("Failed to remove line item");
       }
     },
-    [instance, notification],
+    [instance, message],
   );
 
   return (

@@ -23,7 +23,7 @@ export const StageTemplateProvider = ({
   children: React.ReactNode;
 }) => {
   const [state, dispatch] = useReducer(StageTemplateReducer, INITIAL_STATE);
-  const { notification } = App.useApp();
+  const { notification, message } = App.useApp();
 
   // Load templates on mount
   const loadTemplates = useCallback(() => {
@@ -48,19 +48,13 @@ export const StageTemplateProvider = ({
       try {
         saveCustomTemplates(templates);
         dispatch(StageTemplateActions.saveTemplatesSuccess());
-        notification.success({
-          title: "Success",
-          description: "Stage trigger templates saved",
-        });
+        message.success("Stage trigger templates saved");
       } catch {
         dispatch(StageTemplateActions.saveTemplatesError());
-        notification.error({
-          title: "Error",
-          description: "Failed to save templates",
-        });
+        message.error("Failed to save templates");
       }
     },
-    [notification],
+    [message],
   );
 
   // Update a single template

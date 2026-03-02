@@ -173,7 +173,7 @@ const DashboardMetrics = ({
               <Progress
                 percent={overdueRatio}
                 strokeColor="#ef4444"
-                trailColor="#f0f0f0"
+                railColor="#f0f0f0"
                 size="small"
                 format={(p) => (
                   <span className={styles.progressPercent}>{p}%</span>
@@ -215,7 +215,7 @@ const DashboardMetrics = ({
                     : 0
                 }
                 strokeColor="#2563eb"
-                trailColor="#e8e8e0"
+                railColor="#e8e8e0"
                 size="small"
               />
             </div>
@@ -256,7 +256,7 @@ const DashboardMetrics = ({
                 percent={Math.min(winRate, 100)}
                 success={{ percent: 30, strokeColor: "#e8e8e0" }}
                 strokeColor={winRate >= 30 ? "#16a34a" : "#f97316"}
-                trailColor="#f0f0f0"
+                railColor="#f0f0f0"
                 size="small"
               />
             </div>

@@ -16,7 +16,7 @@ import { ClientQueryParams, CreateClientDto, UpdateClientDto } from "./types";
 export const ClientProvider = ({ children }: { children: React.ReactNode }) => {
   const [state, dispatch] = useReducer(ClientReducer, INITIAL_STATE);
   const instance = getAxiosInstance();
-  const { notification } = App.useApp();
+  const { notification, message } = App.useApp();
 
   const fetchClients = useCallback(
     async (params?: ClientQueryParams) => {
@@ -26,13 +26,10 @@ export const ClientProvider = ({ children }: { children: React.ReactNode }) => {
         dispatch(ClientActions.fetchClientsSuccess(response.data.items || []));
       } catch (error) {
         dispatch(ClientActions.fetchClientsError());
-        notification.error({
-          title: "Error",
-          description: "Failed to fetch clients",
-        });
+        message.error("Failed to fetch clients");
       }
     },
-    [instance, notification],
+    [instance, message],
   );
 
   const fetchClientById = useCallback(
@@ -43,13 +40,10 @@ export const ClientProvider = ({ children }: { children: React.ReactNode }) => {
         dispatch(ClientActions.fetchClientByIdSuccess(response.data));
       } catch (error) {
         dispatch(ClientActions.fetchClientByIdError());
-        notification.error({
-          title: "Error",
-          description: "Failed to fetch client details",
-        });
+        message.error("Failed to fetch client details");
       }
     },
-    [instance, notification],
+    [instance, message],
   );
 
   const fetchClientStats = useCallback(
@@ -60,13 +54,10 @@ export const ClientProvider = ({ children }: { children: React.ReactNode }) => {
         dispatch(ClientActions.fetchClientStatsSuccess(response.data));
       } catch (error) {
         dispatch(ClientActions.fetchClientStatsError());
-        notification.error({
-          title: "Error",
-          description: "Failed to fetch client stats",
-        });
+        message.error("Failed to fetch client stats");
       }
     },
-    [instance, notification],
+    [instance, message],
   );
 
   const createClient = useCallback(
@@ -75,21 +66,15 @@ export const ClientProvider = ({ children }: { children: React.ReactNode }) => {
       try {
         const response = await instance.post("/Clients", client);
         dispatch(ClientActions.createClientSuccess(response.data));
-        notification.success({
-          title: "Success",
-          description: "Client created successfully",
-        });
+        message.success("Client created successfully");
         return response.data;
       } catch (error) {
         dispatch(ClientActions.createClientError());
-        notification.error({
-          title: "Error",
-          description: "Failed to create client",
-        });
+        message.error("Failed to create client");
         throw error;
       }
     },
-    [instance, notification],
+    [instance, message],
   );
 
   const updateClient = useCallback(
@@ -98,19 +83,13 @@ export const ClientProvider = ({ children }: { children: React.ReactNode }) => {
       try {
         const response = await instance.put(`/Clients/${id}`, client);
         dispatch(ClientActions.updateClientSuccess(response.data));
-        notification.success({
-          title: "Success",
-          description: "Client updated successfully",
-        });
+        message.success("Client updated successfully");
       } catch (error) {
         dispatch(ClientActions.updateClientError());
-        notification.error({
-          title: "Error",
-          description: "Failed to update client",
-        });
+        message.error("Failed to update client");
       }
     },
-    [instance, notification],
+    [instance, message],
   );
 
   const deleteClient = useCallback(
@@ -119,19 +98,13 @@ export const ClientProvider = ({ children }: { children: React.ReactNode }) => {
       try {
         await instance.delete(`/Clients/${id}`);
         dispatch(ClientActions.deleteClientSuccess(id));
-        notification.success({
-          title: "Success",
-          description: "Client deleted successfully",
-        });
+        message.success("Client deleted successfully");
       } catch (error) {
         dispatch(ClientActions.deleteClientError());
-        notification.error({
-          title: "Error",
-          description: "Failed to delete client",
-        });
+        message.error("Failed to delete client");
       }
     },
-    [instance, notification],
+    [instance, message],
   );
 
   const setSelectedClient = useCallback(

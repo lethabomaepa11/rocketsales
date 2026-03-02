@@ -324,7 +324,7 @@ const ClientsPage = () => {
             setDetailsDrawerOpen(false);
             setSelectedClient(null);
           }}
-          width={600}
+          size={600}
         >
           {selectedClient && (
             <EntityDetailsTabs
