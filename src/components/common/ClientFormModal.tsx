@@ -44,9 +44,7 @@ export const ClientFormModal: React.FC<ClientFormModalProps> = ({
       const createdClient = await createClient(values as CreateClientDto);
       onSuccess(createdClient);
       form.resetFields();
-    } catch (error) {
-      console.error("Failed to create client:", error);
-    }
+    } catch (error) {}
   };
 
   const handleCancel = () => {

@@ -15,6 +15,7 @@ import {
   Typography,
   Popconfirm,
   Tooltip,
+  message,
 } from "antd";
 import {
   PlusOutlined,
@@ -191,7 +192,7 @@ const PricingRequestsPage = () => {
       setIsModalVisible(false);
       refreshPricingRequests();
     } catch (error) {
-      console.error("Validation failed:", error);
+      message.error(`Validation failed: ${error}`);
     }
   };
 

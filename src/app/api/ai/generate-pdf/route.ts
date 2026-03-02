@@ -28,7 +28,6 @@ export async function POST(request: NextRequest) {
       message: "PDF generated successfully",
     });
   } catch (error) {
-    console.error("PDF Generation API Error:", error);
     const err = error as { message?: string };
     return NextResponse.json(
       { error: "Failed to generate PDF", details: err.message },

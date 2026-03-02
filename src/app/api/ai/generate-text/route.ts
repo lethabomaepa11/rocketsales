@@ -78,7 +78,6 @@ Generate professional, concise text based on the user's request.`;
       content: generatedText,
     });
   } catch (error) {
-    console.error("AI Generate Text Error:", error);
     return NextResponse.json(
       {
         error:

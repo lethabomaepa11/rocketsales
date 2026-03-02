@@ -1,18 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import {
-  Card,
-  Row,
-  Col,
-  Spin,
-  Alert,
-  Typography,
-  Button,
-  Table,
-  Tag,
-  Space,
-} from "antd";
+import { Card, Spin, Alert, Typography, Button, Table, Tag, Space } from "antd";
 import {
   DashboardProvider,
   useDashboardActions,
@@ -55,7 +44,9 @@ const DashboardPage = () => {
     fetchExpiringContracts,
   } = useDashboardActions();
 
-  const [showExpiringAlert, setShowExpiringAlert] = useState(false);
+  const [isDismissed, setIsDismissed] = useState(false);
+  const showExpiringAlert =
+    !isDismissed && contractsExpiring && contractsExpiring.length > 0;
 
   useEffect(() => {
     fetchOverview();
@@ -64,12 +55,6 @@ const DashboardPage = () => {
     fetchSalesPerformance();
     fetchExpiringContracts();
   }, []);
-
-  useEffect(() => {
-    if (contractsExpiring && contractsExpiring.length > 0) {
-      setShowExpiringAlert(true);
-    }
-  }, [contractsExpiring]);
 
   const handleRenewContract = (contractId: string) => {
     router.push(`/contracts?renew=${contractId}`);
@@ -194,7 +179,7 @@ const DashboardPage = () => {
                       >
                         View All Expiring Contracts
                       </Button>
-                      <Button onClick={() => setShowExpiringAlert(false)}>
+                      <Button onClick={() => setIsDismissed(true)}>
                         Dismiss
                       </Button>
                     </div>

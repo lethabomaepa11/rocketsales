@@ -94,7 +94,6 @@ const OpportunitiesTable: React.FC<OpportunitiesTableProps> = ({
       form.resetFields();
       fetchOpportunities({ clientId });
     } catch (error) {
-      console.error("Failed to create opportunity:", error);
       message.error("Failed to create opportunity");
     } finally {
       setIsSubmitting(false);

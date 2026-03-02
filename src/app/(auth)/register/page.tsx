@@ -2,7 +2,17 @@
 
 import React, { Suspense, useEffect, useMemo } from "react";
 import type { FormProps } from "antd";
-import { Button, Col, Form, Input, Row, Spin, Tag, Typography } from "antd";
+import {
+  Button,
+  Col,
+  Form,
+  Input,
+  message,
+  Row,
+  Spin,
+  Tag,
+  Typography,
+} from "antd";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useStyles as useAuthStyles } from "../style/authStyles";
@@ -59,7 +69,7 @@ const RegisterForm = () => {
         return data;
       }
     } catch {
-      console.error("Invalid invitation token");
+      message.error("Invalid invitation token");
     }
     return null;
   }, [searchParams]);

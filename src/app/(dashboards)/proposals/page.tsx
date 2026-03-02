@@ -17,6 +17,7 @@ import {
   Tabs,
   Tooltip,
   Drawer,
+  message,
 } from "antd";
 import {
   PlusOutlined,
@@ -105,16 +106,43 @@ const ProposalsPage = () => {
   const prefillOpportunityId = searchParams.get("opportunityId");
   const prefillClientId = searchParams.get("clientId");
   const prefillClientName = searchParams.get("clientName");
+  const prefillTitle = searchParams.get("title");
+  const prefillDescription = searchParams.get("description");
+  const prefillValidUntil = searchParams.get("validUntil");
+  const prefillLineItemsJson = searchParams.get("lineItems");
   const isNewFromOpportunity = searchParams.get("new") === "true";
 
-  // Pre-filled values for new proposal from opportunity
+  // Parse line items from query param
+  const prefillLineItems = useMemo(() => {
+    if (!prefillLineItemsJson) return [];
+    try {
+      return JSON.parse(
+        decodeURIComponent(prefillLineItemsJson),
+      ) as CreateProposalLineItemDto[];
+    } catch {
+      return [];
+    }
+  }, [prefillLineItemsJson]);
+
+  // Pre-filled values for new proposal from opportunity or pricing request
   const prefillValues = useMemo(() => {
     if (!isNewFromOpportunity || !prefillOpportunityId) return undefined;
     return {
       opportunityId: prefillOpportunityId,
-      title: prefillClientName ? `${prefillClientName} - Proposal` : undefined,
+      title:
+        prefillTitle ||
+        (prefillClientName ? `${prefillClientName} - Proposal` : undefined),
+      description: prefillDescription || undefined,
+      validUntil: prefillValidUntil ? dayjs(prefillValidUntil) : undefined,
     };
-  }, [isNewFromOpportunity, prefillOpportunityId, prefillClientName]);
+  }, [
+    isNewFromOpportunity,
+    prefillOpportunityId,
+    prefillClientName,
+    prefillTitle,
+    prefillDescription,
+    prefillValidUntil,
+  ]);
 
   // Initialize modal visibility based on URL params
   useEffect(() => {
@@ -122,12 +150,27 @@ const ProposalsPage = () => {
       setIsModalVisible(true);
       form.setFieldsValue({
         opportunityId: prefillOpportunityId,
-        title: prefillClientName
-          ? `${prefillClientName} - Proposal`
-          : undefined,
+        title:
+          prefillTitle ||
+          (prefillClientName ? `${prefillClientName} - Proposal` : undefined),
+        description: prefillDescription || undefined,
+        validUntil: prefillValidUntil ? dayjs(prefillValidUntil) : null,
       });
+      // Pre-fill line items if available
+      if (prefillLineItems.length > 0) {
+        setLineItems(prefillLineItems);
+      }
     }
-  }, [isNewFromOpportunity, prefillOpportunityId, prefillClientName, form]);
+  }, [
+    isNewFromOpportunity,
+    prefillOpportunityId,
+    prefillClientName,
+    prefillTitle,
+    prefillDescription,
+    prefillValidUntil,
+    prefillLineItems,
+    form,
+  ]);
 
   useEffect(() => {
     fetchProposals();
@@ -193,7 +236,7 @@ const ProposalsPage = () => {
         window.history.replaceState({}, "", "/proposals");
       }
     } catch (error) {
-      console.error("Validation failed:", error);
+      message.error("Validation failed");
     }
   };
 
@@ -207,7 +250,7 @@ const ProposalsPage = () => {
       setRejectingId(null);
       fetchProposals();
     } catch (error) {
-      console.error("Reject failed:", error);
+      message.error("Reject failed");
     }
   };
 

@@ -91,7 +91,6 @@ const ContractsTable: React.FC<ContractsTableProps> = ({
       form.resetFields();
       fetchContracts({ clientId });
     } catch (error) {
-      console.error("Failed to create contract:", error);
       message.error("Failed to create contract");
     } finally {
       setIsSubmitting(false);

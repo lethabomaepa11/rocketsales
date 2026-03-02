@@ -71,7 +71,6 @@ export async function POST(request: NextRequest) {
       message: `Invitation sent to ${email}`,
     });
   } catch (error: unknown) {
-    console.error("Failed to send invitation email:", error);
     const err = error as { message?: string };
     return NextResponse.json(
       { error: "Failed to send invitation email", details: err.message },

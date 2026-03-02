@@ -1,4 +1,4 @@
-import { Modal, Form, Input, Select, Switch } from "antd";
+import { Modal, Form, Input, Select, Switch, message } from "antd";
 import { ClientDto } from "@/providers/clientProvider/types";
 import {
   ContactDto,
@@ -32,7 +32,7 @@ const ContactForm: React.FC<ContactFormProps> = ({
           const values = await form.validateFields();
           onOk(values);
         } catch (error) {
-          console.error("Validation failed:", error);
+          message.error("Validation failed:");
         }
       }}
       onCancel={onCancel}

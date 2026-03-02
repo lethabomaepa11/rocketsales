@@ -147,7 +147,7 @@ const ContractsPage = () => {
         }, 0);
       }
     }
-  }, [renewContractId, contractsList, fetchRenewals]);
+  }, [renewContractId, contractsList]);
 
   // Get opportunity IDs that already have contracts
   const opportunityIdsWithContracts = new Set(
