@@ -19,7 +19,7 @@ export const DocumentProvider = ({
 }) => {
   const [state, dispatch] = useReducer(DocumentReducer, INITIAL_STATE);
   const instance = getAxiosInstance();
-  const { notification } = App.useApp();
+  const { notification, message } = App.useApp();
 
   const fetchDocuments = useCallback(
     async (params?: DocumentQueryParams) => {
@@ -32,13 +32,10 @@ export const DocumentProvider = ({
         dispatch(DocActions.fetchDocumentsSuccess(data));
       } catch {
         dispatch(DocActions.fetchDocumentsError());
-        notification.error({
-          message: "Error",
-          description: "Failed to fetch documents",
-        });
+        message.error("Failed to fetch documents");
       }
     },
-    [instance, notification],
+    [instance, message],
   );
 
   const fetchDocumentById = useCallback(
@@ -73,19 +70,13 @@ export const DocumentProvider = ({
           headers: { "Content-Type": "multipart/form-data" },
         });
         dispatch(DocActions.uploadDocumentSuccess(response.data));
-        notification.success({
-          message: "Success",
-          description: "Document uploaded",
-        });
+        message.success("Document uploaded");
       } catch {
         dispatch(DocActions.uploadDocumentError());
-        notification.error({
-          message: "Error",
-          description: "Failed to upload document",
-        });
+        message.error("Failed to upload document");
       }
     },
-    [instance, notification],
+    [instance, message],
   );
 
   const downloadDocument = useCallback(
@@ -103,13 +94,10 @@ export const DocumentProvider = ({
         link.remove();
         window.URL.revokeObjectURL(url);
       } catch {
-        notification.error({
-          message: "Error",
-          description: "Failed to download document",
-        });
+        message.error("Failed to download document");
       }
     },
-    [instance, notification],
+    [instance, message],
   );
 
   const deleteDocument = useCallback(
@@ -118,19 +106,13 @@ export const DocumentProvider = ({
       try {
         await instance.delete(`/Documents/${id}`);
         dispatch(DocActions.deleteDocumentSuccess(id));
-        notification.success({
-          message: "Success",
-          description: "Document deleted",
-        });
+        message.success("Document deleted");
       } catch {
         dispatch(DocActions.deleteDocumentError());
-        notification.error({
-          message: "Error",
-          description: "Failed to delete document",
-        });
+        message.error("Failed to delete document");
       }
     },
-    [instance, notification],
+    [instance, message],
   );
 
   return (

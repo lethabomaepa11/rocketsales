@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { App } from "antd";
+import { App, message } from "antd";
 import { generatePDF, downloadPDF, PDFDocumentData } from "@/utils/pdfGenerator";
 import { useDashboardState, useDashboardActions } from "@/providers/dashboardProvider";
 import { useReportState, useReportActions } from "@/providers/reportProvider";
@@ -162,9 +162,9 @@ export const useReportPDF = () => {
       const fileName = `RocketSales_Report_${dayjs().format("YYYY-MM-DD")}`;
       downloadPDF(pdfUri, fileName);
       
-      notification.success({ message: "PDF report downloaded successfully" });
+      message.success("PDF report downloaded successfully");
     } catch (error) {
-      notification.error({ message: "Failed to generate PDF report" });
+      message.error("Failed to generate PDF report");
     } finally {
       setIsGenerating(false);
     }

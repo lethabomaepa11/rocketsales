@@ -5,8 +5,9 @@ import { Card, Spin, Alert, Typography, Button, Table, Tag, Space } from "antd";
 import {
   DashboardProvider,
   useDashboardActions,
+  useDashboardState,
 } from "@/providers/dashboardProvider";
-import { useDashboardState } from "@/providers/dashboardProvider";
+import { ContractExpiryDto } from "@/providers/dashboardProvider/types";
 import DashboardMetrics from "@/components/dashboards/dashboard/DashboardMetrics";
 import InviteUserModal from "@/components/common/InviteUserModal";
 import {
@@ -26,6 +27,8 @@ const DashboardPage = () => {
   const { styles } = useStyles();
   const router = useRouter();
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
+  const [isDismissed, setIsDismissed] = useState(false);
+
   const {
     overview,
     pipelineMetrics,
@@ -44,7 +47,6 @@ const DashboardPage = () => {
     fetchExpiringContracts,
   } = useDashboardActions();
 
-  const [isDismissed, setIsDismissed] = useState(false);
   const showExpiringAlert =
     !isDismissed && contractsExpiring && contractsExpiring.length > 0;
 
@@ -69,7 +71,7 @@ const DashboardPage = () => {
       title: "Contract",
       dataIndex: "contractNumber",
       key: "contractNumber",
-      render: (text: string, record: any) => (
+      render: (text: string | null, record: ContractExpiryDto) => (
         <Space direction="vertical" size={0}>
           <Text strong>{text || "N/A"}</Text>
           <Text type="secondary" style={{ fontSize: 12 }}>
@@ -82,7 +84,7 @@ const DashboardPage = () => {
       title: "Value",
       dataIndex: "contractValue",
       key: "contractValue",
-      render: (value: number, record: any) =>
+      render: (value: number, record: ContractExpiryDto) =>
         value ? `${record.currency || "R"} ${value.toLocaleString()}` : "-",
     },
     {
@@ -105,7 +107,7 @@ const DashboardPage = () => {
     {
       title: "Actions",
       key: "actions",
-      render: (_: any, record: any) => (
+      render: (_: unknown, record: ContractExpiryDto) => (
         <Button type="link" onClick={() => handleRenewContract(record.id)}>
           Renew
         </Button>
@@ -134,122 +136,123 @@ const DashboardPage = () => {
   }
 
   return (
-    <DashboardProvider>
-      <div className={styles.pageContainer}>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: 16,
-          }}
+    <div className={styles.pageContainer}>
+      {/* Header */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: 16,
+        }}
+      >
+        <Title level={2} className={styles.pageTitle} style={{ margin: 0 }}>
+          Sales Dashboard
+        </Title>
+        <Button
+          type="primary"
+          icon={<UserAddOutlined />}
+          onClick={() => setInviteModalOpen(true)}
         >
-          <Title level={2} className={styles.pageTitle} style={{ margin: 0 }}>
-            Sales Dashboard
-          </Title>
-          <Button
-            type="primary"
-            icon={<UserAddOutlined />}
-            onClick={() => setInviteModalOpen(true)}
-          >
-            Invite Team Member
-          </Button>
-        </div>
+          Invite Team Member
+        </Button>
+      </div>
 
-        {/* Expiring Contracts Alert */}
-        {showExpiringAlert &&
-          contractsExpiring &&
-          contractsExpiring.length > 0 && (
-            <Card style={{ marginBottom: 16, borderColor: "#ff4d4f" }} bordered>
-              <Alert
-                message={`${contractsExpiring.length} Contract${contractsExpiring.length > 1 ? "s" : ""} Expiring Soon`}
-                description={
-                  <div>
-                    <Text>
-                      You have {contractsExpiring.length} contract
-                      {contractsExpiring.length > 1 ? "s" : ""} expiring within
-                      the next 30 days. Please review and renew them to maintain
-                      customer relationships.
-                    </Text>
-                    <div style={{ marginTop: 12 }}>
-                      <Button
-                        type="primary"
-                        onClick={handleViewContracts}
-                        style={{ marginRight: 8 }}
-                      >
-                        View All Expiring Contracts
-                      </Button>
-                      <Button onClick={() => setIsDismissed(true)}>
-                        Dismiss
-                      </Button>
-                    </div>
-                    {contractsExpiring.length <= 5 && (
-                      <div style={{ marginTop: 16 }}>
-                        <Table
-                          dataSource={contractsExpiring}
-                          columns={expiringColumns}
-                          rowKey="id"
-                          pagination={false}
-                          size="small"
-                        />
-                      </div>
-                    )}
+      {/* Expiring Contracts Alert */}
+      {showExpiringAlert &&
+        contractsExpiring &&
+        contractsExpiring.length > 0 && (
+          <Card style={{ marginBottom: 16, borderColor: "#ff4d4f" }} bordered>
+            <Alert
+              message={`${contractsExpiring.length} Contract${
+                contractsExpiring.length > 1 ? "s" : ""
+              } Expiring Soon`}
+              description={
+                <div>
+                  <Text>
+                    You have {contractsExpiring.length} contract
+                    {contractsExpiring.length > 1 ? "s" : ""} expiring within
+                    the next 30 days. Please review and renew them to maintain
+                    customer relationships.
+                  </Text>
+                  <div style={{ marginTop: 12 }}>
+                    <Button
+                      type="primary"
+                      onClick={handleViewContracts}
+                      style={{ marginRight: 8 }}
+                    >
+                      View All Expiring Contracts
+                    </Button>
+                    <Button onClick={() => setIsDismissed(true)}>
+                      Dismiss
+                    </Button>
                   </div>
-                }
-                type="warning"
-                showIcon
-              />
-            </Card>
-          )}
+                  {contractsExpiring.length <= 5 && (
+                    <div style={{ marginTop: 16 }}>
+                      <Table
+                        dataSource={contractsExpiring}
+                        columns={expiringColumns}
+                        rowKey="id"
+                        pagination={false}
+                        size="small"
+                      />
+                    </div>
+                  )}
+                </div>
+              }
+              type="warning"
+              showIcon
+            />
+          </Card>
+        )}
 
-        {/* Key Metrics */}
-        <DashboardMetrics
-          overview={overview}
-          activitiesSummary={activitiesSummary}
-        />
+      {/* Key Metrics */}
+      <DashboardMetrics
+        overview={overview}
+        activitiesSummary={activitiesSummary}
+      />
 
-        {/* Revenue Trend Chart */}
-        <div style={{ marginTop: 16 }}>
-          <RevenueTrendChart
-            monthlyTrend={overview?.revenue?.monthlyTrend}
-            loading={loading}
-            title="Revenue Trend Analysis"
-          />
-        </div>
-
-        {/* Pipeline Funnel Chart */}
-        <div style={{ marginTop: 16 }}>
-          <PipelineFunnelChart
-            stages={pipelineMetrics?.stages}
-            loading={loading}
-            title="Pipeline Funnel Analysis"
-          />
-        </div>
-
-        {/* Sales Performance Chart */}
-        <div style={{ marginTop: 16 }}>
-          <SalesPerformanceChart
-            salesPerformance={salesPerformance}
-            loading={loading}
-            title="Sales Team Performance"
-          />
-        </div>
-
-        {/* Activity Chart */}
-        <div style={{ marginTop: 16 }}>
-          <ActivityChart
-            activitiesSummary={activitiesSummary}
-            loading={loading}
-            title="Activity Overview"
-          />
-        </div>
-
-        <InviteUserModal
-          open={inviteModalOpen}
-          onClose={() => setInviteModalOpen(false)}
+      {/* Revenue Trend Chart */}
+      <div style={{ marginTop: 16 }}>
+        <RevenueTrendChart
+          monthlyTrend={overview?.revenue?.monthlyTrend}
+          loading={loading}
+          title="Revenue Trend Analysis"
         />
       </div>
-    </DashboardProvider>
+
+      {/* Pipeline Funnel Chart */}
+      <div style={{ marginTop: 16 }}>
+        <PipelineFunnelChart
+          stages={pipelineMetrics?.stages}
+          loading={loading}
+          title="Pipeline Funnel Analysis"
+        />
+      </div>
+
+      {/* Sales Performance Chart */}
+      <div style={{ marginTop: 16 }}>
+        <SalesPerformanceChart
+          salesPerformance={salesPerformance}
+          loading={loading}
+          title="Sales Team Performance"
+        />
+      </div>
+
+      {/* Activity Chart */}
+      <div style={{ marginTop: 16 }}>
+        <ActivityChart
+          activitiesSummary={activitiesSummary}
+          loading={loading}
+          title="Activity Overview"
+        />
+      </div>
+
+      <InviteUserModal
+        open={inviteModalOpen}
+        onClose={() => setInviteModalOpen(false)}
+      />
+    </div>
   );
 };
 

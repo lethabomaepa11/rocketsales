@@ -28,7 +28,7 @@ export const PricingRequestProvider = ({
 }) => {
   const [state, dispatch] = useReducer(PricingRequestReducer, INITIAL_STATE);
   const instance = getAxiosInstance();
-  const { notification } = App.useApp();
+  const { notification, message } = App.useApp();
 
   const isPricingRequestOwnedByCurrentUser = useCallback((request: unknown) => {
     const currentUserId = getCurrentUser()?.userId;
@@ -74,13 +74,10 @@ export const PricingRequestProvider = ({
         );
       } catch {
         dispatch(PricingRequestActions.fetchPricingRequestsError());
-        notification.error({
-          title: "Error",
-          description: "Failed to fetch pricing requests",
-        });
+        message.error("Failed to fetch pricing requests");
       }
     },
-    [instance, notification],
+    [instance, message],
   );
 
   const fetchPricingRequestById = useCallback(
@@ -154,19 +151,13 @@ export const PricingRequestProvider = ({
         dispatch(
           PricingRequestActions.createPricingRequestSuccess(response.data),
         );
-        notification.success({
-          title: "Success",
-          description: "Pricing request created",
-        });
+        message.success("Pricing request created");
       } catch {
         dispatch(PricingRequestActions.createPricingRequestError());
-        notification.error({
-          title: "Error",
-          description: "Failed to create pricing request",
-        });
+        message.error("Failed to create pricing request");
       }
     },
-    [instance, notification],
+    [instance, message],
   );
 
   const updatePricingRequest = useCallback(
@@ -181,19 +172,13 @@ export const PricingRequestProvider = ({
         dispatch(
           PricingRequestActions.updatePricingRequestSuccess(response.data),
         );
-        notification.success({
-          title: "Success",
-          description: "Pricing request updated",
-        });
+        message.success("Pricing request updated");
       } catch {
         dispatch(PricingRequestActions.updatePricingRequestError());
-        notification.error({
-          title: "Error",
-          description: "Failed to update pricing request",
-        });
+        message.error("Failed to update pricing request");
       }
     },
-    [blockSalesRepMutation, instance, notification],
+    [blockSalesRepMutation, instance, message],
   );
 
   const deletePricingRequest = useCallback(
@@ -206,19 +191,13 @@ export const PricingRequestProvider = ({
       try {
         await instance.delete(`/PricingRequests/${id}`);
         dispatch(PricingRequestActions.deletePricingRequestSuccess(id));
-        notification.success({
-          title: "Success",
-          description: "Pricing request deleted",
-        });
+        message.success("Pricing request deleted");
       } catch {
         dispatch(PricingRequestActions.deletePricingRequestError());
-        notification.error({
-          title: "Error",
-          description: "Failed to delete pricing request",
-        });
+        message.error("Failed to delete pricing request");
       }
     },
-    [blockSalesRepMutation, instance, notification],
+    [blockSalesRepMutation, instance, message],
   );
 
   const completePricingRequest = useCallback(
@@ -233,19 +212,13 @@ export const PricingRequestProvider = ({
         dispatch(
           PricingRequestActions.updatePricingRequestSuccess(response.data),
         );
-        notification.success({
-          title: "Success",
-          description: "Pricing request completed",
-        });
+        message.success("Pricing request completed");
       } catch {
         dispatch(PricingRequestActions.updatePricingRequestError());
-        notification.error({
-          title: "Error",
-          description: "Failed to complete pricing request",
-        });
+        message.error("Failed to complete pricing request");
       }
     },
-    [blockSalesRepMutation, instance, notification],
+    [blockSalesRepMutation, instance, message],
   );
 
   const assignPricingRequest = useCallback(
@@ -275,19 +248,13 @@ export const PricingRequestProvider = ({
         dispatch(
           PricingRequestActions.updatePricingRequestSuccess(response.data),
         );
-        notification.success({
-          title: "Success",
-          description: "Pricing request assigned",
-        });
+        message.success("Pricing request assigned");
       } catch {
         dispatch(PricingRequestActions.updatePricingRequestError());
-        notification.error({
-          title: "Error",
-          description: "Failed to assign pricing request",
-        });
+        message.error("Failed to assign pricing request");
       }
     },
-    [instance, notification],
+    [instance, message, notification],
   );
 
   return (

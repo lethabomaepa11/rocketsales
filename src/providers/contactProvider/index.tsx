@@ -24,7 +24,7 @@ export const ContactProvider = ({
 }) => {
   const [state, dispatch] = useReducer(ContactReducer, INITIAL_STATE);
   const instance = getAxiosInstance();
-  const { notification } = App.useApp();
+  const { message } = App.useApp();
 
   const fetchContacts = useCallback(
     async (params?: ContactQueryParams) => {
@@ -36,13 +36,10 @@ export const ContactProvider = ({
         );
       } catch (error) {
         dispatch(ContactActions.fetchContactsError());
-        notification.error({
-          title: "Error",
-          description: "Failed to fetch contacts",
-        });
+        message.error("Failed to fetch contacts");
       }
     },
-    [instance, notification],
+    [instance, message],
   );
 
   const fetchContactById = useCallback(
@@ -53,13 +50,10 @@ export const ContactProvider = ({
         dispatch(ContactActions.fetchContactByIdSuccess(response.data));
       } catch (error) {
         dispatch(ContactActions.fetchContactByIdError());
-        notification.error({
-          title: "Error",
-          description: "Failed to fetch contact",
-        });
+        message.error("Failed to fetch contact");
       }
     },
-    [instance, notification],
+    [instance, message],
   );
 
   const fetchContactsByClient = useCallback(
@@ -70,13 +64,10 @@ export const ContactProvider = ({
         dispatch(ContactActions.fetchContactsSuccess(response.data || []));
       } catch (error) {
         dispatch(ContactActions.fetchContactsError());
-        notification.error({
-          title: "Error",
-          description: "Failed to fetch contacts",
-        });
+        message.error("Failed to fetch contacts");
       }
     },
-    [instance, notification],
+    [instance, message],
   );
 
   const createContact = useCallback(
@@ -85,21 +76,15 @@ export const ContactProvider = ({
       try {
         const response = await instance.post("/Contacts", contact);
         dispatch(ContactActions.createContactSuccess(response.data));
-        notification.success({
-          title: "Success",
-          description: "Contact created successfully",
-        });
+        message.success("Contact created successfully");
         return response.data;
       } catch (error) {
         dispatch(ContactActions.createContactError());
-        notification.error({
-          title: "Error",
-          description: "Failed to create contact",
-        });
+        message.error("Failed to create contact");
         throw error;
       }
     },
-    [instance, notification],
+    [instance, message],
   );
 
   const updateContact = useCallback(
@@ -108,19 +93,13 @@ export const ContactProvider = ({
       try {
         const response = await instance.put(`/Contacts/${id}`, contact);
         dispatch(ContactActions.updateContactSuccess(response.data));
-        notification.success({
-          title: "Success",
-          description: "Contact updated successfully",
-        });
+        message.success("Contact updated successfully");
       } catch (error) {
         dispatch(ContactActions.updateContactError());
-        notification.error({
-          title: "Error",
-          description: "Failed to update contact",
-        });
+        message.error("Failed to update contact");
       }
     },
-    [instance, notification],
+    [instance, message],
   );
 
   const deleteContact = useCallback(
@@ -129,19 +108,13 @@ export const ContactProvider = ({
       try {
         await instance.delete(`/Contacts/${id}`);
         dispatch(ContactActions.deleteContactSuccess(id));
-        notification.success({
-          title: "Success",
-          description: "Contact deleted successfully",
-        });
+        message.success("Contact deleted successfully");
       } catch (error) {
         dispatch(ContactActions.deleteContactError());
-        notification.error({
-          title: "Error",
-          description: "Failed to delete contact",
-        });
+        message.error("Failed to delete contact");
       }
     },
-    [instance, notification],
+    [instance, message],
   );
 
   const setPrimaryContact = useCallback(
@@ -150,19 +123,13 @@ export const ContactProvider = ({
       try {
         await instance.put(`/Contacts/${id}/set-primary`);
         dispatch(ContactActions.setPrimaryContactSuccess({ id, clientId }));
-        notification.success({
-          title: "Success",
-          description: "Primary contact set successfully",
-        });
+        message.success("Primary contact set successfully");
       } catch (error) {
         dispatch(ContactActions.setPrimaryContactError());
-        notification.error({
-          title: "Error",
-          description: "Failed to set primary contact",
-        });
+        message.error("Failed to set primary contact");
       }
     },
-    [instance, notification],
+    [instance, message],
   );
 
   const setSelectedContact = useCallback(

@@ -14,7 +14,9 @@ const withPWA = withPWAInit({
 
 const nextConfig: NextConfig = {
   reactCompiler: true,
-  turbopack: {},
+  devIndicators: false,
+  productionBrowserSourceMaps: false,
+  turbopack: {}
 };
 
 export default withPWA(nextConfig);

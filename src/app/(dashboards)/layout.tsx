@@ -118,7 +118,7 @@ const DashboardLayoutContent = ({
           }}
         >
           <Image
-            src="/images/logo.png"
+            src={`/images/logo${isDarkMode ? "-white" : ""}.png`}
             alt="Logo"
             width="100%"
             className={styles.logoImage}

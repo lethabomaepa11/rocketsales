@@ -1,7 +1,7 @@
 "use client";
 
 import { useContext, useReducer, useCallback } from "react";
-import { App } from "antd";
+import { App, message } from "antd";
 import { getAxiosInstance } from "@/utils/axiosInstance";
 import {
   DashboardStateContext,
@@ -29,12 +29,9 @@ export const DashboardProvider = ({
       );
     } catch {
       dispatch(DashboardActions.fetchDashboardError());
-      notification.error({
-        title: "Error",
-        description: "Failed to fetch overview",
-      });
+      message.error("Failed to fetch overview");
     }
-  }, [instance, notification]);
+  }, [instance]);
 
   const fetchPipelineMetrics = useCallback(async () => {
     dispatch(DashboardActions.fetchDashboardPending());
@@ -47,6 +44,7 @@ export const DashboardProvider = ({
       );
     } catch {
       dispatch(DashboardActions.fetchDashboardError());
+      message.error("Failed to fetch pipeline metrics");
     }
   }, [instance]);
 
@@ -61,6 +59,7 @@ export const DashboardProvider = ({
       );
     } catch {
       dispatch(DashboardActions.fetchDashboardError());
+      message.error("Failed to fetch sales performance");
     }
   }, [instance]);
 
@@ -75,6 +74,7 @@ export const DashboardProvider = ({
       );
     } catch {
       dispatch(DashboardActions.fetchDashboardError());
+      message.error("Failed to fetch activities summary");
     }
   }, [instance]);
 
@@ -89,6 +89,7 @@ export const DashboardProvider = ({
       );
     } catch {
       dispatch(DashboardActions.fetchDashboardError());
+      message.error("Failed to fetch expiring contracts");
     }
   }, [instance]);
 

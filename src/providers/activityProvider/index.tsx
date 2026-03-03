@@ -26,7 +26,7 @@ export const ActivityProvider = ({
 }) => {
   const [state, dispatch] = useReducer(ActivityReducer, INITIAL_STATE);
   const instance = getAxiosInstance();
-  const { notification } = App.useApp();
+  const { notification, message } = App.useApp();
 
   const isActivityOwnedByCurrentUser = useCallback((activity: unknown) => {
     const currentUserId = getCurrentUser()?.userId;
@@ -100,13 +100,10 @@ export const ActivityProvider = ({
         );
       } catch {
         dispatch(ActivityActions.fetchActivitiesError());
-        notification.error({
-          title: "Error",
-          description: "Failed to fetch activities",
-        });
+        message.error("Failed to fetch activities");
       }
     },
-    [instance, notification],
+    [instance, message],
   );
 
   const fetchActivityById = useCallback(
@@ -185,19 +182,13 @@ export const ActivityProvider = ({
       try {
         const response = await instance.post("/Activities", activity);
         dispatch(ActivityActions.createActivitySuccess(response.data));
-        notification.success({
-          title: "Success",
-          description: "Activity created",
-        });
+        message.success("Activity created");
       } catch {
         dispatch(ActivityActions.createActivityError());
-        notification.error({
-          title: "Error",
-          description: "Failed to create activity",
-        });
+        message.error("Failed to create activity");
       }
     },
-    [instance, notification],
+    [instance, message],
   );
 
   const updateActivity = useCallback(
@@ -210,19 +201,13 @@ export const ActivityProvider = ({
       try {
         const response = await instance.put(`/Activities/${id}`, activity);
         dispatch(ActivityActions.updateActivitySuccess(response.data));
-        notification.success({
-          title: "Success",
-          description: "Activity updated",
-        });
+        message.success("Activity updated");
       } catch {
         dispatch(ActivityActions.updateActivityError());
-        notification.error({
-          title: "Error",
-          description: "Failed to update activity",
-        });
+        message.error("Failed to update activity");
       }
     },
-    [blockSalesRepMutation, instance, notification],
+    [blockSalesRepMutation, instance, message],
   );
 
   const deleteActivity = useCallback(
@@ -235,19 +220,13 @@ export const ActivityProvider = ({
       try {
         await instance.delete(`/Activities/${id}`);
         dispatch(ActivityActions.deleteActivitySuccess(id));
-        notification.success({
-          title: "Success",
-          description: "Activity deleted",
-        });
+        message.success("Activity deleted");
       } catch {
         dispatch(ActivityActions.deleteActivityError());
-        notification.error({
-          title: "Error",
-          description: "Failed to delete activity",
-        });
+        message.error("Failed to delete activity");
       }
     },
-    [blockSalesRepMutation, instance, notification],
+    [blockSalesRepMutation, instance, message],
   );
 
   const completeActivity = useCallback(
@@ -262,19 +241,13 @@ export const ActivityProvider = ({
           outcome,
         } as CompleteActivityDto);
         dispatch(ActivityActions.updateActivitySuccess(response.data));
-        notification.success({
-          title: "Success",
-          description: "Activity completed",
-        });
+        message.success("Activity completed");
       } catch {
         dispatch(ActivityActions.updateActivityError());
-        notification.error({
-          title: "Error",
-          description: "Failed to complete activity",
-        });
+        message.error("Failed to complete activity");
       }
     },
-    [blockSalesRepMutation, instance, notification],
+    [blockSalesRepMutation, instance, message],
   );
 
   const cancelActivity = useCallback(
@@ -287,19 +260,13 @@ export const ActivityProvider = ({
       try {
         const response = await instance.put(`/Activities/${id}/cancel`);
         dispatch(ActivityActions.updateActivitySuccess(response.data));
-        notification.success({
-          title: "Success",
-          description: "Activity cancelled",
-        });
+        message.success("Activity cancelled");
       } catch {
         dispatch(ActivityActions.updateActivityError());
-        notification.error({
-          title: "Error",
-          description: "Failed to cancel activity",
-        });
+        message.error("Failed to cancel activity");
       }
     },
-    [blockSalesRepMutation, instance, notification],
+    [blockSalesRepMutation, instance, message],
   );
 
   const fetchParticipants = useCallback(
@@ -317,13 +284,10 @@ export const ActivityProvider = ({
         dispatch(ActivityActions.fetchParticipantsSuccess(response.data || []));
       } catch {
         dispatch(ActivityActions.fetchParticipantsError());
-        notification.error({
-          title: "Error",
-          description: "Failed to fetch participants",
-        });
+        message.error("Failed to fetch participants");
       }
     },
-    [ensureSalesRepCanViewActivity, instance, notification],
+    [ensureSalesRepCanViewActivity, instance, message],
   );
 
   const addParticipant = useCallback(
@@ -339,19 +303,13 @@ export const ActivityProvider = ({
           participant,
         );
         dispatch(ActivityActions.addParticipantSuccess(response.data));
-        notification.success({
-          title: "Success",
-          description: "Participant added",
-        });
+        message.success("Participant added");
       } catch {
         dispatch(ActivityActions.addParticipantError());
-        notification.error({
-          title: "Error",
-          description: "Failed to add participant",
-        });
+        message.error("Failed to add participant");
       }
     },
-    [blockSalesRepMutation, instance, notification],
+    [blockSalesRepMutation, instance, message],
   );
 
   return (
